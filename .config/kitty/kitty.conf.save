@@ -1,0 +1,43 @@
+font_family AtkinsonHyperlegibleMono Nerd Font
+font_size 13.0
+bold_font auto
+italic_font auto
+bold_italic_font auto
+
+confirm_os_window_close 0
+
+# Animated cursor
+cursor_trail 1
+
+# change to x11 or wayland or leave auto
+linux_display_server auto
+
+scrollback_lines 2000
+wheel_scroll_min_lines 1
+
+enable_audio_bell no
+
+window_padding_width 4
+
+include colors.conf
+
+
+# --- --- --- ---
+tab_bar_edge top
+tab_bar_style powerline
+tab_powerline_style angled
+tab_title_template " {index}: {title} "
+
+# Kształt: block (blok), beam (kreska |), underline (podkreślenie _)
+cursor_shape beam
+
+# Grubość kreski (tylko dla beam)
+cursor_beam_thickness 1.8
+
+# Miganie: 0 = wyłączone, -1 = domyślne systemowe
+cursor_blink_interval 0.6
+
+# Po jakim czasie kursor ma przestać migać (0 = nigdy)
+cursor_stop_blinking_after 15.0
+
+

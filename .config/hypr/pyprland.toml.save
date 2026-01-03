@@ -1,0 +1,11 @@
+[pyprland]
+plugins = ["scratchpads"]
+
+[scratchpads.term]
+animation = "fromTop"     # Animacja: fromTop, fromBottom, fromLeft, fromRight
+command = "kitty --class kitty-dropterm" # Komenda uruchamiająca
+class = "kitty-dropterm"  # Klasa okna (ważne dla reguł)
+size = "75% 60%"          # Rozmiar okna
+max_size = "1920px 100%"  # Max rozmiar
+unfocus = "hide"          # <--- TO JEST TO CZEGO SZUKASZ (ukryj jak klikniesz poza)
+lazy = true               # Uruchom dopiero przy pierwszym użyciu

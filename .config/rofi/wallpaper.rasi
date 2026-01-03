@@ -1,0 +1,40 @@
+@import "config.rasi"
+
+listbox {
+    padding: 10px;
+}
+
+listview {
+    lines: 5;
+    spacing: 5px;
+    fixed-height: false;
+}
+
+element {
+    orientation: horizontal;
+    padding: 5px;
+    
+    /* TO JEST TA ZMIANA: Odstęp między ikoną a tekstem */
+    spacing: 5px; 
+    
+    background-color: transparent;
+    border-radius: 10px;
+}
+
+element selected {
+    background-color: @primary;
+    text-color: @on-primary;
+}
+
+element-icon {
+    size: 100px;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    background-color: transparent;
+}
+
+element-text {
+    vertical-align: 0.5;
+    background-color: transparent;
+    text-color: inherit;
+}
