@@ -1,0 +1,199 @@
+/*
+ * ajmag's custom dynamic theme for SwayNotificationCenter
+ * Based on jakoolit.css with modifications
+*/
+
+/* --- Color Definitions --- */
+/* These are local aliases for colors imported from Waybar's colors.css. */
+/* They make it easier to understand the theme's color logic. */
+@define-color noti-border-color @primary;
+@define-color noti-bg @surface_container;
+@define-color noti-bg-alt @surface_container_high;
+@define-color noti-bg-hover @surface_container_highest;
+@define-color text-color @on_surface;
+
+/* --- Global Styles --- */
+* {
+    font-family: "AtkinsonHyperlegibleMono Nerd Font";
+    font-weight: bold;
+}
+
+/* --- Main Control Center Window --- */
+.control-center {
+    background: alpha(@surface, 0.95);
+    border: none;
+    color: @text-color;
+    border-radius: 18px; 
+    padding: 10px;
+    margin-right: 10px;
+}
+
+/* --- Title Widget --- */
+.widget-title {
+    color: @text-color;
+    background: @noti-bg-alt;
+    padding: 3px 6px;
+    margin: 5px;
+    font-size: 1rem;
+    border-radius: 10px;
+}
+
+.widget-title>button {
+    font-size: 0.75rem;
+    color: @text-color;
+    border-radius: 10px;
+	background: transparent;
+	border: 1px solid @outline;
+}
+
+.widget-title>button:hover {
+    background: @primary;
+    color: @on_primary;
+}
+
+/* --- MPRIS (Media Player) Widget --- */
+.widget-mpris {
+    margin: 15px 5px;
+    padding: 0;
+}
+
+.widget-mpris-player {
+    background-size: cover;
+    background-position: center;
+    border-radius: 16px;
+    border: 0;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.mpris-background {
+    filter: blur(6px);
+    opacity: 0.8;
+}
+
+.widget-mpris-album-art {
+    border-radius: 8px;
+    margin-right: 10px;
+}
+
+.widget-mpris-title,
+.widget-mpris-subtitle {
+    color: @on_surface;
+    font-weight: bold;
+    text-shadow: 2px 2px 0px @shadow;
+}
+
+.widget-mpris button {
+    color: @on_surface;
+    font-size: 1.8em;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+/* --- Buttons Grid Widget --- */
+.widget-buttons-grid {
+    padding: 5px;
+    margin: 5px;
+    border-radius: 10px;
+    background: @noti-bg-alt;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild {
+    min-height: 40px;
+    min-width: 88px;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button {
+    margin: 3px;
+    background: @noti-bg;
+    border-radius: 10px;
+    color: @text-color;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button label {
+    font-size: 1.8em;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button:hover {
+    background: @primary;
+    color: @on_primary;
+}
+
+/* --- Backlight Slider Widget --- */
+.widget-backlight {
+    padding: 8px 16px;
+}
+
+.widget-backlight label {
+    font-size: 1.5em;
+    margin-right: 15px;
+}
+
+.widget-backlight scale trough {
+  background-color: @noti-bg-alt;
+  border: none;
+  border-radius: 10px;
+  min-height: 12px;
+  min-width: 150px;
+}
+
+.widget-backlight scale trough highlight {
+  background-color: @tertiary;
+  border-radius: 10px;
+}
+
+/* --- Notification Area and Individual Notifications --- */
+
+/* This is the main background for each notification "bubble" */
+.notification-background {
+    background-color: @surface_container_low;
+    border: none;
+    box-shadow: 0px 8px 12px -5px alpha(@shadow, 0.6);
+    border-radius: 16px;
+    padding: 15px;
+    margin: 2px 5px 14px 5px;
+}
+
+/* Styles for elements inside a notification */
+.notification-row .summary,
+.notification-row .time,
+.notification-row .body {
+    background: transparent;
+    color: @text-color;
+    text-shadow: none;
+}
+
+.notification-row .close-button {
+   opacity: 0; 
+   visibility: hidden;
+}
+
+.notification-row .close-button:hover {
+}
+
+.notification-row .notification-action {
+    border: 1px solid @noti-border-color;
+    border-radius: 10px;
+    margin: 5px;
+    background: @noti-bg;
+}
+
+.notification-row .notification-action:hover {
+    background: @noti-bg-hover;
+}
+
+.widget-mpris > box {
+    position: relative;
+}
+
+/* "Wyjmujemy" kontener z przyciskami z normalnego przepływu */
+.widget-mpris .mpris-controls {
+    position: absolute; /* Pozycjonowanie absolutne */
+    bottom: 10px;       /* Odsuń 10px od dolnej krawędzi */
+    right: 15px;        /* Odsuń 15px od prawej krawędzi */
+}
+
+/* Dodajemy trochę marginesu pod tekstem, aby zrobić miejsce na przyciski */
+.widget-mpris .mpris-title-box {
+    margin-bottom: 30px; /* Dostosuj tę wartość, jeśli tekst nachodzi na przyciski */
+}

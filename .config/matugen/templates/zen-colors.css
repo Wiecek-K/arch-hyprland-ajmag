@@ -1,0 +1,10 @@
+:root {
+    --zen-primary: {{colors.primary.default.hex}};
+    --zen-secondary: {{colors.secondary.default.hex}};
+    --zen-tertiary: {{colors.tertiary.default.hex}};
+    --zen-surface: {{colors.surface.default.hex}};
+    --zen-on-surface: {{colors.on_surface.default.hex}};
+    --zen-on-primary: {{colors.on_primary.default.hex}};
+    --zen-outline: {{colors.outline.default.hex}};
+    --zen-surface-container-highest: {{colors.surface_container_highest.default.hex}};
+}

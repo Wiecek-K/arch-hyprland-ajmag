@@ -1,0 +1,10 @@
+/* ----------- 💫 https://github.com/JaKooLit 💫 -------- */
+/* swaync colors - wallust from waybar.css */
+
+#@import '../../.config/waybar/colors.css';
+@import 'themes/control_center.css';
+#@import 'themes/jakoolit.css';
+#@import 'themes/notifications.css';
+#@import 'themes/test.css';
+
+

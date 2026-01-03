@@ -1,0 +1,47 @@
+/* Just Ajmag's things */
+
+{
+"include": [
+  "$HOME/.config/waybar/Modules",
+  "$HOME/.config/waybar/ModulesWorkspaces",
+  "$HOME/.config/waybar/ModulesCustom",
+  "$HOME/.config/waybar/ModulesGroups",
+  "$HOME/.config/waybar/UserModules",
+  ],
+"layer": "bottom",
+//"mode": "dock",
+"exclusive": true,
+"passthrough": false,
+"position": "top",
+"spacing": 3,
+"fixed-center": true,
+"ipc": true,
+"margin-top": 0,
+"margin-left": 0,
+"margin-right": 0,
+
+"modules-left": [
+	//"idle_inhibitor",
+	//"custom/separator#blank",
+	"tray",
+        "custom/separator#line",	
+        //"custom/separator#blank",	
+        "hyprland/workspaces#numbers",
+	],
+
+"modules-center": [
+        "clock",
+	],
+
+"modules-right": [
+        //"mpris",
+        "group/notify",
+	"custom/separator#dot-line",   
+	"custom/separator#blank",  
+	"pulseaudio",
+	"pulseaudio#microphone",
+	"custom/separator#dot-line",
+	"custom/power",
+	],
+}
+
