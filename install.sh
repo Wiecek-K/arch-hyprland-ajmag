@@ -29,13 +29,36 @@ sudo cp system/99-gpu-symlinks.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 
 # 4. Enable Services
+echo -e "${BLUE}Enabling system services...${NC}"
 sudo systemctl enable --now preload
 sudo systemctl enable --now bluetooth
 
-# 5. Wallpapers
-echo -e "${BLUE}Installing wallpapers...${NC}"
-mkdir -p ~/Pictures/wallpapers
-cp -r wallpapers/* ~/Pictures/wallpapers/
+# 5. Wallpapers (Optional Download)
+echo -e "${BLUE}--- WALLPAPERS ---${NC}"
+read -p "Do you want to download the wallpaper pack? (y/N): " download_wallpapers
+
+if [[ "$download_wallpapers" =~ ^[Yy]$ ]]; then
+    echo -e "${BLUE}Downloading wallpapers...${NC}"
+    mkdir -p ~/Pictures/wallpapers
+    
+    # Clone only the images, depth 1 for speed
+    # REPLACE THE URL BELOW WITH YOUR ACTUAL WALLPAPER REPO URL LATER
+    git clone --depth 1 https://github.com/YOUR_USERNAME/ajmag-wallpapers.git ~/Pictures/wallpapers_temp
+    
+    # Move files and cleanup git folder
+    cp -r ~/Pictures/wallpapers_temp/* ~/Pictures/wallpapers/
+    rm -rf ~/Pictures/wallpapers_temp
+    
+    echo "Wallpapers installed."
+    
+    # Set initial wallpaper symlink
+    FIRST_WALL=$(ls ~/Pictures/wallpapers/* | head -n 1)
+    if [ -n "$FIRST_WALL" ]; then
+        ln -sf "$FIRST_WALL" "$HOME/.config/hypr/current_wallpaper"
+    fi
+else
+    echo "Skipping wallpapers. You will need to set a wallpaper manually using Super+W after adding your own images."
+fi
 
 # 6. Dotfiles
 echo -e "${BLUE}Installing dotfiles...${NC}"
