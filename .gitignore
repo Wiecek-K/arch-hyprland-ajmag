@@ -1,3 +1,13 @@
+wallpapers/
 *.jpg
 *.png
-wallpapers/
+*.jpeg
+
+*.log
+*.sock
+*.swp
+*.save
+.DS_Store
+
+.zsh_history
+.bash_history
