@@ -1,8 +1,3 @@
-Jasne, to bardzo ważny gest w społeczności Open Source. Zaktualizowałem sekcję nagłówkową w `README.md`, dodając wyraźne podziękowania dla obu twórców.
-
-Oto ostateczna wersja pliku. Podmień zawartość `~/arch-hyprland-ajmag/README.md` na poniższą:
-
-```markdown
 # Arch Linux + Hyprland (AJMAG Configuration)
 
 ![Arch Linux](https://img.shields.io/badge/Arch_Linux-DISTRO-1793d1?style=for-the-badge&logo=arch-linux)
@@ -125,5 +120,4 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 ├── install.sh              # Automated installer
 ├── pkglist_native.txt      # Official Arch packages
 └── pkglist_aur.txt         # AUR packages
-```
 ```
