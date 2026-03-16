@@ -1,0 +1,77 @@
+/* AJMAG v1.0 - Obsidian Dynamic Theme (Kitty 1:1 Mapping) */
+
+body {
+    /* ==========================================
+       1. TŁA (Zgodnie z Kitty: background)
+       ========================================== */
+    /* Główne tło edytora musi być przezroczyste, by Hyprland nałożył blur */
+    --background-primary: transparent !important;
+    --background-primary-alt: transparent !important;
+    
+    /* Tło paneli bocznych - lekko przyciemnione, by imitować głębię terminala */
+    --background-secondary: rgba(0, 0, 0, 0.20) !important;
+    --background-secondary-alt: transparent !important;
+
+    /* ==========================================
+       2. TEKST I KURSOR (Zgodnie z Kitty: foreground, cursor)
+       ========================================== */
+    --text-normal: {{ colors.on_surface.default.hex }};
+    --text-muted: {{ colors.on_surface_variant.default.hex }};
+    --text-faint: {{ colors.surface_variant.default.hex }};
+    
+    --caret-color: {{ colors.primary.default.hex }};
+    
+    /* ==========================================
+       3. AKCENTY I ZAZNACZENIE
+       ========================================== */
+    /* W Kitty używasz on_primary dla tła zaznaczenia. 
+       W Obsidianie dodajemy do tego przezroczystość (HEX 40), aby tekst pod spodem był czytelny */
+    --text-selection: {{ colors.primary.default.hex }}40;
+    
+    /* Główne akcenty interfejsu (linki, przyciski) */
+    --text-accent: {{ colors.primary.default.hex }};
+    --text-accent-hover: {{ colors.primary.default.hex }};
+    
+    /* ==========================================
+       4. ELEMENTY INTERAKTYWNE (HOVERY NA LISTACH)
+       ========================================== */
+    --background-modifier-hover: {{ colors.surface_container.default.hex }}80;
+    --background-modifier-active-hover: {{ colors.primary_container.default.hex }}80;
+    --interactive-accent: {{ colors.primary_container.default.hex }};
+    --text-on-accent: {{ colors.on_primary_container.default.hex }};
+
+    /* ==========================================
+       5. IKONY I OBRAMOWANIA
+       ========================================== */
+    --icon-color: {{ colors.on_surface_variant.default.hex }};
+    --icon-color-hover: {{ colors.on_surface.default.hex }};
+    --icon-color-active: {{ colors.primary.default.hex }};
+    
+    --background-modifier-border: {{ colors.surface_variant.default.hex }}40;
+}
+
+/* Wymuszenie przezroczystości na głównych kontenerach Obsidiana */
+.app-container, .workspace {
+    background-color: transparent !important;
+}
+
+/* ==========================================
+   6. ZAKŁADKI (Zgodnie z sekcją TAB BAR w Kitty)
+   ========================================== */
+
+/* Puste miejsce na pasku zakładek (tab_bar_background) */
+.workspace-tab-header-container {
+    background-color: {{ colors.surface.default.hex }} !important;
+}
+
+/* Aktywna zakładka (active_tab_background & foreground) */
+.workspace-tab-header.is-active {
+    background-color: {{ colors.primary_container.default.hex }} !important;
+    color: {{ colors.on_primary_container.default.hex }} !important;
+}
+
+/* Nieaktywna zakładka (inactive_tab_background & foreground) */
+.workspace-tab-header:not(.is-active) {
+    background-color: {{ colors.surface_container.default.hex }} !important;
+    color: {{ colors.on_surface_variant.default.hex }} !important;
+}

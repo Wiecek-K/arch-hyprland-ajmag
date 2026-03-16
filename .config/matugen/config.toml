@@ -47,3 +47,9 @@ output_path = '~/.config/vesktop/themes/matugen.css'
 [templates.zen]
 input_path = '~/.config/matugen/templates/zen-colors.css'
 output_path = '/home/ajmag/.zen/okor3zze.Default (release)/chrome/matugen-colors.css'
+
+[templates.obsidian]
+input_path = '~/.config/matugen/templates/obsidian.css'
+output_path = '~/Storage/ajmag/Documents/Obsidian Vault/.obsidian/snippets/matugen-colors.css'
+
+
