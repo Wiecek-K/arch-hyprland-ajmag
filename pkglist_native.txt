@@ -35,6 +35,7 @@ hyphen
 hypridle
 hyprland
 hyprlock
+hyprpaper
 hyprpicker
 hyprsunset
 intel-gpu-tools
@@ -86,7 +87,6 @@ steam
 sudo
 swappy
 swaync
-swww
 texinfo
 tree
 ttf-atkinson-hyperlegible
