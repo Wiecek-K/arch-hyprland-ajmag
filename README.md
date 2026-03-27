@@ -22,6 +22,13 @@ This configuration prioritizes **text clarity** ("High Visibility Mode") and **d
     *   **Text-Heavy Apps:** (Browsers, IDEs, Discord) maintain 95-100% opacity even when inactive to prevent eye strain.
     *   **Background Apps:** (File managers, settings) fade to 80% opacity when inactive.
 
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/cb734e5d-62e6-49d3-9b4f-ccea77971446" />
+<img width="1920" height="1076" alt="image" src="https://github.com/user-attachments/assets/9e62d346-622d-49d1-8736-a9c9b95bf142" />
+<img width="1916" height="1078" alt="image" src="https://github.com/user-attachments/assets/e773cce5-320e-49f8-a44f-4b0f338ae9b8" />
+<img width="1917" height="1070" alt="image" src="https://github.com/user-attachments/assets/466763b2-cf65-4771-8370-a36f2bc5e9f2" />
+
+
+
 ### ⚙️ System & Hardware
 *   **Hybrid Graphics Support:** Optimized for Pascal architecture (GTX 1050).
     *   Includes custom `udev` rules to create stable symlinks (`/dev/dri/intel-card`, `/dev/dri/nvidia-card`), preventing Hyprland crashes on boot.
@@ -33,6 +40,8 @@ This configuration prioritizes **text clarity** ("High Visibility Mode") and **d
     *   Failsafe mechanism to prevent black screens when disconnecting HDMI.
 
 ---
+
+
 
 ## 📦 Installation
 
