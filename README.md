@@ -27,7 +27,8 @@ This configuration prioritizes **text clarity** ("High Visibility Mode") and **d
 <img width="1916" height="1078" alt="image" src="https://github.com/user-attachments/assets/e773cce5-320e-49f8-a44f-4b0f338ae9b8" />
 <img width="1917" height="1070" alt="image" src="https://github.com/user-attachments/assets/466763b2-cf65-4771-8370-a36f2bc5e9f2" />
 <img width="1917" height="1066" alt="image" src="https://github.com/user-attachments/assets/00501aa3-9755-4230-91c5-dbb38dfe03b3" />
-<img width="1922" height="1079" alt="image" src="https://github.com/user-attachments/assets/da3a7d05-59b8-4d90-aaaa-d7557504165d" />
+<img width="1917" height="1077" alt="image" src="https://github.com/user-attachments/assets/a0024708-cdad-4a33-9909-44a8b4ea50a0" />
+
 
 
 
