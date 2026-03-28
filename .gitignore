@@ -2,6 +2,7 @@ wallpapers/
 *.jpg
 *.png
 *.jpeg
+wallpapers/
 
 *.log
 *.sock
@@ -11,3 +12,5 @@ wallpapers/
 
 .zsh_history
 .bash_history
+
+.config/hypr/colors.conf
