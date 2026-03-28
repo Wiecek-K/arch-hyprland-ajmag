@@ -5,113 +5,23 @@
 export ZSH="/usr/share/oh-my-zsh"
 export ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
 
-
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time Oh My Zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+# Set name of the theme to load
 ZSH_THEME="robbyrussell"
 
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
+# Plugins
 plugins=(
 	git 
 	zsh-autosuggestions
 	zsh-syntax-highlighting
 )
+
 # Plugin Edit
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=6'
-
 
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
 # export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='nvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch $(uname -m)"
-
-# Set personal aliases, overriding those provided by Oh My Zsh libs,
-# plugins, and themes. Aliases can be placed here, though Oh My Zsh
-# users are encouraged to define aliases within a top-level file in
-# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
-# - $ZSH_CUSTOM/aliases.zsh
-# - $ZSH_CUSTOM/macos.zsh
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
 
 # Source .zprofile if it exists
 [[ -f ~/.zprofile ]] && source ~/.zprofile
@@ -124,7 +34,117 @@ case ":$PATH:" in
 esac
 # pnpm end
 
+# --- CUSTOM FUNCTIONS & ALIASES ---
+
 # Function to run gedit in background and detach from terminal
 gedit() {
     command gedit "$@" > /dev/null 2>&1 &|
+}
+
+# Alias to copy stdin to system clipboard (Wayland)
+alias clip="wl-copy"
+
+# ==========================================
+# SYSTEM MAINTENANCE TOOLS (Arch/Hyprland)
+# ==========================================
+
+# 1. RAM Management
+# Usage: my-fixram
+function my-fixram() {
+    echo "--- [RAM] Flushing buffers (PageCache, dentries, inodes) ---"
+    sync
+    echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
+    echo "--- [RAM] Done. Memory cleared. ---"
+}
+
+# 2. Storage & System Cleanup (Pacman, Yay, Nautilus)
+# Usage: my-sysclean
+function my-sysclean() {
+    echo "--- [1/5] Removing orphan packages ---"
+    if pacman -Qtdq > /dev/null 2>&1; then
+        sudo pacman -Rns $(pacman -Qtdq)
+    else
+        echo "No orphans found."
+    fi
+
+    echo "--- [2/5] Cleaning package cache ---"
+    sudo rm -rf /var/cache/pacman/pkg/download-* 2>/dev/null
+    yay -Sc
+
+    echo "--- [3/5] Removing unused make-dependencies ---"
+    yay -Yc
+
+    echo "--- [4/5] Vacuuming system logs ---"
+    sudo journalctl --vacuum-time=2weeks
+
+    echo "--- [5/5] Clearing user cache ---"
+    rm -rf ~/.cache/thumbnails/*
+    rm -rf ~/.local/share/Trash/*
+
+    echo "--- [SYS] System maintenance complete! ---"
+}
+
+# 3. Development Cleanup (Project post-mortem)
+# Usage: my-devclean
+function my-devclean() {
+    echo "--- [DEV] Cleaning NPM cache ---"
+    npm cache clean --force
+
+    echo "--- [DEV] Purging PIP (Python) cache ---"
+    pip cache purge
+
+    echo "--- [DEV] Pruning Docker (stopped containers, unused networks, dangling images) ---"
+    docker system prune
+
+    echo "--- [DEV] Cleanup finished. ---"
+}
+
+get-folder-context() {
+  local target_path=$1
+
+  if [ -z "$target_path" ]; then
+    echo "❌ Error: Please provide a relative path."
+    return 1
+  fi
+
+  if [ ! -d "$target_path" ]; then
+    echo "❌ Error: Directory '$target_path' does not exist."
+    return 1
+  fi
+
+  (
+    echo "--- START OF DIRECTORY CONTEXT: $target_path ---"
+    echo "--- DIRECTORY STRUCTURE ---"
+    tree -L 6 "$target_path" --gitignore
+    echo -e "\n"
+
+    find "$target_path" -type f | while read -r file; do
+      echo "--- FILE: $file ---"
+      cat "$file"
+      echo -e "\n"
+    done
+    echo "--- END OF DIRECTORY CONTEXT ---"
+  ) | wl-copy
+
+  echo "✅ Context for '$target_path' copied to clipboard!"
+}
+
+# --- NVM (Node Version Manager) ---
+# Zakomentowane dla szybkosci startu terminala.
+# Odkomentuj tylko jesli potrzebujesz zmieniac wersje Node.js
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# --- SPICETIFY FIX ---
+# One command to fix Spotify after an update
+my-fix-spicetify() {
+    echo "🔧 Fixing permissions for Spotify folder..."
+    sudo chmod a+wr /opt/spotify
+    sudo chmod a+wr /opt/spotify/Apps -R
+    
+    echo "🎨 Applying Spicetify theme..."
+    spicetify backup apply
+    
+    echo "✅ Done! If Spotify is running, please restart it."
 }
