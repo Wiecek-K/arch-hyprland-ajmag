@@ -15,7 +15,7 @@ This configuration prioritizes **text clarity** ("High Visibility Mode") and **d
 
 ### 🎨 Visual Identity
 *   **Dynamic Theming:** System-wide colors generated from your wallpaper using `Matugen`.
-    *   *Affected apps:* Waybar, Kitty, Rofi, Hyprland borders, Zen Browser (via userChrome.css).
+    *   *Affected apps:* Waybar, Kitty, Rofi, Hyprland borders, Zen Browser (via userChrome.css), Spotify (via Spicetyfy).
 *   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Terminal/Code) for maximum readability.
 *   **High Visibility Mode:**
     *   **Active Windows:** 100% opacity + colored border (3px).
