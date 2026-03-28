@@ -12,6 +12,7 @@ SELECTED_WALL=$(for a in $(ls -t *.jpg *.png *.gif *.jpeg 2>/dev/null); do echo 
 SELECTED_PATH="$WALLPAPER_DIR/$SELECTED_WALL"
 
 matugen image "$SELECTED_PATH"
+swaync-client -rs
 
 mkdir -p "$(dirname "$SYMLINK_PATH")"
 ln -sf "$SELECTED_PATH" "$SYMLINK_PATH"
