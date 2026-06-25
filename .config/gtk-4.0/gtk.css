@@ -1,0 +1,12 @@
+@import 'colors.css';
+
+window, dialog, .background {
+    background-color: @window_bg_color;
+    color: @window_fg_color;
+}
+
+* {
+    --accent-color: @accent_color;
+    --accent-bg-color: @accent_color;
+    --accent-fg-color: @accent_fg_color;
+}

@@ -1,0 +1,12 @@
+# Intel iGPU as primary compositor, NVIDIA for offload via prime-run
+# export GBM_BACKEND=nvidia-drm
+# export __GLX_VENDOR_LIBRARY_NAME=nvidia
+export LIBVA_DRIVER_NAME=iHD
+export WLR_NO_HARDWARE_CURSORS=1
+export __GL_VRR_ALLOWED=0
+
+# Intel (intel-card) as primary, NVIDIA (nvidia-card) as secondary.
+export AQ_DRM_DEVICES="/dev/dri/intel-card:/dev/dri/nvidia-card"
+
+# Force CUDA operations on NVIDIA
+export CUDA_VISIBLE_DEVICES=0
