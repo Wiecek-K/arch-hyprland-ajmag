@@ -5,7 +5,7 @@ export LIBVA_DRIVER_NAME=iHD
 export WLR_NO_HARDWARE_CURSORS=1
 export __GL_VRR_ALLOWED=0
 
-# Intel (intel-card) jako primary, NVIDIA (nvidia-card) jako secondary.
+# Intel (intel-card) as primary, NVIDIA (nvidia-card) as secondary.
 export AQ_DRM_DEVICES="/dev/dri/intel-card:/dev/dri/nvidia-card"
 
 # Force CUDA operations on NVIDIA
