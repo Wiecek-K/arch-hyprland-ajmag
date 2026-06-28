@@ -14,3 +14,11 @@ wallpapers/
 .bash_history
 
 .config/hypr/colors.conf
+
+# matugen-generated color outputs (regenerated on wallpaper change)
+.config/rofi/colors.rasi
+.config/waybar/colors.css
+.config/kitty/colors.conf
+.config/gtk-3.0/colors.css
+.config/gtk-4.0/colors.css
+.config/cava/config
