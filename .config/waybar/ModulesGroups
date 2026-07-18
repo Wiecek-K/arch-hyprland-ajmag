@@ -58,7 +58,7 @@
 	"orientation": "inherit",
 	"drawer": {
 		"transition-duration": 500,
-		"children-class": "pulseaudio",
+		"children-class": "audio-group-child",
 		"transition-left-to-right": true
         },
 	"modules": [
