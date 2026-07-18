@@ -196,8 +196,25 @@ tooltip label{
 	color: #39FF14;
 }
 
-#pulseaudio.muted {
+#pulseaudio:not(.microphone) {
+	min-width: 60px;
+}
+#pulseaudio.microphone {
+	min-width: 80px;
+	padding:0;
+}
+#pulseaudio.sink-muted:not(.microphone) {
 	color: #cc3436;
+}
+#pulseaudio.microphone.source-muted {
+	color: #cc3436;
+	padding:0;
+}
+#custom-power {
+	padding: 0;
+	padding-right:2px;
+	padding-bottom:1px;
+	min-width: 37px; 
 }
 #temperature.critical {
 	color: red;
