@@ -86,6 +86,14 @@ if [ -f "$HOME/.zshrc" ]; then
 fi
 cp "home_files/.zshrc" "$HOME/.zshrc"
 
+# 6.5. Cursor Themes
+echo -e "${BLUE}Installing cursor themes...${NC}"
+mkdir -p "$HOME/.local/share/icons"
+cp -r "local/share/icons/Vimix-hyprcursor" "$HOME/.local/share/icons/"
+cp -r "local/share/icons/Vimix-cursors"    "$HOME/.local/share/icons/"
+gsettings set org.gnome.desktop.interface cursor-theme 'Vimix-cursors'
+gsettings set org.gnome.desktop.interface cursor-size 24
+
 # 7. Permissions & Fixes
 chmod +x $HOME/.config/hypr/scripts/*.sh
 
