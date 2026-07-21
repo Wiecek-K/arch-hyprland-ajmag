@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Cursor Hotspot Test</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #1a1a1a;
+  color: #eee;
+  font-family: monospace;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 40px;
+}
+h1 { font-size: 16px; color: #aaa; }
+
+/* --- SELECT --- */
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 400px;
+}
+select {
+  flex: 1;
+  background: #222;
+  color: #eee;
+  border: 1px solid #444;
+  padding: 6px 8px;
+  font-family: monospace;
+  font-size: 13px;
+  border-radius: 4px;
+}
+select:focus { outline: 1px solid #666; }
+.cursor-name {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* --- TARGET --- */
+.target-wrap {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  background: #111;
+  border: 1px solid #333;
+}
+.crosshair {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px; height: 60px;
+  background: #ff4444;
+  pointer-events: none;
+}
+.crosshair::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px; height: 1px;
+  background: #ff4444;
+}
+.dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px; height: 4px;
+  background: #ff4444;
+  border-radius: 50%;
+}
+.click-mark {
+  position: absolute;
+  width: 8px; height: 8px;
+  background: #44ff44;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.9;
+}
+.center-label {
+  position: absolute;
+  top: calc(50% + 8px); left: calc(50% + 8px);
+  font-size: 10px;
+  color: #ff4444;
+  pointer-events: none;
+}
+
+/* --- LOG --- */
+.log {
+  width: 400px;
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.8;
+}
+.log span { color: #44ff44; }
+.log .bad { color: #ff4444; }
+.log .ok { color: #44ff44; }
+
+.legend {
+  font-size: 11px;
+  color: #555;
+  width: 400px;
+  line-height: 1.8;
+}
+</style>
+</head>
+<body>
+<h1>Cursor Hotspot Test — kliknij w środek krzyżyka</h1>
+
+<div class="controls">
+  <select id="cursorSelect" onchange="setCursor(this.value)">
+    <optgroup label="Podstawowe">
+      <option value="default">default</option>
+      <option value="pointer">pointer</option>
+      <option value="context-menu">context-menu</option>
+      <option value="help">help</option>
+      <option value="crosshair">crosshair</option>
+      <option value="cell">cell</option>
+    </optgroup>
+    <optgroup label="Tekst">
+      <option value="text">text</option>
+      <option value="vertical-text">vertical-text</option>
+    </optgroup>
+    <optgroup label="Przeciąganie">
+      <option value="move">move</option>
+      <option value="grab">grab</option>
+      <option value="grabbing">grabbing</option>
+      <option value="all-scroll">all-scroll</option>
+      <option value="copy">copy</option>
+      <option value="alias">alias</option>
+      <option value="no-drop">no-drop</option>
+      <option value="not-allowed">not-allowed</option>
+    </optgroup>
+    <optgroup label="Zmiana rozmiaru — krawędzie">
+      <option value="n-resize">n-resize</option>
+      <option value="s-resize">s-resize</option>
+      <option value="e-resize">e-resize</option>
+      <option value="w-resize">w-resize</option>
+      <option value="ne-resize">ne-resize</option>
+      <option value="nw-resize">nw-resize</option>
+      <option value="se-resize">se-resize</option>
+      <option value="sw-resize">sw-resize</option>
+    </optgroup>
+    <optgroup label="Zmiana rozmiaru — dwukierunkowe">
+      <option value="ew-resize">ew-resize</option>
+      <option value="ns-resize">ns-resize</option>
+      <option value="nesw-resize">nesw-resize</option>
+      <option value="nwse-resize">nwse-resize</option>
+      <option value="col-resize">col-resize</option>
+      <option value="row-resize">row-resize</option>
+    </optgroup>
+    <optgroup label="Zoom">
+      <option value="zoom-in">zoom-in</option>
+      <option value="zoom-out">zoom-out</option>
+    </optgroup>
+    <optgroup label="Ładowanie">
+      <option value="wait">wait</option>
+      <option value="progress">progress</option>
+    </optgroup>
+  </select>
+  <span class="cursor-name" id="cursorLabel">default</span>
+</div>
+
+<div class="target-wrap" id="target" style="cursor:default">
+  <div class="crosshair"></div>
+  <div class="dot"></div>
+  <div class="center-label">center (200,200)</div>
+</div>
+
+<div class="log" id="log">Oczekiwanie na kliknięcie…</div>
+
+<div class="legend">
+  <div>🔴 krzyżyk = środek obszaru (200,200)</div>
+  <div>🟢 kropka = miejsce zarejestrowanego kliknięcia</div>
+  <div>Ideał: zielona kropka nakrywa czerwony środek</div>
+  <div>Odchyłka &gt; 2px → błędny hotspot</div>
+</div>
+
+<script>
+const target = document.getElementById('target');
+const log = document.getElementById('log');
+const CENTER = { x: 200, y: 200 };
+let clickCount = 0;
+
+function setCursor(val) {
+  target.style.cursor = val;
+  document.getElementById('cursorLabel').textContent = val;
+  target.querySelectorAll('.click-mark').forEach(el => el.remove());
+  clickCount = 0;
+  log.innerHTML = 'Oczekiwanie na kliknięcie…';
+}
+
+target.addEventListener('click', (e) => {
+  const rect = target.getBoundingClientRect();
+  const x = Math.round(e.clientX - rect.left);
+  const y = Math.round(e.clientY - rect.top);
+  const dx = x - CENTER.x;
+  const dy = y - CENTER.y;
+  const dist = Math.round(Math.sqrt(dx*dx + dy*dy));
+
+  // Remove old marks
+  target.querySelectorAll('.click-mark').forEach(el => el.remove());
+
+  // New mark
+  const mark = document.createElement('div');
+  mark.className = 'click-mark';
+  mark.style.left = x + 'px';
+  mark.style.top = y + 'px';
+  target.appendChild(mark);
+
+  clickCount++;
+  const quality = dist <= 2 ? '<span class="ok">✓ DOBRY</span>'
+                : dist <= 5 ? '<span class="bad">~ ODCHYŁKA</span>'
+                            : '<span class="bad">✗ ZŁY HOTSPOT</span>';
+
+  log.innerHTML = `
+    Kliknięcie #${clickCount}<br>
+    Zarejestrowane: <span>${x}, ${y}</span><br>
+    Środek:         <span>${CENTER.x}, ${CENTER.y}</span><br>
+    Odchyłka:       <span>dx=${dx > 0 ? '+':''}${dx}, dy=${dy > 0 ? '+':''}${dy} (${dist}px)</span><br>
+    Ocena:          ${quality}
+  `;
+});
+</script>
+</body>
+</html>
