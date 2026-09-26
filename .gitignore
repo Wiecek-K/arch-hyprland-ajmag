@@ -14,6 +14,7 @@ wallpapers/
 .bash_history
 
 .config/hypr/colors.conf
+.config/hypr/colors.lua
 
 # matugen-generated color outputs (regenerated on wallpaper change)
 .config/rofi/colors.rasi

@@ -10,6 +10,7 @@ cava
 chromium
 cpupower
 discord
+distrobox
 dkms
 docker
 docker-buildx
@@ -17,6 +18,7 @@ docker-compose
 dosfstools
 evtest
 exfat-utils
+ex-vi-compat
 file-roller
 firefox
 flatpak
@@ -43,6 +45,7 @@ hyprland
 hyprlock
 hyprpaper
 hyprpicker
+hyprpolkitagent
 hyprpwcenter
 hyprshot
 intel-gpu-tools
@@ -88,6 +91,7 @@ pipewire-audio
 pipewire-jack
 pipewire-pulse
 pnpm
+podman
 polkit-kde-agent
 reflector
 rofi
