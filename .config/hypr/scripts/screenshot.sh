@@ -35,4 +35,5 @@ LOCAL_Y=$(( Y_COORD - MON_Y ))
 TMP_IMG="/tmp/satty_capture.png"
 grim -g "$GEOM" "$TMP_IMG"
 
-hyprctl dispatch exec "[float; move $LOCAL_X $LOCAL_Y] satty --filename $TMP_IMG --early-exit --copy-command wl-copy --output-filename ~/Pictures/Screenshots/satty-$(date '+%Y%m%d-%H%M%S').png"
+SATTY_CMD="satty --filename $TMP_IMG --early-exit --copy-command wl-copy --output-filename ~/Pictures/Screenshots/satty-$(date '+%Y%m%d-%H%M%S').png"
+hyprctl dispatch "hl.dsp.exec_cmd([[$SATTY_CMD]], { float = true, move = { $LOCAL_X, $LOCAL_Y } })"

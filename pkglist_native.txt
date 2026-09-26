@@ -43,6 +43,7 @@ hyprland
 hyprlock
 hyprpaper
 hyprpicker
+hyprpolkitagent
 hyprpwcenter
 hyprshot
 intel-gpu-tools

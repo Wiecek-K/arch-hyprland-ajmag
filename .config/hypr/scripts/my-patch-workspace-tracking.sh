@@ -3,7 +3,7 @@
 # List of applications that don't track workspaces correctly (e.g., Electron apps)
 APPS=("spotify" "discord" "obsidian" "code" "steam")
 SRC="/usr/share/applications"
-DEST="$HOME/.local/share/applications"
+DEST="${DEST:-$HOME/.local/share/applications}"
 
 mkdir -p "$DEST"
 
@@ -23,7 +23,8 @@ for app in "${APPS[@]}"; do
 
             # Patch the Exec line once, incorporating extra flags if present
             # Using ',' as sed delimiter to avoid collision with '|'
-            sed -i "s,^Exec=\(.*\),Exec=sh -c 'hyprctl dispatch exec \"[workspace \$(hyprctl activeworkspace -j | jq -r .id)] \1$EXTRA_FLAGS\"'," "$DEST/$app.desktop"
+            # Lua (Hyprland 0.56+): komenda w długim stringu [[...]] — bez problemów z cudzysłowami
+            sed -i "s,^Exec=\(.*\),Exec=sh -c 'hyprctl dispatch \"hl.dsp.exec_cmd([[\1$EXTRA_FLAGS]]\, { workspace = tostring(\$(hyprctl activeworkspace -j | jq -r .id)) })\"'," "$DEST/$app.desktop"
             
         else
             echo "$app.desktop is already patched."
