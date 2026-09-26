@@ -13,6 +13,7 @@ nvidia-580xx-utils
 oh-my-zsh-git
 playwright
 preload
+r2modman-bin
 slack-desktop
 spicetify-cli
 spotify
