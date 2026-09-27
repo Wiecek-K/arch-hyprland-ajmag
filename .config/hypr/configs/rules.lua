@@ -21,46 +21,46 @@ hl.window_rule({
     size    = { 900, 506 },
 })
 hl.window_rule({ name = "windowrule-2", match = { tag = "settings*" }, opacity = "0.8 override 0.8 override", float = true })
-hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.8 override 0.8 override" })
+hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.85 override 0.7 override" })
 hl.window_rule({ name = "windowrule-4", match = { class = "^(org.gnome.TextEditor|mousepad)$" }, opacity = "0.9 override 0.9 override" })
 hl.window_rule({
     name    = "windowrule-5",
     match   = { class = "^(org.pulseaudio.pavucontrol)$" },
-    opacity = "0.9 override 0.9 override",
+    opacity = "0.9 override 0.7 override",
     float   = true,
     size    = "(monitor_w*0.5) (monitor_h*0.6)",
 })
 hl.window_rule({ name = "satty-float", match = { class = ".*satty.*" }, float = true })
 
--- Kitty: aktywne 0.85 | nieaktywne 0.7 | fullscreen 1.0
-hl.window_rule({ name = "windowrule-6", match = { class = "^(kitty)$" }, opacity = "0.85 override 0.7 override 1.0 override" })
--- Spotify
-hl.window_rule({ name = "windowrule-7", match = { class = "^(spotify)$" }, opacity = "0.91 override 0.8 override 1.0 override" })
+-- Kitty: aktywne 0.89 | nieaktywne 0.7 (fullscreen: domyślne 1.0)
+hl.window_rule({ name = "windowrule-6", match = { class = "^(kitty)$" }, opacity = "0.89 override 0.7 override" })
+-- Spotify (klasa okna "Spotify" przez XWayland — stare ^(spotify)$ nigdy nie pasowało; poprawione 2026-09-27)
+hl.window_rule({ name = "windowrule-7", match = { class = "^([Ss]potify)$" }, opacity = "0.9 override 0.75 override" })
 
 -- === WYSOKA WIDOCZNOŚĆ ===
 -- Przeglądarki
 hl.window_rule({
     name    = "windowrule-8",
     match   = { class = "^(firefox|org.mozilla.firefox|[Cc]hromium|[Gg]oogle-chrome|brave-browser|zen)$" },
-    opacity = "1.0 override 0.95 override 1.0 override",
+    opacity = "1.0 override 0.95 override",
 })
 -- Edytory kodu
 hl.window_rule({
     name    = "windowrule-9",
     match   = { class = "^(code-oss|vscode|code|jetbrains-.*|Alacritty|gedit)$" },
-    opacity = "1.0 override 1.0 override 1.0 override",
+    opacity = "0.97 override 0.91 override",
 })
 -- Komunikatory
 hl.window_rule({
     name    = "windowrule-10",
     match   = { class = "^(vesktop|discord|org.telegram.desktop|Slack)$" },
-    opacity = "1.0 override 0.95 override 1.0 override",
+    opacity = "1.0 override 0.95 override",
 })
 -- Notatki
 hl.window_rule({
     name    = "windowrule-11",
     match   = { class = "^(obsidian|Logseq)$" },
-    opacity = "0.98 override 0.94 override 1.0 override",
+    opacity = "0.98 override 0.94 override",
 })
 
 -- === WARSTWY ===
