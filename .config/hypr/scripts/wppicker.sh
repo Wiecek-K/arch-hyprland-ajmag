@@ -35,7 +35,8 @@ done | rofi -dmenu -theme ~/.config/rofi/wallpaper.rasi -p "Wallpaper")
 [ -z "$SELECTED_WALL" ] && exit 1
 SELECTED_PATH="$WALLPAPER_DIR/$SELECTED_WALL"
 
-matugen image "$SELECTED_PATH"
+# matugen 4.x przy kilku kolorach źródłowych pyta interaktywnie (bez terminala = błąd); 0 = najbardziej dominujący, jak domyślnie w 3.0
+matugen image --source-color-index 0 "$SELECTED_PATH"
 swaync-client -rs
 
 mkdir -p "$(dirname "$SYMLINK_PATH")"
