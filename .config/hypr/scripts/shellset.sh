@@ -53,7 +53,7 @@ stop_ajmashell() {
         [[ "$(active)" == ajmashell ]] || return 0
         sleep 0.1
     done
-    echo "shellset: ajmashell still running after qs kill" >&2
+    echo "shellset: Ajmashell still running after qs kill" >&2
     return 1
 }
 

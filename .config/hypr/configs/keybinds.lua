@@ -30,7 +30,7 @@ bind(M .. " + D", "App launcher", exec(v.menu))
 bind(M .. " + O", "Toggle pseudotile", dsp.window.pseudo()) -- dwindle
 bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
 bind(M .. " + R", "Restart bar (active shell set)", exec(v.scripts .. "/shellset.sh restart"))
-bind(M .. " + SHIFT + R", "Switch Waybar + swaync / ajmashell", exec(v.scripts .. "/shellset.sh toggle"))
+bind(M .. " + SHIFT + R", "Switch Waybar + swaync / Ajmashell", exec(v.scripts .. "/shellset.sh toggle"))
 bind(M .. " + B", "Web browser", exec('xdg-open "https://"')) -- domyślna przeglądarka
 bind(M .. " + L", "Power menu", exec(v.scripts .. "/Wlogout.sh"))
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
@@ -40,7 +40,7 @@ bind(M .. " + SHIFT + Q", "Kill active window process", exec(v.scripts .. "/Kill
 bind(M .. " + C", "Color picker", exec("hyprpicker -a"))
 bind(M .. " + CTRL + B", "Waybar style", exec(v.scripts .. "/WaybarStyles.sh"))
 bind(M .. " + ALT + B", "Waybar layout", exec(v.scripts .. "/WaybarLayout.sh"))
-bind(M .. " + H", "Hide/show bar", exec(v.scripts .. "/shellset.sh hide")) -- Waybar: SIGUSR1, ajmashell: IpcHandler
+bind(M .. " + H", "Hide/show bar", exec(v.scripts .. "/shellset.sh hide")) -- Waybar: SIGUSR1, Ajmashell: IpcHandler
 bind(M .. " + SHIFT + E", "Yazi in terminal", exec("kitty yazi"))
 bind(M .. " + F1", "Game mode (visual effects)", fn.gamemode) -- gamemode: przełącza efekty wizualne
 
