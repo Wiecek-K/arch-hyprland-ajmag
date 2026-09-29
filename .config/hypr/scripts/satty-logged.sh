@@ -29,7 +29,14 @@ while kill -0 "$pid" 2>/dev/null; do
     state=$(awk '{print $3}' "/proc/$pid/stat" 2>/dev/null)
     wchan=$(cat "/proc/$pid/wchan" 2>/dev/null)
     children=$(ps --ppid "$pid" -o comm=,pid=,stat= 2>/dev/null | tr -s ' ' | paste -sd ';')
-    log "    +$((SECONDS - start))s state=$state wchan=${wchan:-?} children=[${children}]"
+    # busy threads (state R) by name, e.g. the GTK main thread or a renderer thread spinning
+    busy=$(ps -L -p "$pid" -o stat=,comm= 2>/dev/null | awk '$1 ~ /^R/ {print $2}' | sort | uniq -c |
+        awk '{print $2 "x" $1}' | paste -sd ',')
+    log "    +$((SECONDS - start))s state=$state wchan=${wchan:-?} busy=[${busy}] children=[${children}]"
+    if [[ -z "$gpu_logged" ]]; then # which GPU satty renders on (renderD128 / renderD129, card*)
+        gpu_logged=1
+        log "    gpu: $(find "/proc/$pid/fd" -lname '/dev/dri/*' -printf '%l\n' 2>/dev/null | sort -u | paste -sd ' ')"
+    fi
 done
 
 wait "$pid"
