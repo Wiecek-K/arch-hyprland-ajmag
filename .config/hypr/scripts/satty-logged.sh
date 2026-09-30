@@ -5,6 +5,9 @@
 # Per run: start line with the arguments, satty's own stdout/stderr (RUST_BACKTRACE=1),
 # every 2 s while it runs: process state, what the main thread waits on (wchan), child
 # processes (e.g. wl-copy from --copy-command); end line with exit code / signal and run time.
+# If satty's main thread stays busy (state R) for two samples in a row, the script dumps the
+# stacks of all satty threads (eu-stack, module names only) and ends there: Yama ptrace_scope=1
+# lets only an ancestor read the stack, so the wrapper exec()s into eu-stack. No end line then.
 # Called from screenshot.sh. Parked issue: ~/Projects/hyprland-lua-migration/plan/zaparkowane.md
 
 LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/satty"
@@ -33,6 +36,15 @@ while kill -0 "$pid" 2>/dev/null; do
     busy=$(ps -L -p "$pid" -o stat=,comm= 2>/dev/null | awk '$1 ~ /^R/ {print $2}' | sort | uniq -c |
         awk '{print $2 "x" $1}' | paste -sd ',')
     log "    +$((SECONDS - start))s state=$state wchan=${wchan:-?} busy=[${busy}] children=[${children}]"
+    if [[ ",$busy," == *",satty"x* ]]; then
+        if ((spinning)); then
+            log "=== main thread busy for 2 samples: stacks of all threads (wrapper ends here, satty keeps running)"
+            DEBUGINFOD_URLS='' exec eu-stack -p "$pid" -m >> "$LOG" 2>&1
+        fi
+        spinning=1
+    else
+        spinning=0
+    fi
     if [[ -z "$gpu_logged" ]]; then # which GPU satty renders on (renderD128 / renderD129, card*)
         gpu_logged=1
         log "    gpu: $(find "/proc/$pid/fd" -lname '/dev/dri/*' -printf '%l\n' 2>/dev/null | sort -u | paste -sd ' ')"
