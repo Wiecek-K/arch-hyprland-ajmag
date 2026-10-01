@@ -49,7 +49,9 @@ post_hook = "pkill -USR1 cava"
 [templates.spicetify]
 input_path = '~/.config/matugen/templates/spotify-colors.ini'
 output_path = '~/.config/spicetify/Themes/text/color.ini'
-post_hook = "spicetify apply -n"
+# In the background: spicetify takes ~1–1.9 s and matugen waits for each hook before the next templates
+# (gtk4, vesktop were written ~1 s late; measured 2026-10-01, ticket 19)
+post_hook = "setsid -f spicetify apply -n >/dev/null 2>&1"
 
 [templates.vesktop]
 input_path = '~/.config/matugen/templates/midnight-discord.css'
