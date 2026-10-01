@@ -1,7 +1,10 @@
 #!/bin/bash
+# SUPER+W. With the Ajmashell set active the shell's wallpaper carousel opens instead of rofi (ticket 19).
+if [[ "$("$HOME/.config/hypr/scripts/shellset.sh" active)" == ajmashell ]]; then
+    exec qs -c ajmashell ipc call wallpaper toggle
+fi
 
 WALLPAPER_DIR="$HOME/Pictures/wallpapers"
-SYMLINK_PATH="$HOME/.config/hypr/current_wallpaper"
 THUMB_DIR="$HOME/.cache/wppicker/thumbs"
 
 mkdir -p "$THUMB_DIR"
@@ -34,13 +37,4 @@ done | rofi -dmenu -theme ~/.config/rofi/wallpaper.rasi -p "Wallpaper")
 
 [ -z "$SELECTED_WALL" ] && exit 1
 SELECTED_PATH="$WALLPAPER_DIR/$SELECTED_WALL"
-
-# matugen 4.x przy kilku kolorach źródłowych pyta interaktywnie (bez terminala = błąd); 0 = najbardziej dominujący, jak domyślnie w 3.0
-matugen image --source-color-index 0 "$SELECTED_PATH"
-swaync-client -rs
-
-mkdir -p "$(dirname "$SYMLINK_PATH")"
-ln -sf "$SELECTED_PATH" "$SYMLINK_PATH"
-magick "$SELECTED_PATH" -resize x800 "$HOME/.config/hypr/rofi_wallpaper.bmp"
-
-hyprctl hyprpaper wallpaper ", $SELECTED_PATH, cover"
+exec "$HOME/.config/hypr/scripts/wpapply.sh" "$SELECTED_PATH"
