@@ -32,16 +32,23 @@ start_waybar() {
     pgrep -x waybar >/dev/null || setsid -f waybar >/dev/null 2>&1
 }
 
+stop_swaync() {
+    systemctl --user stop swaync.service
+    pkill -x swaync # wbrestart.sh starts swaync outside systemd
+}
+
 stop_waybar() {
     pkill -x waybar
     # Waybar's notification module leaves `swaync-client -swb` subscribers behind;
     # they would re-activate swaync over D-Bus.
     pkill -f '^swaync-client -swb'
-    systemctl --user stop swaync.service
-    pkill -x swaync # wbrestart.sh starts swaync outside systemd
+    stop_swaync
 }
 
 start_ajmashell() {
+    # Ajmashell is the notification server; a swaync D-Bus-activated while no server
+    # was running (e.g. between kill and start) would hold the name.
+    stop_swaync
     qs -c "$QS_CONFIG" -n -d >/dev/null 2>&1
 }
 
