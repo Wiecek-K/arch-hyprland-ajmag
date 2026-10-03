@@ -69,6 +69,10 @@ hl.layer_rule({ name = "layerrule-2", match = { namespace = "swaync-control-cent
 hl.layer_rule({ name = "layerrule-3", match = { namespace = "swaync-notification-window" }, blur = true, ignore_alpha = 0.5, xray = false })
 hl.layer_rule({ name = "layerrule-4", match = { namespace = "wlogout" }, blur = true, ignore_alpha = 0 })
 hl.layer_rule({ name = "layerrule-5", match = { namespace = "flameshot" }, blur = true, ignore_alpha = 0 })
+-- Ajmashell (2026-10-03, ticket 11): blur pod launcherem i wyspami Bara (jak waybar wyżej). ignore_alpha = 0.5:
+-- tło z alfą < 0.5 (Theme.qml) nie dostaje bluru wcale — przy niższej alfie obniż i tutaj.
+hl.layer_rule({ name = "layerrule-6", match = { namespace = "ajmashell-launcher" }, blur = true, ignore_alpha = 0.5 })
+hl.layer_rule({ name = "layerrule-7", match = { namespace = "ajmashell-bar" }, blur = true, ignore_alpha = 0.5 })
 
 -- === PŁYWAJĄCE I ROZMIARY ===
 hl.window_rule({ name = "windowrule-12", match = { tag = "viewer*" }, float = true })

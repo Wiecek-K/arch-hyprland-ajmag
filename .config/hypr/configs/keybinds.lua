@@ -27,6 +27,7 @@ bind("CTRL + ALT + Delete", "Exit Hyprland", dsp.exit())
 bind(M .. " + E", "File manager", exec(v.fileManager))
 bind(M .. " + Space", "Toggle floating", dsp.window.float())
 bind(M .. " + D", "App launcher", exec(v.menu))
+bind(M .. " + SHIFT + D", "App launcher (rofi, fallback)", exec(v.menuFallback))
 bind(M .. " + O", "Toggle pseudotile", dsp.window.pseudo()) -- dwindle
 bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
 bind(M .. " + R", "Restart bar (active shell set)", exec(v.scripts .. "/shellset.sh restart"))
