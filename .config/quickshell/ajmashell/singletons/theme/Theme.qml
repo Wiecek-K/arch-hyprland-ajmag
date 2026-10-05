@@ -44,7 +44,7 @@ Singleton {
         island: Qt.alpha(root.colors.surface_container, 0.75) // blurred by Hyprland (rules.lua layerrule-7) while alpha ≥ 0.5
         text: root.colors.secondary
         muted: root.colors.error // Waybar: #cc3436 on muted pulseaudio modules
-        // BT island while a device is connected: ring and icon in the focused workspace's accent,
+        // BT icon while a device is connected: in the focused workspace's accent (ring dropped 2026-10-05),
         // so the connection stands out with any wallpaper (user, 2026-10-01)
         connected: root.colors.primary_fixed
         tooltip: TooltipStyle {
@@ -74,8 +74,9 @@ Singleton {
         text: root.colors.on_surface
         subtext: root.colors.on_surface_variant
         critical: root.colors.error
-        badge: root.colors.error // Waybar: red dot on the bell
-        badgeText: root.colors.on_error
+        // like the focused workspace on the Bar (user, 2026-10-05; was error / on_error, Waybar's red dot)
+        badge: root.bar.workspace.activeBackground
+        badgeText: root.bar.workspace.activeText
     }
 
     // Wallpaper carousel (wallpaper/WallpaperPicker.qml, ticket 19)
@@ -105,9 +106,12 @@ Singleton {
 
     // Orbita (orbit/Orbit.qml, ticket 12): the popup of the Bar's Wi-Fi and BT islands
     readonly property OrbitStyle orbit: OrbitStyle {
-        background: Qt.alpha(root.colors.surface_container, 0.95) // no blur under popups; at 0.9 windows below showed through
-        path: Qt.alpha(root.colors.outline, 0.35) // the drawn orbit
-        node: root.colors.surface_container_high
+        background: Qt.alpha(root.colors.surface_container, 0.8) // user, 2026-10-03; blurred by Hyprland (blur_popups of the ajmashell-bar layer rule)
+        node: root.colors.surface_container_high // known network or device (saved / paired)
+        // new node, only in range (user, 2026-10-05): outline only, dimmed text, outer ring
+        unknown: root.transparent
+        unknownBorder: root.colors.outline_variant
+        unknownText: root.colors.on_surface_variant
         hover: root.colors.surface_container_highest
         connected: root.colors.primary_fixed // like the Bar's connected BT ring
         connectedText: root.colors.on_primary_fixed
@@ -299,30 +303,32 @@ Singleton {
     // Orbita: nodes on an ellipse around the core (serpantinum NetworkPopup.qml: 720×600 window,
     // radii 260/160 + 32 px outer ring, 150×52 cards, 400 s per turn)
     component OrbitStyle: QtObject {
-        readonly property int width: 720
-        readonly property int height: 540
+        readonly property int width: 900 // user, 2026-10-03: more room than serpantinum's 720 × 540
+        readonly property int height: 660
         readonly property int padding: 12
-        readonly property int radiusX: 222 // ellipse of the inner ring; 2 × (radiusX + ring + nodeWidth / 2) + 2 × padding ≤ width
-        readonly property int radiusY: 160
-        readonly property int ring: 28 // odd nodes sit this much further out
-        readonly property int nodeWidth: 180
-        readonly property int nodeHeight: 44
-        readonly property int coreSize: 240
+        readonly property int radiusX: 270 // ellipse of the inner ring; 2 × (radiusX + ring + nodeWidth / 2) + 2 × padding ≤ width
+        readonly property int radiusY: 215
+        readonly property int ring: 50 // new nodes sit this much further out than known ones
+        readonly property int nodeWidth: 220 // a long name wraps to a second line before it is cut
+        readonly property int nodeHeight: 48
+        readonly property int unknownBorderWidth: 1
+        readonly property int coreSize: 260
         readonly property int buttonHeight: 28
         readonly property int tabHeight: 34
         readonly property int iconSize: 20 // node glyph, px
         readonly property int coreIconSize: 34
         readonly property real dimmed: 0.4 // busy node, disabled button
         readonly property int maxNodes: 14 // more would overlap on the orbit
-        readonly property int period: 240000 // ms per turn of the orbit
-        // The orbit turns by a step every `tick` ms instead of every frame: at ~6 px/s a node moves
-        // one pixel per ~160 ms anyway, so per-frame steps would only cost CPU (CPU is the bottleneck).
-        readonly property int tick: 50
+        // ms per turn of the orbit. It turns every frame with sub-pixel positions: 50 ms steps rounded
+        // to whole pixels looked like ~15 fps (user, 2026-10-03).
+        readonly property int period: 240000
         readonly property int appear: 400 // ms; nodes fly out from the core on open (serpantinum entryAnim 600 ms)
         readonly property int cardsDelay: 1500 // ms; PipeWire adds a BT card a moment after the connection
         property color background
-        property color path
         property color node
+        property color unknown
+        property color unknownBorder
+        property color unknownText
         property color hover
         property color connected
         property color connectedText

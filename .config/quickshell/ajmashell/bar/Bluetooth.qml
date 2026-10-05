@@ -17,8 +17,8 @@ Island {
     id: root
 
     circle: true
-    // ring in the accent colour while a device is connected, so the connection stands out (user, 2026-10-01)
-    ring: Qt.alpha(Theme.bar.connected, connected.length > 0 ? 0.75 : 0) // fade, not via black
+    // a connection shows as the icon's accent colour only; the ring of 2026-10-01 went with the
+    // shared island (user, 2026-10-05)
 
     readonly property BT.BluetoothAdapter adapter: BT.Bluetooth.defaultAdapter // qmllint disable unresolved-type
     readonly property list<BT.BluetoothDevice> connected: adapter?.devices.values.filter(device => device.connected) ?? [] // qmllint disable unresolved-type

@@ -1,7 +1,7 @@
 // Orbita — popup of the Bar's Wi-Fi and BT islands (CONTEXT.md, B11 #02, D3): known and visible
 // networks or devices float on an orbit around a core; the core shows the chosen node and its actions.
 // Wi-Fi: scan, signal, connect to a known or new network (password typed here), disconnect, forget.
-// BT: scan, pairing without a PIN, connect, disconnect, battery, trusted, forget, headset profile A2DP ↔ HFP.
+// BT: scan, pairing (a code to confirm shown in the core, bt-pair.py), connect, disconnect, battery, trusted, forget, headset profile A2DP ↔ HFP.
 // Adapted from serpantinum src/quickshell/network/NetworkPopup.qml (orbit of nodes around a core,
 // one popup with Wi-Fi / BT tabs, scanning only while open, password in the core, pair → trust → connect):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
@@ -10,14 +10,13 @@
 // intro choreography, sounds, multi-core layout, list caching; state through bindings (no Connections
 // per device), logic in orbit.mjs; a click selects a node and the core offers its actions (serpantinum
 // connects on click, disconnects by holding the core); our Theme instead of its palette; the orbit turns
-// in 50 ms steps and pauses under the pointer; profile switching added (serpantinum only shows it).
+// every frame and pauses under the pointer; profile switching added (serpantinum only shows it).
 // Closes on a click outside (HyprlandFocusGrab), on Esc and on a second click on the same island.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Shapes
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -59,6 +58,7 @@ PopupWindow {
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
     property var pairing: null // BT device being paired, connected once paired
+    property var prompt: null // { id, event, code } while the device being paired asks (Logic.pairEvent)
 
     readonly property var wifiDevice: Networking.devices.values.find(device => device.type === DeviceType.Wifi) ?? null
     readonly property BT.BluetoothAdapter adapter: BT.Bluetooth.defaultAdapter // qmllint disable unresolved-type
@@ -95,11 +95,14 @@ PopupWindow {
     readonly property var selected: nodes.find(node => node.id === selectedId) ?? nodes.find(node => node.connected) ?? null
     readonly property var profile: !wifiTab && selected ? root.cards[selected.id.toLowerCase()] ?? null : null
     readonly property bool passwordMode: wifiTab && selected !== null && selected.id === passwordFor
+    readonly property bool promptMode: !wifiTab && selected !== null && selected.id === prompt?.id
     readonly property var actions: {
         if (!selected)
             return [];
         if (passwordMode)
             return ["submit", "cancel"];
+        if (promptMode)
+            return Logic.pairActions(prompt);
         return wifiTab ? Logic.wifiActions(selected) : Logic.btActions(selected, profile);
     }
     readonly property int btConnected: devices.filter(dev => dev.connected).length
@@ -121,7 +124,10 @@ PopupWindow {
     function run(action: string): void {
         const id = selected?.id ?? "";
         failure = null;
-        if (action === "cancel") {
+        if (action === "confirm" || action === "deny") {
+            pairProc.write(action === "confirm" ? "yes\n" : "no\n");
+            prompt = null;
+        } else if (action === "cancel") {
             passwordFor = "";
         } else if (action === "submit") {
             const net = network(id);
@@ -156,8 +162,10 @@ PopupWindow {
             else if (action === "disconnect")
                 dev.disconnect();
             else if (action === "pair") {
+                // the helper calls Pair() and is its agent, so a code to confirm comes back here
                 pairing = dev;
-                dev.pair();
+                pairProc.command = [Quickshell.shellPath("orbit/bt-pair.py"), id];
+                pairProc.running = true;
             } else if (action === "trust" || action === "untrust")
                 dev.trusted = action === "trust";
             else if (action === "forget")
@@ -202,6 +210,25 @@ PopupWindow {
             spread = 0;
             watched = null;
             pairing = null;
+            prompt = null;
+            pairProc.running = false; // stops the pairing (end of input for the helper)
+        }
+    }
+
+    function pairLine(line: string): void {
+        const event = Logic.pairEvent(line);
+        const id = pairProc.command[1] ?? "";
+        if (!event)
+            return;
+        if (event.event === "confirm" || event.event === "display") {
+            prompt = { id: id, event: event.event, code: event.code };
+            selectedId = id;
+        } else {
+            prompt = null;
+            if (event.event === "failed") {
+                pairing = null;
+                failure = { id: id, text: event.text };
+            }
         }
     }
 
@@ -257,7 +284,8 @@ PopupWindow {
                 return;
             root.pairing = null;
             dev.trusted = true;
-            dev.connect();
+            if (!dev.connected) // headphones often connect by themselves right after pairing
+                dev.connect();
         }
     }
 
@@ -266,6 +294,14 @@ PopupWindow {
         command: ["pactl", "-f", "json", "list", "cards"]
         stdout: StdioCollector {
             onStreamFinished: root.cards = Logic.parseCards(text)
+        }
+    }
+
+    Process {
+        id: pairProc
+        stdinEnabled: true
+        stdout: SplitParser {
+            onRead: data => root.pairLine(data)
         }
     }
 
@@ -283,11 +319,10 @@ PopupWindow {
         onTriggered: root.refreshCards()
     }
 
-    Timer {
-        interval: Theme.orbit.tick
-        repeat: true
+    // one step per rendered frame, so the turn is as smooth as the monitor
+    FrameAnimation {
         running: root.visible && root.hoverId === "" && root.nodes.length > 0
-        onTriggered: root.angle = (root.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
+        onTriggered: root.angle = (root.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI)
     }
 
     HyprlandFocusGrab {
@@ -298,7 +333,15 @@ PopupWindow {
 
     visible: false
     anchor.item: source
-    anchor.rect.x: 0
+    // Centred under the island, but shifted to stay on screen: Hyprland does not slide an xdg popup
+    // that sticks out, it put the Orbita of the right-hand Wi-Fi island at the left edge.
+    anchor.rect.x: {
+        if (!source)
+            return 0;
+        const center = source.mapToItem(null, source.width / 2, 0).x;
+        const half = Theme.orbit.width / 2 + Theme.orbit.padding;
+        return Math.max(half, Math.min(source.Window.width - half, center)) - center;
+    }
     anchor.rect.y: 0
     anchor.rect.width: source?.width ?? 0
     anchor.rect.height: (source?.height ?? 0) + Theme.bar.tooltip.gap
@@ -336,42 +379,6 @@ PopupWindow {
             anchors.bottom: tabs.top
             anchors.margins: Theme.orbit.padding
 
-            // the orbit itself: inner and outer ring
-            Shape {
-                anchors.fill: parent
-                opacity: root.spread
-
-                ShapePath {
-                    strokeColor: Theme.orbit.path
-                    strokeWidth: 1
-                    fillColor: Theme.transparent
-
-                    PathAngleArc {
-                        centerX: field.width / 2
-                        centerY: field.height / 2
-                        radiusX: Theme.orbit.radiusX
-                        radiusY: Theme.orbit.radiusY
-                        startAngle: 0
-                        sweepAngle: 360
-                    }
-                }
-
-                ShapePath {
-                    strokeColor: Theme.orbit.path
-                    strokeWidth: 1
-                    fillColor: Theme.transparent
-
-                    PathAngleArc {
-                        centerX: field.width / 2
-                        centerY: field.height / 2
-                        radiusX: Theme.orbit.radiusX + Theme.orbit.ring
-                        radiusY: Theme.orbit.radiusY + Theme.orbit.ring
-                        startAngle: 0
-                        sweepAngle: 360
-                    }
-                }
-            }
-
             Repeater {
                 // ids only: the delegates stay when a node's signal or battery changes
                 model: ScriptModel {
@@ -386,23 +393,27 @@ PopupWindow {
                     required property int index
                     readonly property var node: root.nodes.find(node => node.id === modelData) ?? null
                     readonly property bool chosen: root.selected?.id === modelData
+                    readonly property bool known: node?.known ?? true
+                    // known nodes on the inner ring, new ones (only in range) on the outer
                     readonly property var point: Logic.orbitPoint(index, root.nodes.length, root.angle, {
                         rx: Theme.orbit.radiusX * root.spread,
                         ry: Theme.orbit.radiusY * root.spread,
                         ring: Theme.orbit.ring * root.spread
-                    })
+                    }, !known)
 
-                    x: Math.round(field.width / 2 + point.x - width / 2)
-                    y: Math.round(field.height / 2 + point.y - height / 2)
+                    // not rounded: at ~7 px/s whole-pixel steps show as stutter
+                    x: field.width / 2 + point.x - width / 2
+                    y: field.height / 2 + point.y - height / 2
                     width: Theme.orbit.nodeWidth
                     height: Theme.orbit.nodeHeight
                     radius: Theme.radius.sm
-                    color: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : Theme.orbit.node
-                    border.width: chosen ? Theme.bar.ringWidth : 0
-                    border.color: Theme.orbit.selected
+                    // known: filled; new: outline only (user, 2026-10-05)
+                    color: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : known ? Theme.orbit.node : Theme.orbit.unknown
+                    border.width: chosen ? Theme.bar.ringWidth : known ? 0 : Theme.orbit.unknownBorderWidth
+                    border.color: chosen ? Theme.orbit.selected : Theme.orbit.unknownBorder
                     opacity: node?.busy ? Theme.orbit.dimmed : 1
 
-                    readonly property color textColor: node?.connected ? Theme.orbit.connectedText : Theme.orbit.text
+                    readonly property color textColor: node?.connected ? Theme.orbit.connectedText : known ? Theme.orbit.text : Theme.orbit.unknownText
 
                     Behavior on color {
                         ColorAnimation {
@@ -427,6 +438,9 @@ PopupWindow {
                         OrbitText {
                             anchors.verticalCenter: parent.verticalCenter
                             width: parent.width - glyph.width - info.width - 2 * parent.spacing
+                            horizontalAlignment: Text.AlignHCenter
+                            wrapMode: Text.WrapAtWordBoundaryOrAnywhere // a long name takes two lines before it is cut
+                            maximumLineCount: 2
                             font.pixelSize: Theme.font.sizeSmall // longer names fit
                             color: nodeItem.textColor
                             text: nodeItem.node?.name ?? ""
@@ -485,7 +499,7 @@ PopupWindow {
                         text: {
                             const node = root.selected;
                             if (node)
-                                return root.wifiTab ? node.icon : node.glyph;
+                                return (root.wifiTab ? node.icon : node.glyph) ?? ""; // a node of the old tab for a moment
                             return root.wifiTab ? Net.wifiIcon({ enabled: root.moduleOn }) : Net.btIcon({ enabled: root.moduleOn, connected: 0 });
                         }
                     }
@@ -507,8 +521,20 @@ PopupWindow {
                                 return "";
                             if (root.failure?.id === root.selected.id)
                                 return root.failure.text;
+                            if (root.promptMode)
+                                return Logic.pairLine(root.prompt);
                             return Logic.statusLine(root.tab, root.selected, root.profile);
                         }
+                    }
+
+                    // the pairing code, to compare with the device or type on it
+                    OrbitText {
+                        visible: root.promptMode
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        font.pixelSize: Theme.font.sizeLarge
+                        font.letterSpacing: Theme.spacing.xs
+                        text: root.prompt?.code ?? ""
                     }
 
                     Rectangle {
@@ -556,7 +582,7 @@ PopupWindow {
                                 required property string modelData
                                 width: Theme.orbit.coreSize / 2 - Theme.orbit.padding - Theme.spacing.lg
                                 text: Logic.actionLabel(modelData, root.profile)
-                                enabled: !(root.selected?.busy ?? false)
+                                enabled: root.promptMode || !(root.selected?.busy ?? false) // pairing is busy, yet asks
                                 onClicked: root.run(modelData)
                             }
                         }

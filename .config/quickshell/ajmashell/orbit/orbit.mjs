@@ -41,6 +41,8 @@ export const ACTION_LABELS = {
     untrust: "Untrust",
     submit: "Connect", // the typed password
     cancel: "Cancel",
+    confirm: "Confirm", // the pairing code matches
+    deny: "Deny",
 };
 
 export const POWER_ICON = "\u{f0425}"; // module switch in the tab row
@@ -78,7 +80,7 @@ export function wifiNodes(networks, max = Infinity) {
             signal: percent(net.signal),
             icon: wifiIcon({ enabled: true, signal: net.signal ?? 0 }),
             kind: securityKind(net.security),
-            known: !!net.known,
+            known: !!(net.known || net.connected), // inner ring; a network only in range sits on the outer one
             connected: !!net.connected,
             busy: !!net.busy, // connecting or disconnecting
         }));
@@ -140,6 +142,7 @@ export function btNodes(devices, max = Infinity) {
             connected: !!dev.connected,
             paired: !!dev.paired,
             trusted: !!dev.trusted,
+            known: !!(dev.paired || dev.connected), // inner ring; a new device sits on the outer one
             battery: dev.batteryAvailable ? percent(dev.battery) : null,
             busy: !!dev.busy, // pairing, connecting or disconnecting
         }))
@@ -243,10 +246,42 @@ export function actionLabel(action, profile) {
 // --- orbit geometry (serpantinum: singleBaseAngle, ringOffset, singleRadX/Y) -----------------
 
 // Offset of node `index` of `count` from the orbit's centre: nodes spread evenly on an ellipse
-// (rx, ry), every odd node on an outer ring `ring` px further out so neighbours do not overlap;
-// `angle` turns the whole orbit.
-export function orbitPoint(index, count, angle, { rx, ry, ring }) {
+// (rx, ry); a new node (`outer`) sits on an outer ring `ring` px further out (serpantinum put every
+// odd node there; here the ring tells known from new, user 2026-10-05). `angle` turns the whole orbit.
+export function orbitPoint(index, count, angle, { rx, ry, ring }, outer) {
     const theta = angle + (index / Math.max(1, count)) * Math.PI * 2;
-    const extra = count > 1 && index % 2 === 1 ? ring : 0;
+    const extra = outer ? ring : 0;
     return { x: Math.cos(theta) * (rx + extra), y: Math.sin(theta) * (ry + extra) };
+}
+
+// --- pairing with a code (orbit/bt-pair.py: BlueZ agent for a pairing the Orbita starts) ------
+
+// line: one JSON line of bt-pair.py. Returns { event, code, text? } or null for anything else.
+// BlueZ passkeys are numbers shown as six digits; a legacy PIN code is a string.
+export function pairEvent(line) {
+    let data;
+    try {
+        data = JSON.parse(line);
+    } catch (e) {
+        return null;
+    }
+    const event = data?.event;
+    if (event === "confirm" || event === "display") {
+        const code = data.passkey !== undefined ? String(data.passkey).padStart(6, "0") : String(data.pincode ?? "");
+        return { event, code };
+    }
+    if (event === "done")
+        return { event, code: "" };
+    if (event === "failed")
+        return { event, code: "", text: data.error === "pin" ? "Needs a PIN — use the Bluetooth manager" : "Pairing failed" };
+    return null;
+}
+
+// prompt: pairEvent() of a "confirm" or "display" request
+export function pairActions(prompt) {
+    return prompt.event === "confirm" ? ["confirm", "deny"] : ["deny"];
+}
+
+export function pairLine(prompt) {
+    return prompt.event === "confirm" ? "Same code on the device?" : "Type this code on the device";
 }

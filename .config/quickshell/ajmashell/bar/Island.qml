@@ -15,16 +15,19 @@ Rectangle {
     // State ring along the inside of the edge, Theme.bar.ringWidth wide; the island's own colour
     // stays in the middle (BT connected; user, 2026-10-01). Fully transparent = not drawn.
     property color ring: Theme.transparent
+    // inside an IslandGroup: no own background or padding, the group draws one pill and spaces
+    // the icons like the tray (user, 2026-10-05)
+    property bool grouped: false
 
     // on the whole island, padding included (like a Waybar module)
     signal clicked
     signal rightClicked
     signal wheelMoved(real delta)
 
-    implicitWidth: circle ? implicitHeight : row.implicitWidth + 2 * Theme.bar.islandPadding
+    implicitWidth: grouped ? row.implicitWidth : circle ? implicitHeight : row.implicitWidth + 2 * Theme.bar.islandPadding
     implicitHeight: Theme.bar.islandHeight
     radius: height / 2
-    color: Theme.bar.island
+    color: grouped ? Theme.transparent : Theme.bar.island
 
     Rectangle {
         anchors.fill: parent

@@ -83,18 +83,12 @@ Scope {
                 }
             }
 
-            // Left edge (ADR 0002 §3): BT · output volume · microphone.
+            // Left edge (ADR 0002 §3): output volume · microphone.
             Row {
                 anchors.left: parent.left
                 anchors.leftMargin: Theme.bar.edgePadding + Theme.bar.islandGap
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: Theme.bar.islandGap
-
-                Bluetooth {
-                    id: btIsland
-                    orbitOpen: orbit.visible && orbit.source === btIsland
-                    onClicked: orbit.toggle(btIsland, "bt")
-                }
 
                 Volume {}
 
@@ -116,7 +110,8 @@ Scope {
                 anchors.verticalCenter: parent.verticalCenter
             }
 
-            // Right edge (ADR 0002 §3): tray · Wi-Fi · bell (ticket 10). The tray hides while empty.
+            // Right edge (ADR 0002 §3): tray · one pill with BT · Wi-Fi · bell (user, 2026-10-05).
+            // The tray hides while empty.
             Row {
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.bar.edgePadding + Theme.bar.islandGap
@@ -125,13 +120,25 @@ Scope {
 
                 Tray {}
 
-                Wifi {
-                    id: wifiIsland
-                    orbitOpen: orbit.visible && orbit.source === wifiIsland
-                    onClicked: orbit.toggle(wifiIsland, "wifi")
-                }
+                IslandGroup {
+                    Bluetooth {
+                        id: btIsland
+                        grouped: true
+                        orbitOpen: orbit.visible && orbit.source === btIsland
+                        onClicked: orbit.toggle(btIsland, "bt")
+                    }
 
-                Bell {}
+                    Wifi {
+                        id: wifiIsland
+                        grouped: true
+                        orbitOpen: orbit.visible && orbit.source === wifiIsland
+                        onClicked: orbit.toggle(wifiIsland, "wifi")
+                    }
+
+                    Bell {
+                        grouped: true
+                    }
+                }
             }
         }
     }
