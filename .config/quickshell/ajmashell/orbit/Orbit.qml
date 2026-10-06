@@ -113,7 +113,7 @@ PopupWindow {
         return wifiTab ? Logic.wifiActions(selected) : Logic.btActions(selected, profile);
     }
     readonly property int btConnected: devices.filter(dev => dev.connected).length
-    readonly property bool bolts: visible && Theme.orbit.lightning && Logic.boltTargets(nodes).length > 0
+    readonly property bool bolts: visible && Theme.orbit.lightning && Logic.hasBolts(nodes)
 
     function network(id: string): var {
         return wifiDevice?.networks.values.find(net => net.name === id) ?? null;
@@ -446,24 +446,24 @@ PopupWindow {
                     ctx.clearRect(0, 0, width, height);
                     const center = { x: width / 2, y: height / 2 };
                     const time = Date.now() / 1000;
-                    const layers = { glow: Theme.orbit.boltGlow, mid: Theme.orbit.boltMid, core: Theme.orbit.boltCore };
+                    const colors = [Theme.orbit.boltGlow, Theme.orbit.boltMid, Theme.orbit.boltCore]; // strand order of boltStrands
                     ctx.lineJoin = "round";
                     ctx.lineCap = "round";
                     for (let i = 0; i < nodeRepeater.count; i++) {
                         const item = nodeRepeater.itemAt(i); // delegates in the order of root.nodes
-                        if (!item || !root.nodes[i]?.connected)
+                        if (!item || !Logic.getsBolt(root.nodes[i]))
                             continue;
                         const target = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
-                        for (const strand of Logic.boltStrands(center, target, time, i, { coreRadius: Theme.orbit.coreSize / 2, card: item, reach: root.spread, fade: fade })) {
+                        Logic.boltStrands(center, target, time, i, { coreRadius: Theme.orbit.coreSize / 2, card: item, reach: root.spread, fade: fade }).forEach((strand, layer) => {
                             ctx.beginPath();
                             ctx.moveTo(strand.points[0].x, strand.points[0].y);
                             for (const point of strand.points.slice(1))
                                 ctx.lineTo(point.x, point.y);
                             ctx.lineWidth = strand.width;
-                            ctx.strokeStyle = layers[strand.layer];
+                            ctx.strokeStyle = colors[layer];
                             ctx.globalAlpha = strand.alpha;
                             ctx.stroke();
-                        }
+                        });
                     }
                 }
             }

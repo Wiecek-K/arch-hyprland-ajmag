@@ -329,8 +329,9 @@ Singleton {
         readonly property int period: 240000
         readonly property int appear: 400 // ms; nodes fly out from the core on open (serpantinum entryAnim 600 ms)
         readonly property int reflow: 1200 // ms; nodes glide to their new places when the list changes (user, 2026-10-06: 600 too quick)
-        // each node drifts ± amplitude px towards and away from the core, period ± 12% per node (user, 2026-10-06)
-        readonly property var wobble: ({ amplitude: 6, period: 4000 })
+        // each node drifts ± amplitude px towards and away from the core, period ± 12% per node (user, 2026-10-06);
+        // inStep: all nodes together, shown to compare (user, 2026-10-06)
+        readonly property var wobble: ({ amplitude: 6, period: 4000, inStep: true })
         readonly property int cardsDelay: 1500 // ms; PipeWire adds a BT card a moment after the connection
         // Lightning (ticket 13, D6): wavy strands from the core to the connected nodes, a Canvas drawn
         // on the CPU every `boltTick` ms (serpantinum: 25 ms, ~40 fps) only while the Orbita is open.

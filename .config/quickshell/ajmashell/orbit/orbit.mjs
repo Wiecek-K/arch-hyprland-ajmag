@@ -288,9 +288,10 @@ function idFraction(id, salt) {
 
 // Radial offset (px) of node `id` at `time` (s): a sine of `amplitude` px whose phase and period
 // (`period` ms ± 12%) come from the id, so nodes are out of step and the orbit never breathes as one.
-export function wobble(id, time, { amplitude, period }) {
-    const phase = idFraction(id, 0) * Math.PI * 2;
-    const seconds = period / 1000 * (0.88 + 0.24 * idFraction(id, 1));
+// `inStep`: every node with the same phase and period, to compare (user, 2026-10-06).
+export function wobble(id, time, { amplitude, period, inStep = false }) {
+    const phase = inStep ? 0 : idFraction(id, 0) * Math.PI * 2;
+    const seconds = period / 1000 * (inStep ? 1 : 0.88 + 0.24 * idFraction(id, 1));
     return amplitude * Math.sin(phase + time / seconds * Math.PI * 2);
 }
 
@@ -314,15 +315,21 @@ const BOLT_LAYERS = [
       width: f => 1.0 + f * 1.2, alpha: 0.95 },
 ];
 
-// Ids of the nodes that get a strand: the connected ones.
-export function boltTargets(nodes) {
-    return nodes.filter(node => node.connected).map(node => node.id);
+// A node gets a strand while connected.
+export function getsBolt(node) {
+    return node?.connected ?? false;
+}
+
+// Whether any node gets a strand, i.e. whether the lightning runs at all.
+export function hasBolts(nodes) {
+    return nodes.some(getsBolt);
 }
 
 // Strands of one bolt from the core at `from` to the centre `to` of a node's `card` ({ width, height })
 // at `time` (s); `seed` (node index) keeps bolts of different nodes out of step. `reach` 0 → 1 grows
 // the bolt out of the core, `fade` 0 → 1 scales its alpha. Returns
-// [{ layer, width, alpha, points: [{ x, y }] }], or [] when nothing is left to draw.
+// [{ layer, width, alpha, points: [{ x, y }] }] in BOLT_LAYERS order (glow, mid, core — Orbit.qml
+// colours them by that position), or [] when nothing is left to draw.
 export function boltStrands(from, to, time, seed, { coreRadius, card, reach, fade }) {
     const dx = to.x - from.x;
     const dy = to.y - from.y;
@@ -339,19 +346,19 @@ export function boltStrands(from, to, time, seed, { coreRadius, card, reach, fad
         return [];
     const sx = from.x + cos * start;
     const sy = from.y + sin * start;
-    const near = Math.max(0, 1 - distance / BOLT.fadeDistance);
-    const alpha = (0.35 + near * 0.65) * fade;
+    const proximity = Math.max(0, 1 - distance / BOLT.fadeDistance); // 1 at the core, 0 at fadeDistance
+    const alpha = (0.35 + proximity * 0.65) * fade;
     return BOLT_LAYERS.map(layer => {
         const points = [{ x: sx, y: sy }];
         for (let step = 1; step <= BOLT.steps; step++) {
             const t = step / BOLT.steps;
             const along = length * t;
             const wave = Math.sin(layer.speed * time + layer.freq * t + layer.phase * seed + layer.shift) * layer.amp * Math.sin(t * Math.PI);
-            const shake = (Math.sin(layer.shakeSpeed * time + layer.shakeStep * step + layer.shakeShift) - 0.5) * layer.shake * near;
+            const shake = (Math.sin(layer.shakeSpeed * time + layer.shakeStep * step + layer.shakeShift) - 0.5) * layer.shake * proximity;
             const side = wave + shake;
             points.push({ x: sx + cos * along - sin * side, y: sy + sin * along + cos * side });
         }
-        return { layer: layer.layer, width: layer.width(near), alpha: alpha * layer.alpha, points };
+        return { layer: layer.layer, width: layer.width(proximity), alpha: alpha * layer.alpha, points };
     });
 }
 
