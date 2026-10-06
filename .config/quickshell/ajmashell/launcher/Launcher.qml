@@ -238,13 +238,13 @@ Scope {
 
             visible: root.open
             screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? null
-            anchors {
-                top: true
-                bottom: true
-                left: true
-                right: true
-            }
-            color: Theme.transparent // only the launcher box is drawn; a click beside it closes
+            // The surface is only the box (no anchors: Hyprland centres it). A full-screen transparent
+            // surface sent the whole screen as changed on every frame of the flare, under live blur
+            // (ticket 13, research B12: Hyprland ~57% of the iGPU while open). A click beside it closes
+            // through the focus grab.
+            implicitWidth: box.width
+            implicitHeight: box.height
+            color: Theme.transparent // the box has rounded corners
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "ajmashell-launcher"
@@ -298,6 +298,8 @@ Scope {
                     current = -1; // typing drops a key picked with the arrows (items stay the same array)
             }
             onVisibleChanged: {
+                // the grab refuses a window that is not mapped yet, so arm it after the window shows (as the Orbita)
+                Qt.callLater(() => grab.active = win.visible);
                 if (!visible)
                     return;
                 search.text = "";
@@ -305,24 +307,20 @@ Scope {
                 search.forceActiveFocus();
             }
 
-            MouseArea {
-                anchors.fill: parent
-                onClicked: root.open = false
+            HyprlandFocusGrab {
+                id: grab
+                windows: [win]
+                onCleared: root.open = false
             }
 
             ClippingRectangle {
                 id: box
-                anchors.centerIn: parent
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius
                 color: Theme.launcher.background
                 border.width: Theme.launcher.borderWidth
                 border.color: Theme.launcher.border
-
-                MouseArea {
-                    anchors.fill: parent // clicks on the box do not reach the closing area below
-                }
 
                 // --- wallpaper pane: search field on top, mode buttons at the bottom ---
                 Item {
