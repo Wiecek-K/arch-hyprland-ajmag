@@ -273,6 +273,27 @@ export function nearestAngle(from, to) {
     return to + Math.round((from - to) / turn) * turn;
 }
 
+// --- wobble (user, 2026-10-06): each node drifts slightly towards and away from the core ------
+
+// FNV-1a hash of a node id with murmur3's final mix (FNV alone gave similar names similar phases),
+// 0 … 1: a stable phase and pace per node, whatever its place in the list.
+function idFraction(id, salt) {
+    let hash = 2166136261 ^ salt;
+    for (const char of id)
+        hash = Math.imul(hash ^ char.codePointAt(0), 16777619);
+    hash = Math.imul(hash ^ (hash >>> 16), 0x85ebca6b);
+    hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35);
+    return ((hash ^ (hash >>> 16)) >>> 0) / 4294967296;
+}
+
+// Radial offset (px) of node `id` at `time` (s): a sine of `amplitude` px whose phase and period
+// (`period` ms ± 12%) come from the id, so nodes are out of step and the orbit never breathes as one.
+export function wobble(id, time, { amplitude, period }) {
+    const phase = idFraction(id, 0) * Math.PI * 2;
+    const seconds = period / 1000 * (0.88 + 0.24 * idFraction(id, 1));
+    return amplitude * Math.sin(phase + time / seconds * Math.PI * 2);
+}
+
 // --- lightning (ticket 13; serpantinum nodeLinesCanvas: three wavy strands per node, 25 ms) ---
 
 // Strand geometry from serpantinum, in px: a strand starts `gap` outside the core, stops `endOffset`

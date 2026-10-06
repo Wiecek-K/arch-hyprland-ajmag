@@ -58,6 +58,7 @@ PopupWindow {
     property var failure: null // { id, text } of the last failed Wi-Fi connection
     property string hoverId: "" // node under the pointer; the orbit stops while set
     property real angle: 0 // turn of the whole orbit
+    property real clock: 0 // s; drives each node's wobble, stops with the orbit
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
@@ -358,7 +359,10 @@ PopupWindow {
     // one step per rendered frame, so the turn is as smooth as the monitor
     FrameAnimation {
         running: root.visible && root.hoverId === "" && root.nodes.length > 0
-        onTriggered: root.angle = (root.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI)
+        onTriggered: {
+            root.angle = (root.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI);
+            root.clock += frameTime;
+        }
     }
 
     HyprlandFocusGrab {
@@ -492,8 +496,10 @@ PopupWindow {
                     }
                     // known nodes on the inner ring, new ones (only in range) on the outer
                     property real ringShift: known ? 0 : Theme.orbit.ring
+                    // drifts slightly towards and away from the core, out of step with the others (user, 2026-10-06)
+                    readonly property real drift: ringShift + Logic.wobble(modelData, root.clock, Theme.orbit.wobble)
                     readonly property var point: Logic.ellipsePoint(root.angle + slot,
-                        (Theme.orbit.radiusX + ringShift) * root.spread, (Theme.orbit.radiusY + ringShift) * root.spread)
+                        (Theme.orbit.radiusX + drift) * root.spread, (Theme.orbit.radiusY + drift) * root.spread)
 
                     Behavior on slot {
                         enabled: nodeItem.placed && root.visible
