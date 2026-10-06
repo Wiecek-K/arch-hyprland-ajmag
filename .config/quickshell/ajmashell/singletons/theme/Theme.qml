@@ -345,7 +345,16 @@ Singleton {
         // on the CPU every `boltTick` ms (serpantinum: 25 ms, ~40 fps) only while the Orbita is open.
         readonly property bool lightning: true
         readonly property int boltTick: 25
-        readonly property int boltStart: 70 // px from the centre where a strand starts, inside the core (user, 2026-10-06: "closer to the centre"; was the core's edge, 130)
+        // px from the centre where a strand starts: just inside the core's edge (130), so it comes out from
+        // under the glass core (user, 2026-10-06: "shorten"; was 70, before that 130)
+        readonly property int boltStart: 120
+        // The two set looks of the Orbita (ticket 13, user 2026-10-06), F2 switches (singletons/look):
+        // backdrop variant (orbit/OrbitBackdrop.qml), core style, button style, node shape (orbit/Orbit.qml).
+        // The launcher shows the backdrop "flare, no streak" behind its list in every look but basic.
+        readonly property var looks: ({
+            basic: { backdrop: "flat", core: "solid", pills: "filled", nodes: "rounded" },
+            fancy: { backdrop: "flare, no streak", core: "glass + fade wide", pills: "soft", nodes: "rounded" }
+        })
         readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
         property color background
         property color node

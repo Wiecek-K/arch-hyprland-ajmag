@@ -306,11 +306,12 @@ export function wobble(id, time, { amplitude, period, inStep = false }) {
 
 // --- lightning (ticket 13; serpantinum nodeLinesCanvas: three wavy strands per node, 25 ms) ---
 
-// Strand geometry from serpantinum, in px: a strand starts `gap` outside the core, stops `endOffset`
-// short of the edge of the node's card, has `steps` segments; `fadeDistance` is where a strand gets
-// its dimmest and thinnest. `jitter` bounds the sideways shake, which is not damped at the ends.
-// serpantinum stopped 26 px short of the node's centre: under our 220 px cards most of it was hidden.
-export const BOLT = { gap: 5, endOffset: 6, steps: 22, fadeDistance: 420, jitter: 3.75 };
+// Strand geometry from serpantinum, in px: a strand starts `gap` outside the core, ends under the
+// node's card at least `endInside` from each of its edges (more than half the glow plus the jitter),
+// has `steps` segments; `fadeDistance` is where a strand gets its dimmest and thinnest. `jitter`
+// bounds the sideways shake, which is not damped at the ends. serpantinum stopped 26 px short of the
+// node's centre; ours stopped 6 px short of the card's edge, which showed as a gap (user, 2026-10-06).
+export const BOLT = { gap: 5, endInside: 12, steps: 22, fadeDistance: 420, jitter: 3.75 };
 
 // Per layer, bottom to top: a wave sin(speed·time + freq·t + phase·seed + shift) damped towards both
 // ends, plus a shake sin(shakeSpeed·time + shakeStep·step + shakeShift) growing for closer nodes.
@@ -347,10 +348,12 @@ export function boltStrands(from, to, time, seed, { coreRadius, card, reach, fad
         return [];
     const cos = dx / distance;
     const sin = dy / distance;
-    // from the card's centre to its edge, along the strand
-    const inCard = Math.min(cos ? card.width / 2 / Math.abs(cos) : Infinity, sin ? card.height / 2 / Math.abs(sin) : Infinity);
+    // from the card's centre, along the strand, to the edge of the card shrunk by endInside
+    const halfWidth = Math.max(0, card.width / 2 - BOLT.endInside);
+    const halfHeight = Math.max(0, card.height / 2 - BOLT.endInside);
+    const inCard = Math.min(cos ? halfWidth / Math.abs(cos) : Infinity, sin ? halfHeight / Math.abs(sin) : Infinity);
     const start = coreRadius + BOLT.gap;
-    const length = (distance - inCard - start - BOLT.endOffset) * Math.min(1, reach);
+    const length = (distance - inCard - start) * Math.min(1, reach);
     if (length <= 0)
         return [];
     const sx = from.x + cos * start;

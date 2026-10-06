@@ -25,7 +25,7 @@ import Quickshell.Widgets
 import qs.singletons.theme
 import "launcher.mjs" as Logic
 import "../orbit" // TEMPORARY (ticket 13): OrbitBackdrop behind the list
-import qs.singletons.prototype // TEMPORARY (ticket 13): F2 basic look ↔ prototype
+import qs.singletons.look // F2: basic → fancy → prototype look (ticket 13)
 
 Scope {
     id: root
@@ -377,10 +377,10 @@ Scope {
                             focus: true
 
                             Keys.onEscapePressed: root.open = false
-                            // TEMPORARY (ticket 13): F2 switches the basic look ↔ the prototype
+                            // F2 cycles the look: basic → fancy → prototype (ticket 13)
                             Keys.onPressed: event => {
                                 if (event.key === Qt.Key_F2) {
-                                    Prototype.toggle();
+                                    Look.cycle();
                                     event.accepted = true;
                                 }
                             }
@@ -438,11 +438,11 @@ Scope {
                     }
                 }
 
-                // TEMPORARY (ticket 13, user 2026-10-06): the Orbita's "flare, no streak" (no stars, no streak)
-                // background behind the list, to see it here; turns like the orbit while open
+                // fancy and prototype looks (ticket 13, user 2026-10-06): the Orbita's "flare, no streak"
+                // background behind the list (no stars, no streak); turns like the orbit while open
                 OrbitBackdrop {
                     id: listBackdrop
-                    visible: Prototype.active // F2: the basic look has no background behind the list
+                    visible: Look.mode !== "basic" // the basic look has no background behind the list
                     x: pane.width
                     width: box.width - pane.width
                     height: box.height

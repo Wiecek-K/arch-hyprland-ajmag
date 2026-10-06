@@ -29,7 +29,7 @@ import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Bluetooth as BT
 import qs.singletons.theme
-import qs.singletons.prototype
+import qs.singletons.look
 import "orbit.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
 
@@ -72,10 +72,11 @@ PopupWindow {
     property int pillStyle: 0
     property int coreStyle: coreStyles.indexOf("glass + fade wide")
     property int backdropChoice: 0 // set to "flare, soft streak" once the backdrop exists
-    // F2 / IPC "prototype": the basic look (first of each list) or the picks above (Prototype.qml)
-    readonly property string coreLook: Prototype.active ? coreStyles[coreStyle] : coreStyles[0]
-    readonly property string pillLook: Prototype.active ? pillStyles[pillStyle] : pillStyles[0]
-    readonly property string shapeLook: Prototype.active ? nodeShapes[nodeShape] : nodeShapes[0]
+    // F2 / IPC "look": a set look from Theme.orbit.looks, or in "prototype" the picks above (Look.qml)
+    readonly property var setLook: Theme.orbit.looks[Look.mode] ?? null
+    readonly property string coreLook: setLook?.core ?? coreStyles[coreStyle]
+    readonly property string pillLook: setLook?.pills ?? pillStyles[pillStyle]
+    readonly property string shapeLook: setLook?.nodes ?? nodeShapes[nodeShape]
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
@@ -429,8 +430,8 @@ PopupWindow {
         Keys.onTabPressed: root.tab = root.wifiTab ? "bt" : "wifi"
         // TEMPORARY (ticket 13): B cycles the background variants to compare
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_F2) { // TEMPORARY (ticket 13): basic look ↔ prototype
-                Prototype.toggle();
+            if (event.key === Qt.Key_F2) { // basic → fancy → prototype look
+                Look.cycle();
                 event.accepted = true;
             } else if (event.key === Qt.Key_B) {
                 root.backdropChoice = (root.backdropChoice + 1) % backdrop.variants.length;
@@ -452,7 +453,7 @@ PopupWindow {
             anchors.fill: parent
             angle: root.angle
             coreRadius: Theme.orbit.coreSize / 2
-            variant: Prototype.active ? root.backdropChoice : 0
+            variant: root.setLook ? variants.findIndex(v => v.name === root.setLook.backdrop) : root.backdropChoice
             Component.onCompleted: root.backdropChoice = variants.findIndex(v => v.name === "flare, soft streak")
         }
 
@@ -463,7 +464,7 @@ PopupWindow {
             anchors.margins: Theme.orbit.padding + Theme.spacing.sm
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.orbit.subtext
-            text: !Prototype.active ? "F2: basic look" : `F2: prototype   B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})   S: ${root.nodeShapes[root.nodeShape]} (${root.nodeShape + 1}/${root.nodeShapes.length})`
+            text: Look.mode !== "prototype" ? `F2: ${Look.mode} look` : `F2: prototype   B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})   S: ${root.nodeShapes[root.nodeShape]} (${root.nodeShape + 1}/${root.nodeShapes.length})`
         }
 
         Item {
