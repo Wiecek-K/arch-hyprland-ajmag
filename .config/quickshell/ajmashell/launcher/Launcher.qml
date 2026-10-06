@@ -248,7 +248,10 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "ajmashell-launcher"
-            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            // OnDemand, not Exclusive: Hyprland sends the pointer to an exclusive layer surface even
+            // outside it, so the focus grab never saw a click beside the box (Hyprland 0.56
+            // InputManager.cpp, "forced above all"). The grab gives the keyboard to the box.
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
             readonly property var query: Logic.parseQuery(search.text)
             readonly property bool calcMode: query.kind === "calc"
