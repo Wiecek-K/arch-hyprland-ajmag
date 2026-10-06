@@ -109,7 +109,7 @@ Singleton {
     readonly property OrbitStyle orbit: OrbitStyle {
         id: orbitStyle
         background: Qt.alpha(root.colors.surface_container, 0.8) // user, 2026-10-03; blurred by Hyprland (blur_popups of the ajmashell-bar layer rule)
-        backgroundOpaque: root.colors.surface_container // a look with `opaque` (fancy2), no blur under it
+        backgroundOpaque: root.launcher.backgroundOpaque // fancy2; user, 2026-10-07: same as the launcher (surface_container too grey)
         node: root.colors.surface_container_high // known network or device (saved / paired)
         // new node, only in range (user, 2026-10-05): outline only, dimmed text, outer ring
         unknown: root.transparent
