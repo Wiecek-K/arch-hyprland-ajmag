@@ -121,7 +121,8 @@ PopupWindow {
         return wifiTab ? Logic.wifiActions(selected) : Logic.btActions(selected, profile);
     }
     readonly property int btConnected: devices.filter(dev => dev.connected).length
-    readonly property bool bolts: visible && Theme.orbit.lightning && Logic.hasBolts(nodes)
+    // only in a look with motion: still strands looked poor (user, 2026-10-06)
+    readonly property bool bolts: visible && look.motion && Theme.orbit.lightning && Logic.hasBolts(nodes)
     readonly property int connectedCount: nodes.filter(node => node.connected).length
 
     function network(id: string): var {
@@ -486,42 +487,18 @@ PopupWindow {
                 visible: fade > 0
 
                 Behavior on fade {
-                    enabled: root.visible && root.look.motion
+                    enabled: root.visible
                     NumberAnimation {
                         duration: Theme.orbit.boltFade
                     }
                 }
 
-                // Without motion the strands are drawn once, again only when the nodes or the look change.
-                function redraw(): void {
-                    if (!root.look.motion)
-                        Qt.callLater(lightning.requestPaint); // after the delegates took their places
-                }
-                onVisibleChanged: redraw()
-                onWidthChanged: redraw()
-                onHeightChanged: redraw()
-
-                Connections {
-                    target: root
-
-                    function onNodesChanged(): void {
-                        lightning.redraw();
-                    }
-
-                    function onSpreadChanged(): void {
-                        lightning.redraw();
-                    }
-
-                    function onLookChanged(): void {
-                        lightning.redraw();
-                    }
-                }
 
                 onPaint: {
                     const ctx = getContext("2d");
                     ctx.clearRect(0, 0, width, height);
                     const center = { x: width / 2, y: height / 2 };
-                    const time = root.look.motion ? Date.now() / 1000 : 0;
+                    const time = Date.now() / 1000;
                     const colors = [Theme.orbit.boltGlow, Theme.orbit.boltMid, Theme.orbit.boltCore]; // strand order of boltStrands
                     ctx.lineJoin = "round";
                     ctx.lineCap = "round";

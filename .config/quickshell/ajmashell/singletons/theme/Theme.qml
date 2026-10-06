@@ -365,8 +365,8 @@ Singleton {
         // (singletons/look). flare: a lens flare behind the Orbita and the launcher's list
         // (orbit/OrbitBackdrop.qml); glass: a translucent core over a wide fade; softPills: faint
         // buttons with coloured text instead of filled ones; motion: the orbit turns, nodes wobble,
-        // fly out and glide, lightning flickers, colours fade. Without motion nothing moves, the
-        // lightning is drawn once (user, 2026-10-06: a moving Orbita costs ~80% of the iGPU).
+        // fly out and glide, lightning flickers, colours fade. Without motion nothing moves and there
+        // is no lightning (user, 2026-10-06: a moving Orbita costs ~80% of the iGPU; still strands look poor).
         // still: fancy without motion.
         readonly property var looks: ({
             basic: { flare: false, glass: false, softPills: false, motion: false },

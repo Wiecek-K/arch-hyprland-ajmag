@@ -15,7 +15,7 @@ Singleton {
     id: root
 
     readonly property var modes: ["basic", "fancy", "still"]
-    property string mode: "fancy" // a reload starts here
+    property string mode: "still" // a reload starts here (user, 2026-10-06)
 
     function cycle(): void {
         mode = modes[(modes.indexOf(mode) + 1) % modes.length];
