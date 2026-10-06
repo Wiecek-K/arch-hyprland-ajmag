@@ -125,6 +125,11 @@ Singleton {
         error: root.colors.error
         tab: root.colors.primary // current tab and the module switch while on
         tabText: root.colors.on_primary
+        // lightning strands to the connected nodes (ticket 13), bottom to top; serpantinum: accent,
+        // accent lightened 1.35×, white
+        boltGlow: root.colors.primary
+        boltMid: root.colors.primary_fixed
+        boltCore: root.colors.on_surface
     }
 
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
@@ -324,6 +329,11 @@ Singleton {
         readonly property int period: 240000
         readonly property int appear: 400 // ms; nodes fly out from the core on open (serpantinum entryAnim 600 ms)
         readonly property int cardsDelay: 1500 // ms; PipeWire adds a BT card a moment after the connection
+        // Lightning (ticket 13, D6): wavy strands from the core to the connected nodes, a Canvas drawn
+        // on the CPU every `boltTick` ms (serpantinum: 25 ms, ~40 fps) only while the Orbita is open.
+        readonly property bool lightning: true
+        readonly property int boltTick: 25
+        readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
         property color background
         property color node
         property color unknown
@@ -342,6 +352,9 @@ Singleton {
         property color error
         property color tab
         property color tabText
+        property color boltGlow
+        property color boltMid
+        property color boltCore
     }
 
     // Singletons load lazily and FileView reads asynchronously: read the file once, blocking,

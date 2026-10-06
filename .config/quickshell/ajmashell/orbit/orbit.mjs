@@ -1,13 +1,16 @@
 // Pure logic of the Orbita (ticket 12): Wi-Fi networks and BT devices as orbit nodes, the actions
-// each node offers, the A2DP ↔ HFP headset profile and node positions on the orbit.
+// each node offers, the A2DP ↔ HFP headset profile, node positions on the orbit and the "lightning"
+// strands from the core to the connected nodes (ticket 13).
 // A JS module (not QML) so tools/test-orbit.mjs can test it with node.
 // Adapted from serpantinum src/quickshell/network/NetworkPopup.qml (rebuildWifiData, rebuildBtData,
-// orbit node placement) and network/bluetooth_panel_logic.sh (profile of a BlueZ card):
+// orbit node placement, nodeLinesCanvas.onPaint) and network/bluetooth_panel_logic.sh (profile of a BlueZ card):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 // Copyright (C) 2026 Illia Miroshnichenko — AGPL-3.0-or-later
 // Changes: security from Quickshell's enum (serpantinum compares raw numbers that do not match it);
 // profile switching (serpantinum only shows the profile) from `pactl -f json` instead of awk + jq;
-// one shared orbit for every node (no per-device cores); sorting by state, not alphabetically.
+// one shared orbit for every node (no per-device cores); sorting by state, not alphabetically;
+// lightning geometry returned as point lists (Orbit.qml strokes them), strands to the connected
+// nodes instead of to the info nodes of a connection.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { wifiIcon } from "../bar/connectivity.mjs";
@@ -252,6 +255,67 @@ export function orbitPoint(index, count, angle, { rx, ry, ring }, outer) {
     const theta = angle + (index / Math.max(1, count)) * Math.PI * 2;
     const extra = outer ? ring : 0;
     return { x: Math.cos(theta) * (rx + extra), y: Math.sin(theta) * (ry + extra) };
+}
+
+// --- lightning (ticket 13; serpantinum nodeLinesCanvas: three wavy strands per node, 25 ms) ---
+
+// Strand geometry from serpantinum, in px: a strand starts `gap` outside the core, stops `endOffset`
+// short of the edge of the node's card, has `steps` segments; `fadeDistance` is where a strand gets
+// its dimmest and thinnest. `jitter` bounds the sideways shake, which is not damped at the ends.
+// serpantinum stopped 26 px short of the node's centre: under our 220 px cards most of it was hidden.
+export const BOLT = { gap: 5, endOffset: 6, steps: 22, fadeDistance: 420, jitter: 3.75 };
+
+// Per layer, bottom to top: a wave sin(speed·time + freq·t + phase·seed + shift) damped towards both
+// ends, plus a shake sin(shakeSpeed·time + shakeStep·step + shakeShift) growing for closer nodes.
+// Width and alpha as in serpantinum (glow 0.22, mid 0.55, core 0.95).
+const BOLT_LAYERS = [
+    { layer: "glow", speed: 3.4, freq: 9, phase: 1, shift: 0, amp: 9, shakeSpeed: 12, shakeStep: 1, shakeShift: 0, shake: 2.0,
+      width: f => 4.5 + f * 3.0, alpha: 0.22 },
+    { layer: "mid", speed: 2.5, freq: 6, phase: -1, shift: 0, amp: 5.5, shakeSpeed: 10, shakeStep: -1, shakeShift: Math.PI / 2, shake: 2.5,
+      width: f => 2 * (1.0 + f * 1.2), alpha: 0.55 },
+    { layer: "core", speed: -1.5, freq: 8, phase: 2, shift: Math.PI / 2, amp: 7, shakeSpeed: 14, shakeStep: 1, shakeShift: 0, shake: 1.8,
+      width: f => 1.0 + f * 1.2, alpha: 0.95 },
+];
+
+// Ids of the nodes that get a strand: the connected ones.
+export function boltTargets(nodes) {
+    return nodes.filter(node => node.connected).map(node => node.id);
+}
+
+// Strands of one bolt from the core at `from` to the centre `to` of a node's `card` ({ width, height })
+// at `time` (s); `seed` (node index) keeps bolts of different nodes out of step. `reach` 0 → 1 grows
+// the bolt out of the core, `fade` 0 → 1 scales its alpha. Returns
+// [{ layer, width, alpha, points: [{ x, y }] }], or [] when nothing is left to draw.
+export function boltStrands(from, to, time, seed, { coreRadius, card, reach, fade }) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance < 10)
+        return [];
+    const cos = dx / distance;
+    const sin = dy / distance;
+    // from the card's centre to its edge, along the strand
+    const inCard = Math.min(cos ? card.width / 2 / Math.abs(cos) : Infinity, sin ? card.height / 2 / Math.abs(sin) : Infinity);
+    const start = coreRadius + BOLT.gap;
+    const length = (distance - inCard - start - BOLT.endOffset) * Math.min(1, reach);
+    if (length <= 0)
+        return [];
+    const sx = from.x + cos * start;
+    const sy = from.y + sin * start;
+    const near = Math.max(0, 1 - distance / BOLT.fadeDistance);
+    const alpha = (0.35 + near * 0.65) * fade;
+    return BOLT_LAYERS.map(layer => {
+        const points = [{ x: sx, y: sy }];
+        for (let step = 1; step <= BOLT.steps; step++) {
+            const t = step / BOLT.steps;
+            const along = length * t;
+            const wave = Math.sin(layer.speed * time + layer.freq * t + layer.phase * seed + layer.shift) * layer.amp * Math.sin(t * Math.PI);
+            const shake = (Math.sin(layer.shakeSpeed * time + layer.shakeStep * step + layer.shakeShift) - 0.5) * layer.shake * near;
+            const side = wave + shake;
+            points.push({ x: sx + cos * along - sin * side, y: sy + sin * along + cos * side });
+        }
+        return { layer: layer.layer, width: layer.width(near), alpha: alpha * layer.alpha, points };
+    });
 }
 
 // --- pairing with a code (orbit/bt-pair.py: BlueZ agent for a pairing the Orbita starts) ------

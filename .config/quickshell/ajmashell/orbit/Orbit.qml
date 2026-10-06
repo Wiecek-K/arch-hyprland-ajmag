@@ -6,11 +6,15 @@
 // one popup with Wi-Fi / BT tabs, scanning only while open, password in the core, pair → trust → connect):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 // Copyright (C) 2026 Illia Miroshnichenko — AGPL-3.0-or-later
-// Changes: written anew in ~400 lines instead of 2800 — no "lightning" (ticket 13), Ethernet tab,
+// Lightning (ticket 13) from the same file, nodeLinesCanvas: three wavy strands per node on a Canvas
+// repainted every 25 ms, only while open.
+// Changes: written anew in ~400 lines instead of 2800 — no Ethernet tab,
 // intro choreography, sounds, multi-core layout, list caching; state through bindings (no Connections
 // per device), logic in orbit.mjs; a click selects a node and the core offers its actions (serpantinum
 // connects on click, disconnects by holding the core); our Theme instead of its palette; the orbit turns
-// every frame and pauses under the pointer; profile switching added (serpantinum only shows it).
+// every frame and pauses under the pointer; profile switching added (serpantinum only shows it);
+// lightning to the connected nodes (serpantinum: to the info nodes of a connection), geometry in
+// orbit.mjs, colours from Theme.orbit, can be switched off (Theme.orbit.lightning).
 // Closes on a click outside (HyprlandFocusGrab), on Esc and on a second click on the same island.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -108,6 +112,7 @@ PopupWindow {
         return wifiTab ? Logic.wifiActions(selected) : Logic.btActions(selected, profile);
     }
     readonly property int btConnected: devices.filter(dev => dev.connected).length
+    readonly property bool bolts: visible && Theme.orbit.lightning && Logic.boltTargets(nodes).length > 0
 
     function network(id: string): var {
         return wifiDevice?.networks.values.find(net => net.name === id) ?? null;
@@ -410,7 +415,57 @@ PopupWindow {
             anchors.bottom: tabs.top
             anchors.margins: Theme.orbit.padding
 
+            // Lightning from the core to the connected nodes, under the nodes and the core.
+            // Repainted every boltTick ms only while it shows: a closed Orbita costs nothing.
+            Canvas {
+                id: lightning
+                anchors.fill: parent
+                property real fade: root.bolts ? 1 : 0
+                visible: fade > 0
+
+                Behavior on fade {
+                    enabled: root.visible
+                    NumberAnimation {
+                        duration: Theme.orbit.boltFade
+                    }
+                }
+
+                Timer {
+                    interval: Theme.orbit.boltTick
+                    running: lightning.visible
+                    repeat: true
+                    onTriggered: lightning.requestPaint()
+                }
+
+                onPaint: {
+                    const ctx = getContext("2d");
+                    ctx.clearRect(0, 0, width, height);
+                    const center = { x: width / 2, y: height / 2 };
+                    const time = Date.now() / 1000;
+                    const layers = { glow: Theme.orbit.boltGlow, mid: Theme.orbit.boltMid, core: Theme.orbit.boltCore };
+                    ctx.lineJoin = "round";
+                    ctx.lineCap = "round";
+                    for (let i = 0; i < nodeRepeater.count; i++) {
+                        const item = nodeRepeater.itemAt(i); // delegates in the order of root.nodes
+                        if (!item || !root.nodes[i]?.connected)
+                            continue;
+                        const target = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
+                        for (const strand of Logic.boltStrands(center, target, time, i, { coreRadius: Theme.orbit.coreSize / 2, card: item, reach: root.spread, fade: fade })) {
+                            ctx.beginPath();
+                            ctx.moveTo(strand.points[0].x, strand.points[0].y);
+                            for (const point of strand.points.slice(1))
+                                ctx.lineTo(point.x, point.y);
+                            ctx.lineWidth = strand.width;
+                            ctx.strokeStyle = layers[strand.layer];
+                            ctx.globalAlpha = strand.alpha;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
             Repeater {
+                id: nodeRepeater
                 // ids only: the delegates stay when a node's signal or battery changes
                 model: ScriptModel {
                     values: root.nodes.map(node => node.id)
