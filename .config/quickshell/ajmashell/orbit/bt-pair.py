@@ -11,9 +11,11 @@
 #   {"event": "confirm", "passkey": 427746}   same code on the device? answer "yes" or "no" on stdin
 #   {"event": "display", "passkey": 123456}   type this code on the device (also "pincode": "0000")
 #   {"event": "done"} | {"event": "failed", "error": "<D-Bus error name>" | "pin" | "no-device"}
-# stdin: "yes" / "no" (with no question open, "no" cancels); end of input cancels too (the Orbita closed).
+# stdin: "yes" / "no" (with no question open, "no" cancels); end of input or SIGTERM cancels too (the Orbita
+# closed or started another pairing). A D-Bus error before pairing starts is reported as "failed" as well.
 
 import json
+import signal
 import sys
 
 import dbus
@@ -111,9 +113,17 @@ def main():
         print("usage: bt-pair.py <address>", file=sys.stderr)
         return 2
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    try:
+        return pair(sys.argv[1])
+    except dbus.DBusException as err:  # bluetoothd gone, agent refused…: the Orbita must not wait forever
+        emit(event="failed", error=err.get_dbus_name() or "dbus")
+        return 1
+
+
+def pair(address):
     bus = dbus.SystemBus()
     loop = GLib.MainLoop()
-    path = device_path(bus, sys.argv[1])
+    path = device_path(bus, address)
     if not path:
         emit(event="failed", error="no-device")
         return 1
@@ -121,21 +131,20 @@ def main():
     agent = Agent(bus)
     agents = dbus.Interface(bus.get_object("org.bluez", "/org/bluez"), "org.bluez.AgentManager1")
     agents.RegisterAgent(AGENT_PATH, CAPABILITY)
-    device = dbus.Interface(bus.get_object("org.bluez", path), "org.bluez.Device1")
-    result = {"code": 1}
+    try:
+        device = dbus.Interface(bus.get_object("org.bluez", path), "org.bluez.Device1")
+        result = {"code": 1}
 
-    def done():
-        emit(event="done")
-        result["code"] = 0
-        loop.quit()
+        def done():
+            emit(event="done")
+            result["code"] = 0
+            loop.quit()
 
-    def failed(err):
-        emit(event="failed", error="pin" if agent.needs_pin else err.get_dbus_name())
-        loop.quit()
+        def failed(err):
+            emit(event="failed", error="pin" if agent.needs_pin else err.get_dbus_name())
+            loop.quit()
 
-    def on_input(source, condition):
-        line = source.readline()
-        if not line:  # the Orbita closed: stop pairing
+        def cancel():
             agent.answer(False)
             try:
                 device.CancelPairing()
@@ -143,25 +152,32 @@ def main():
                 pass
             loop.quit()
             return False
-        if line.strip() == "yes":
-            agent.answer(True)
-        elif agent.pending:
-            agent.answer(False)
-        else:  # "no" while a code is on display: stop pairing
-            try:
-                device.CancelPairing()
-            except dbus.DBusException:
-                pass
-        return True
 
-    GLib.io_add_watch(sys.stdin, GLib.PRIORITY_DEFAULT, GLib.IO_IN | GLib.IO_HUP, on_input)
-    device.Pair(reply_handler=done, error_handler=failed, timeout=90)
-    loop.run()
-    try:
-        agents.UnregisterAgent(AGENT_PATH)
-    except dbus.DBusException:
-        pass
-    return result["code"]
+        def on_input(source, condition):
+            line = source.readline()
+            if not line:  # the Orbita closed: stop pairing
+                return cancel()
+            if line.strip() == "yes":
+                agent.answer(True)
+            elif agent.pending:
+                agent.answer(False)
+            else:  # "no" while a code is on display: stop pairing
+                try:
+                    device.CancelPairing()
+                except dbus.DBusException:
+                    pass
+            return True
+
+        GLib.io_add_watch(sys.stdin, GLib.PRIORITY_DEFAULT, GLib.IO_IN | GLib.IO_HUP, on_input)
+        GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, cancel)  # the Orbita stops the process
+        device.Pair(reply_handler=done, error_handler=failed, timeout=90)
+        loop.run()
+        return result["code"]
+    finally:
+        try:
+            agents.UnregisterAgent(AGENT_PATH)
+        except dbus.DBusException:
+            pass
 
 
 if __name__ == "__main__":

@@ -58,6 +58,8 @@ PopupWindow {
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
     property var pairing: null // BT device being paired, connected once paired
+    property string pairNext: "" // address to pair once the helper of a cancelled pairing has exited
+    property bool pairAnswered: false // the helper reported "done" or "failed"
     property var prompt: null // { id, event, code } while the device being paired asks (Logic.pairEvent)
 
     readonly property var wifiDevice: Networking.devices.values.find(device => device.type === DeviceType.Wifi) ?? null
@@ -164,8 +166,13 @@ PopupWindow {
             else if (action === "pair") {
                 // the helper calls Pair() and is its agent, so a code to confirm comes back here
                 pairing = dev;
-                pairProc.command = [Quickshell.shellPath("orbit/bt-pair.py"), id];
-                pairProc.running = true;
+                prompt = null;
+                if (pairProc.running) { // a pairing is still running: cancel it, start this one when it exits
+                    pairNext = id;
+                    pairProc.running = false;
+                } else {
+                    startPair(id);
+                }
             } else if (action === "trust" || action === "untrust")
                 dev.trusted = action === "trust";
             else if (action === "forget")
@@ -210,16 +217,26 @@ PopupWindow {
             spread = 0;
             watched = null;
             pairing = null;
+            pairNext = "";
             prompt = null;
-            pairProc.running = false; // stops the pairing (end of input for the helper)
+            pairProc.running = false; // SIGTERM: the helper cancels the pairing
         }
     }
 
-    function pairLine(line: string): void {
+    function startPair(id: string): void {
+        pairAnswered = false;
+        pairProc.command = [Quickshell.shellPath("orbit/bt-pair.py"), id];
+        pairProc.running = true;
+    }
+
+    // one stdout line of bt-pair.py
+    function handlePairOutput(line: string): void {
         const event = Logic.pairEvent(line);
         const id = pairProc.command[1] ?? "";
-        if (!event)
+        if (!event || pairNext !== "") // a cancelled helper still talking
             return;
+        if (event.event === "done" || event.event === "failed")
+            pairAnswered = true;
         if (event.event === "confirm" || event.event === "display") {
             prompt = { id: id, event: event.event, code: event.code };
             selectedId = id;
@@ -301,7 +318,21 @@ PopupWindow {
         id: pairProc
         stdinEnabled: true
         stdout: SplitParser {
-            onRead: data => root.pairLine(data)
+            onRead: data => root.handlePairOutput(data)
+        }
+        onRunningChanged: {
+            if (running)
+                return;
+            const id = command[1] ?? "";
+            if (root.pairNext !== "") {
+                const next = root.pairNext;
+                root.pairNext = "";
+                root.startPair(next);
+            } else if (!root.pairAnswered && root.pairing) { // the helper died without an answer (e.g. a D-Bus error)
+                root.pairing = null;
+                root.prompt = null;
+                root.failure = { id: id, text: Logic.PAIR_FAILED };
+            }
         }
     }
 
@@ -432,7 +463,7 @@ PopupWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             font.pixelSize: Theme.orbit.iconSize
                             color: nodeItem.textColor
-                            text: root.wifiTab ? nodeItem.node?.icon ?? "" : nodeItem.node?.glyph ?? ""
+                            text: nodeItem.node?.glyph ?? ""
                         }
 
                         OrbitText {
@@ -499,7 +530,7 @@ PopupWindow {
                         text: {
                             const node = root.selected;
                             if (node)
-                                return (root.wifiTab ? node.icon : node.glyph) ?? ""; // a node of the old tab for a moment
+                                return node.glyph ?? "";
                             return root.wifiTab ? Net.wifiIcon({ enabled: root.moduleOn }) : Net.btIcon({ enabled: root.moduleOn, connected: 0 });
                         }
                     }
@@ -522,7 +553,7 @@ PopupWindow {
                             if (root.failure?.id === root.selected.id)
                                 return root.failure.text;
                             if (root.promptMode)
-                                return Logic.pairLine(root.prompt);
+                                return Logic.pairPromptText(root.prompt);
                             return Logic.statusLine(root.tab, root.selected, root.profile);
                         }
                     }

@@ -78,7 +78,7 @@ export function wifiNodes(networks, max = Infinity) {
             id: net.name,
             name: net.name,
             signal: percent(net.signal),
-            icon: wifiIcon({ enabled: true, signal: net.signal ?? 0 }),
+            glyph: wifiIcon({ enabled: true, signal: net.signal ?? 0 }), // same field as BT nodes: one glyph slot in the card and core
             kind: securityKind(net.security),
             known: !!(net.known || net.connected), // inner ring; a network only in range sits on the outer one
             connected: !!net.connected,
@@ -256,6 +256,8 @@ export function orbitPoint(index, count, angle, { rx, ry, ring }, outer) {
 
 // --- pairing with a code (orbit/bt-pair.py: BlueZ agent for a pairing the Orbita starts) ------
 
+export const PAIR_FAILED = "Pairing failed";
+
 // line: one JSON line of bt-pair.py. Returns { event, code, text? } or null for anything else.
 // BlueZ passkeys are numbers shown as six digits; a legacy PIN code is a string.
 export function pairEvent(line) {
@@ -273,7 +275,7 @@ export function pairEvent(line) {
     if (event === "done")
         return { event, code: "" };
     if (event === "failed")
-        return { event, code: "", text: data.error === "pin" ? "Needs a PIN — use the Bluetooth manager" : "Pairing failed" };
+        return { event, code: "", text: data.error === "pin" ? "Needs a PIN — use the Bluetooth manager" : PAIR_FAILED };
     return null;
 }
 
@@ -282,6 +284,7 @@ export function pairActions(prompt) {
     return prompt.event === "confirm" ? ["confirm", "deny"] : ["deny"];
 }
 
-export function pairLine(prompt) {
+// text in the core under the code
+export function pairPromptText(prompt) {
     return prompt.event === "confirm" ? "Same code on the device?" : "Type this code on the device";
 }
