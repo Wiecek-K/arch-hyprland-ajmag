@@ -24,6 +24,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.singletons.theme
 import "launcher.mjs" as Logic
+import "../orbit" // TEMPORARY (ticket 13): OrbitBackdrop behind the list
 
 Scope {
     id: root
@@ -426,6 +427,22 @@ Scope {
                                 }
                             }
                         }
+                    }
+                }
+
+                // TEMPORARY (ticket 13, user 2026-10-06): the Orbita's "flare + stars, soft streak"
+                // background behind the list, to see it here; turns like the orbit while open
+                OrbitBackdrop {
+                    id: listBackdrop
+                    x: pane.width
+                    width: box.width - pane.width
+                    height: box.height
+                    radius: 0 // the box clips its own corners
+                    variant: variants.findIndex(v => v.name === "flare + stars, soft streak")
+
+                    FrameAnimation {
+                        running: win.visible
+                        onTriggered: listBackdrop.angle = (listBackdrop.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI)
                     }
                 }
 

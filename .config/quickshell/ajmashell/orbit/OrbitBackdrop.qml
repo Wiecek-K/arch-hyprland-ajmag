@@ -32,7 +32,7 @@ Item {
     ]
     readonly property string name: variants[variant].name
     readonly property var layers: variants[variant].layers
-    readonly property real radius: Theme.radius.lg
+    property real radius: Theme.radius.lg // corners of the panel it fills
     // the orbit's centre: the field above the tab row
     readonly property real cx: width / 2
     readonly property real cy: height / 2 - Theme.orbit.tabHeight / 2
