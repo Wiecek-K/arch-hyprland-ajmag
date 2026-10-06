@@ -22,7 +22,9 @@ Item {
         { name: "stars", layers: ["stars"] },
         { name: "nebula + stars", layers: ["nebula", "stars"] },
         { name: "aurora + stars", layers: ["aurora", "stars"] },
-        { name: "flare", layers: ["flare"] },
+        { name: "flare", layers: ["flare", "streak"] },
+        { name: "flare + stars", layers: ["flare", "stars"] },
+        { name: "flare + stars, soft streak", layers: ["flare", "softStreak", "stars"] },
         { name: "halo", layers: ["halo"] },
         { name: "mesh", layers: ["mesh"] },
         { name: "spotlight", layers: ["nebula", "vignette"] },
@@ -201,14 +203,42 @@ Item {
 
         // anamorphic streak: a wide soft band and a thin bright line through the source
         Streak {
+            visible: backdrop.has("streak")
             centerY: flare.sy
             thickness: 26
             peak: 0.12
         }
         Streak {
+            visible: backdrop.has("streak")
             centerY: flare.sy
             thickness: 3
             peak: 0.5
+        }
+
+        // the same streak with no edges: a radial glow squashed into a thin ellipse, so it fades
+        // smoothly up, down and to the sides (user, 2026-10-06: the band's edges were too sharp)
+        Item {
+            anchors.fill: parent
+            visible: backdrop.has("softStreak")
+
+            Wash {
+                // a square around the source, squashed vertically to the band's height
+                anchors.fill: undefined
+                x: flare.sx - backdrop.width * 0.9
+                y: flare.sy - backdrop.width * 0.9
+                width: backdrop.width * 1.8
+                height: width
+                centerX: width / 2
+                centerY: height / 2
+                reach: width / 2
+                rounded: false
+                stops: [[0, Theme.orbit.backdropFlare, 0.45], [0.08, Theme.orbit.backdropFlare, 0.22], [0.35, Theme.orbit.backdropFlare, 0.07], [1, Theme.orbit.backdropFlare, 0]]
+                transform: Scale {
+                    origin.x: backdrop.width * 0.9
+                    origin.y: backdrop.width * 0.9
+                    yScale: 0.035
+                }
+            }
         }
 
         // ghosts on the far side of the centre
@@ -252,6 +282,7 @@ Item {
         property real centerY
         property real reach
         property var stops: []
+        property bool rounded: true // clipped to the panel's rounded corners
         anchors.fill: parent
         preferredRendererType: Shape.CurveRenderer
         ShapePath {
@@ -267,7 +298,7 @@ Item {
             PathRectangle {
                 width: wash.width
                 height: wash.height
-                radius: backdrop.radius
+                radius: wash.rounded ? backdrop.radius : 0
             }
         }
     }
