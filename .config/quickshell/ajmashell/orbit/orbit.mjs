@@ -246,6 +246,15 @@ export function actionLabel(action, profile) {
     return ACTION_LABELS[action];
 }
 
+// The core's action buttons in rows of two; each row is centred, so a lone third button sits in the
+// middle, not under the left one (user, 2026-10-06).
+export function actionRows(actions) {
+    const rows = [];
+    for (let i = 0; i < actions.length; i += 2)
+        rows.push(actions.slice(i, i + 2));
+    return rows;
+}
+
 // --- orbit geometry (serpantinum: singleBaseAngle, ringOffset, singleRadX/Y) -----------------
 
 // Offset of node `index` of `count` from the orbit's centre: nodes spread evenly on an ellipse

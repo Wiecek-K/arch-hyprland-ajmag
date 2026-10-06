@@ -21,6 +21,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Hyprland
@@ -64,7 +65,7 @@ PopupWindow {
     // TEMPORARY (ticket 13, user 2026-10-06: "the middle element stands out too much"): core styles, C cycles
     readonly property var coreStyles: ["solid", "glass", "fade", "fade wide", "ring", "none", "glass + fade wide"]
     // TEMPORARY (ticket 13, user 2026-10-06): shape of the node cards, S cycles; island = like the Bar's islands
-    readonly property var nodeShapes: ["rounded", "ellipse", "island"]
+    readonly property var nodeShapes: ["rounded", "ellipse", "island", "soft", "soft, dim new", "soft, all"]
     property int nodeShape: nodeShapes.indexOf("ellipse") // starts at the user's current pick (2026-10-06)
     // TEMPORARY (ticket 13, user 2026-10-06: "take care of the buttons"): button styles, P cycles
     readonly property var pillStyles: ["filled", "glass", "outline", "soft", "text"]
@@ -611,8 +612,16 @@ PopupWindow {
                     // known: filled; new: outline only (user, 2026-10-05); island: the Bar's translucent island colour
                     readonly property color fill: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : known ? (shape === "island" ? Theme.bar.island : Theme.orbit.node) : Theme.orbit.unknown
                     readonly property real edge: chosen ? Theme.bar.ringWidth : known ? 0 : Theme.orbit.unknownBorderWidth
-                    color: shape === "ellipse" ? Theme.transparent : fill // the ellipse is drawn by the Shape below
-                    border.width: shape === "ellipse" ? 0 : edge
+                    // TEMPORARY (ticket 13): "soft…" = a blurred ellipse, the same fade width on every side
+                    // (user, 2026-10-06: the squashed gradient ends sharply at the top and bottom; a new
+                    // network's hollow ring and the bright connected fill look poor); "dim new": a new network
+                    // gets a faint fill instead of the ring; "all": the connected fill is softer too
+                    readonly property bool soft: shape.startsWith("soft")
+                    readonly property bool plain: !(node?.connected ?? false) && !hover.hovered
+                    readonly property color softFill: shape !== "soft" && !known && plain ? Qt.alpha(Theme.orbit.node, 0.35) : shape === "soft, all" && (node?.connected ?? false) ? Qt.alpha(Theme.orbit.connected, 0.7) : fill
+                    readonly property real softEdge: shape === "soft" || chosen ? edge : 0
+                    color: shape === "ellipse" || soft ? Theme.transparent : fill // the ellipse is drawn by the Shape below
+                    border.width: shape === "ellipse" || soft ? 0 : edge
                     border.color: chosen ? Theme.orbit.selected : Theme.orbit.unknownBorder
                     opacity: node?.busy ? Theme.orbit.dimmed : 1
 
@@ -659,6 +668,42 @@ PopupWindow {
                                     startAngle: 0
                                     sweepAngle: 360
                                 }
+                            }
+                        }
+                    }
+
+                    // a Loader, so the layer exists only in the "soft…" shapes (a layer must be on from the start)
+                    Loader {
+                        anchors.fill: parent
+                        active: nodeItem.soft
+                        sourceComponent: Item {
+                            Shape {
+                                id: blob
+                                readonly property real line: 2 * nodeItem.softEdge // the blur thins a ring
+                                anchors.fill: parent
+                                visible: false
+                                layer.enabled: true
+                                preferredRendererType: Shape.CurveRenderer
+                                ShapePath {
+                                    fillColor: nodeItem.softFill
+                                    strokeColor: blob.line > 0 ? nodeItem.border.color : Theme.transparent
+                                    strokeWidth: blob.line > 0 ? blob.line : -1
+                                    PathAngleArc {
+                                        centerX: blob.width / 2
+                                        centerY: blob.height / 2
+                                        radiusX: blob.width / 2 - blob.line
+                                        radiusY: blob.height / 2 - blob.line
+                                        startAngle: 0
+                                        sweepAngle: 360
+                                    }
+                                }
+                            }
+                            MultiEffect {
+                                anchors.fill: blob
+                                source: blob
+                                blurEnabled: true
+                                blur: 1
+                                blurMax: 12
                             }
                         }
                     }
@@ -824,20 +869,31 @@ PopupWindow {
                         }
                     }
 
-                    Grid {
+                    // rows of two, each centred: a lone third button sits in the middle (user, 2026-10-06)
+                    Column {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        columns: Math.min(2, root.actions.length)
                         spacing: Theme.spacing.sm
 
                         Repeater {
-                            model: root.actions
+                            model: Logic.actionRows(root.actions)
 
-                            Pill {
-                                required property string modelData
-                                width: Theme.orbit.coreSize / 2 - Theme.orbit.padding - Theme.spacing.lg
-                                text: Logic.actionLabel(modelData, root.profile)
-                                enabled: root.promptMode || !(root.selected?.busy ?? false) // pairing is busy, yet asks
-                                onClicked: root.run(modelData)
+                            Row {
+                                id: actionRow
+                                required property var modelData
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                spacing: Theme.spacing.sm
+
+                                Repeater {
+                                    model: actionRow.modelData
+
+                                    Pill {
+                                        required property string modelData
+                                        width: Theme.orbit.coreSize / 2 - Theme.orbit.padding - Theme.spacing.lg
+                                        text: Logic.actionLabel(modelData, root.profile)
+                                        enabled: root.promptMode || !(root.selected?.busy ?? false) // pairing is busy, yet asks
+                                        onClicked: root.run(modelData)
+                                    }
+                                }
                             }
                         }
                     }
