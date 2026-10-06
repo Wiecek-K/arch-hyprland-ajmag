@@ -430,7 +430,7 @@ Scope {
                     }
                 }
 
-                // TEMPORARY (ticket 13, user 2026-10-06): the Orbita's "flare + stars, soft streak"
+                // TEMPORARY (ticket 13, user 2026-10-06): the Orbita's "flare, no streak" (no stars, no streak)
                 // background behind the list, to see it here; turns like the orbit while open
                 OrbitBackdrop {
                     id: listBackdrop
@@ -438,7 +438,7 @@ Scope {
                     width: box.width - pane.width
                     height: box.height
                     radius: 0 // the box clips its own corners
-                    variant: variants.findIndex(v => v.name === "flare + stars, soft streak")
+                    variant: variants.findIndex(v => v.name === "flare, no streak")
 
                     FrameAnimation {
                         running: win.visible

@@ -21,6 +21,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -59,6 +60,9 @@ PopupWindow {
     property string hoverId: "" // node under the pointer; the orbit stops while set
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
+    // TEMPORARY (ticket 13, user 2026-10-06: "the middle element stands out too much"): core styles, C cycles
+    readonly property var coreStyles: ["solid", "glass", "fade", "ring", "none"]
+    property int coreStyle: 0
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
@@ -415,6 +419,9 @@ PopupWindow {
             if (event.key === Qt.Key_B) {
                 backdrop.variant = (backdrop.variant + 1) % backdrop.variants.length;
                 event.accepted = true;
+            } else if (event.key === Qt.Key_C) { // TEMPORARY (ticket 13): core styles
+                root.coreStyle = (root.coreStyle + 1) % root.coreStyles.length;
+                event.accepted = true;
             }
         }
 
@@ -432,7 +439,7 @@ PopupWindow {
             anchors.margins: Theme.orbit.padding + Theme.spacing.sm
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.orbit.subtext
-            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})`
+            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})`
         }
 
         Item {
@@ -620,12 +627,41 @@ PopupWindow {
 
             // The chosen node with its state and actions; a password field for a new secured network.
             Rectangle {
+                id: core
                 anchors.centerIn: parent
                 width: Theme.orbit.coreSize
                 height: width
                 radius: width / 2
-                color: Theme.orbit.core
+                readonly property string style: root.coreStyles[root.coreStyle]
+                color: style === "solid" ? Theme.orbit.core : style === "glass" ? Qt.alpha(Theme.orbit.core, 0.45) : Theme.transparent
+                border.width: style === "ring" ? 1 : 0
+                border.color: Theme.orbit.unknownBorder
                 opacity: root.spread > 0 ? 1 : 0
+
+                // fade: dense under the text and buttons, gone at the edge — no visible rim
+                Shape {
+                    anchors.fill: parent
+                    visible: core.style === "fade"
+                    preferredRendererType: Shape.CurveRenderer
+                    ShapePath {
+                        strokeWidth: -1
+                        fillGradient: RadialGradient {
+                            centerX: core.width / 2
+                            centerY: core.height / 2
+                            centerRadius: core.width / 2
+                            focalX: centerX
+                            focalY: centerY
+                            GradientStop { position: 0; color: Qt.alpha(Theme.orbit.core, 0.75) }
+                            GradientStop { position: 0.6; color: Qt.alpha(Theme.orbit.core, 0.55) }
+                            GradientStop { position: 1; color: Theme.transparent }
+                        }
+                        PathRectangle {
+                            width: core.width
+                            height: core.height
+                            radius: core.width / 2
+                        }
+                    }
+                }
 
                 Column {
                     anchors.centerIn: parent
