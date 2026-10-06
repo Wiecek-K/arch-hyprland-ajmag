@@ -410,6 +410,29 @@ PopupWindow {
         focus: true
         Keys.onEscapePressed: root.close()
         Keys.onTabPressed: root.tab = root.wifiTab ? "bt" : "wifi"
+        // TEMPORARY (ticket 13): B cycles the background variants to compare
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_B) {
+                backdrop.variant = (backdrop.variant + 1) % backdrop.names.length;
+                event.accepted = true;
+            }
+        }
+
+        OrbitBackdrop {
+            id: backdrop
+            anchors.fill: parent
+            angle: root.angle
+        }
+
+        // TEMPORARY (ticket 13): name of the background variant
+        OrbitText {
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.margins: Theme.orbit.padding + Theme.spacing.sm
+            font.pixelSize: Theme.font.sizeSmall
+            color: Theme.orbit.subtext
+            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.names.length})`
+        }
 
         Item {
             id: field

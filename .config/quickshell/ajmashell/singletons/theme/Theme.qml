@@ -130,6 +130,10 @@ Singleton {
         boltGlow: root.colors.primary
         boltMid: root.colors.primary_fixed
         boltCore: root.colors.on_surface
+        // TEMPORARY background variants (orbit/OrbitBackdrop.qml, ticket 13)
+        backdropGlow: root.colors.primary
+        backdropAccent: root.colors.tertiary
+        backdropStar: root.colors.on_surface
     }
 
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
@@ -331,7 +335,8 @@ Singleton {
         readonly property int reflow: 1200 // ms; nodes glide to their new places when the list changes (user, 2026-10-06: 600 too quick)
         // each node drifts ± amplitude px towards and away from the core, period ± 12% per node (user, 2026-10-06);
         // inStep: all nodes together, shown to compare (user, 2026-10-06)
-        readonly property var wobble: ({ amplitude: 6, period: 4000, inStep: true })
+        // 2026-10-06: up–down much longer (4 → 10 s), motion a bit slower (~9.4 → ~6.3 px/s), so a larger amplitude
+        readonly property var wobble: ({ amplitude: 10, period: 10000, inStep: true })
         readonly property int cardsDelay: 1500 // ms; PipeWire adds a BT card a moment after the connection
         // Lightning (ticket 13, D6): wavy strands from the core to the connected nodes, a Canvas drawn
         // on the CPU every `boltTick` ms (serpantinum: 25 ms, ~40 fps) only while the Orbita is open.
@@ -359,6 +364,9 @@ Singleton {
         property color boltGlow
         property color boltMid
         property color boltCore
+        property color backdropGlow
+        property color backdropAccent
+        property color backdropStar
     }
 
     // Singletons load lazily and FileView reads asynchronously: read the file once, blocking,
