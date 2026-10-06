@@ -413,7 +413,7 @@ PopupWindow {
         // TEMPORARY (ticket 13): B cycles the background variants to compare
         Keys.onPressed: event => {
             if (event.key === Qt.Key_B) {
-                backdrop.variant = (backdrop.variant + 1) % backdrop.names.length;
+                backdrop.variant = (backdrop.variant + 1) % backdrop.variants.length;
                 event.accepted = true;
             }
         }
@@ -422,6 +422,7 @@ PopupWindow {
             id: backdrop
             anchors.fill: parent
             angle: root.angle
+            coreRadius: Theme.orbit.coreSize / 2
         }
 
         // TEMPORARY (ticket 13): name of the background variant
@@ -431,7 +432,7 @@ PopupWindow {
             anchors.margins: Theme.orbit.padding + Theme.spacing.sm
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.orbit.subtext
-            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.names.length})`
+            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})`
         }
 
         Item {

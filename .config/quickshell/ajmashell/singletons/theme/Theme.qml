@@ -134,6 +134,9 @@ Singleton {
         backdropGlow: root.colors.primary
         backdropAccent: root.colors.tertiary
         backdropStar: root.colors.on_surface
+        backdropGhost: root.colors.secondary
+        backdropShade: root.colors.shadow
+        backdropFlare: root.colors.on_surface
     }
 
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
@@ -367,6 +370,9 @@ Singleton {
         property color backdropGlow
         property color backdropAccent
         property color backdropStar
+        property color backdropGhost
+        property color backdropShade
+        property color backdropFlare
     }
 
     // Singletons load lazily and FileView reads asynchronously: read the file once, blocking,
