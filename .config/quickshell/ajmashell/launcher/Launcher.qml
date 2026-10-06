@@ -25,7 +25,7 @@ import Quickshell.Widgets
 import qs.singletons.theme
 import "launcher.mjs" as Logic
 import "../orbit" // TEMPORARY (ticket 13): OrbitBackdrop behind the list
-import qs.singletons.look // F2: basic → fancy → prototype look (ticket 13)
+import qs.singletons.look // F2: basic ↔ fancy look (ticket 13)
 
 Scope {
     id: root
@@ -377,7 +377,7 @@ Scope {
                             focus: true
 
                             Keys.onEscapePressed: root.open = false
-                            // F2 cycles the look: basic → fancy → prototype (ticket 13)
+                            // F2 switches the look: basic ↔ fancy (ticket 13)
                             Keys.onPressed: event => {
                                 if (event.key === Qt.Key_F2) {
                                     Look.cycle();
@@ -438,16 +438,17 @@ Scope {
                     }
                 }
 
-                // fancy and prototype looks (ticket 13, user 2026-10-06): the Orbita's "flare, no streak"
-                // background behind the list (no stars, no streak); turns like the orbit while open
+                // the look's backdrop behind the list (ticket 13, user 2026-10-06; fancy: "flare, no streak"),
+                // the same as the Orbita's; turns like the orbit while open
                 OrbitBackdrop {
                     id: listBackdrop
-                    visible: Look.mode !== "basic" // the basic look has no background behind the list
+                    visible: backdropName !== "flat" // the basic look has no background behind the list
                     x: pane.width
                     width: box.width - pane.width
                     height: box.height
                     radius: 0 // the box clips its own corners
-                    variant: variants.findIndex(v => v.name === "flare, no streak")
+                    readonly property string backdropName: Theme.orbit.looks[Look.mode].backdrop
+                    variant: variants.findIndex(v => v.name === backdropName)
 
                     FrameAnimation {
                         running: win.visible && listBackdrop.visible

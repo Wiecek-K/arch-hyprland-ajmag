@@ -62,21 +62,11 @@ PopupWindow {
     property string hoverId: "" // node under the pointer; the orbit stops while set
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
-    // TEMPORARY (ticket 13, user 2026-10-06: "the middle element stands out too much"): core styles, C cycles
-    readonly property var coreStyles: ["solid", "glass", "fade", "fade wide", "ring", "none", "glass + fade wide"]
-    // TEMPORARY (ticket 13, user 2026-10-06): shape of the node cards, S cycles; island = like the Bar's islands
-    readonly property var nodeShapes: ["rounded", "ellipse", "island", "soft", "soft, dim new", "soft, all"]
-    property int nodeShape: nodeShapes.indexOf("ellipse") // starts at the user's current pick (2026-10-06)
-    // TEMPORARY (ticket 13, user 2026-10-06: "take care of the buttons"): button styles, P cycles
-    readonly property var pillStyles: ["filled", "glass", "outline", "soft", "text"]
-    property int pillStyle: 0
-    property int coreStyle: coreStyles.indexOf("glass + fade wide")
-    property int backdropChoice: 0 // set to "flare, soft streak" once the backdrop exists
-    // F2 / IPC "look": a set look from Theme.orbit.looks, or in "prototype" the picks above (Look.qml)
-    readonly property var setLook: Theme.orbit.looks[Look.mode] ?? null
-    readonly property string coreLook: setLook?.core ?? coreStyles[coreStyle]
-    readonly property string pillLook: setLook?.pills ?? pillStyles[pillStyle]
-    readonly property string shapeLook: setLook?.nodes ?? nodeShapes[nodeShape]
+    // F2 / IPC "look": basic or fancy, their picks in Theme.orbit.looks (Look.qml)
+    readonly property var setLook: Theme.orbit.looks[Look.mode]
+    readonly property string coreLook: setLook.core
+    readonly property string pillLook: setLook.pills
+    readonly property string shapeLook: setLook.nodes
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
@@ -428,22 +418,9 @@ PopupWindow {
         focus: true
         Keys.onEscapePressed: root.close()
         Keys.onTabPressed: root.tab = root.wifiTab ? "bt" : "wifi"
-        // TEMPORARY (ticket 13): B cycles the background variants to compare
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_F2) { // basic → fancy → prototype look
+            if (event.key === Qt.Key_F2) { // basic ↔ fancy look
                 Look.cycle();
-                event.accepted = true;
-            } else if (event.key === Qt.Key_B) {
-                root.backdropChoice = (root.backdropChoice + 1) % backdrop.variants.length;
-                event.accepted = true;
-            } else if (event.key === Qt.Key_P) { // TEMPORARY (ticket 13): button styles
-                root.pillStyle = (root.pillStyle + 1) % root.pillStyles.length;
-                event.accepted = true;
-            } else if (event.key === Qt.Key_S) { // TEMPORARY (ticket 13): node shapes
-                root.nodeShape = (root.nodeShape + 1) % root.nodeShapes.length;
-                event.accepted = true;
-            } else if (event.key === Qt.Key_C) { // TEMPORARY (ticket 13): core styles
-                root.coreStyle = (root.coreStyle + 1) % root.coreStyles.length;
                 event.accepted = true;
             }
         }
@@ -453,18 +430,7 @@ PopupWindow {
             anchors.fill: parent
             angle: root.angle
             coreRadius: Theme.orbit.coreSize / 2
-            variant: root.setLook ? variants.findIndex(v => v.name === root.setLook.backdrop) : root.backdropChoice
-            Component.onCompleted: root.backdropChoice = variants.findIndex(v => v.name === "flare, soft streak")
-        }
-
-        // TEMPORARY (ticket 13): names of the background, core and button variants (top: the tab row is at the bottom)
-        OrbitText {
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.margins: Theme.orbit.padding + Theme.spacing.sm
-            font.pixelSize: Theme.font.sizeSmall
-            color: Theme.orbit.subtext
-            text: Look.mode !== "prototype" ? `F2: ${Look.mode} look` : `F2: prototype   B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})   S: ${root.nodeShapes[root.nodeShape]} (${root.nodeShape + 1}/${root.nodeShapes.length})`
+            variant: variants.findIndex(v => v.name === root.setLook.backdrop)
         }
 
         Item {
@@ -540,7 +506,7 @@ PopupWindow {
                         if (!item || !Logic.getsBolt(root.nodes[i]))
                             continue;
                         const target = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
-                        Logic.boltStrands(center, target, time, i, { coreRadius: Theme.orbit.boltStart, card: item, reach: root.spread, fade: fade }).forEach((strand, layer) => {
+                        Logic.boltStrands(center, target, time, i, { start: Theme.orbit.boltStart, card: item, reach: root.spread, fade: fade }).forEach((strand, layer) => {
                             ctx.beginPath();
                             ctx.moveTo(strand.points[0].x, strand.points[0].y);
                             for (const point of strand.points.slice(1))
@@ -582,7 +548,7 @@ PopupWindow {
                     }
                     // known nodes on the inner ring, new ones (only in range) on the outer
                     property real ringShift: known ? 0 : Theme.orbit.ring
-                    // drifts slightly towards and away from the core, out of step with the others (user, 2026-10-06)
+                    // drifts slightly towards and away from the core, in step or not as Theme.orbit.wobble says (user, 2026-10-06)
                     readonly property real drift: ringShift + Logic.wobble(modelData, root.clock, Theme.orbit.wobble)
                     readonly property var point: Logic.ellipsePoint(root.angle + slot,
                         (Theme.orbit.radiusX + drift) * root.spread, (Theme.orbit.radiusY + drift) * root.spread)
@@ -640,6 +606,10 @@ PopupWindow {
                             id: softEllipse
                             required property var modelData
                             readonly property real soft: Theme.spacing.md // how far the fade reaches past the card
+                            // the i-th [position, colour]; the missing ones repeat the last
+                            function stop(i: int): var {
+                                return modelData[Math.min(i, modelData.length - 1)] ?? [1, Theme.transparent];
+                            }
                             visible: modelData.length > 0
                             x: -soft
                             y: nodeItem.height / 2 - width / 2
@@ -659,7 +629,11 @@ PopupWindow {
                                     centerRadius: softEllipse.width / 2
                                     focalX: centerX
                                     focalY: centerY
-                                    stops: softEllipse.modelData.map(stop => gradientStop.createObject(softEllipse, { position: stop[0], color: stop[1] }))
+                                    // four fixed stops (no createObject: it leaked a set of stops per change)
+                                    GradientStop { position: softEllipse.stop(0)[0]; color: softEllipse.stop(0)[1] }
+                                    GradientStop { position: softEllipse.stop(1)[0]; color: softEllipse.stop(1)[1] }
+                                    GradientStop { position: softEllipse.stop(2)[0]; color: softEllipse.stop(2)[1] }
+                                    GradientStop { position: softEllipse.stop(3)[0]; color: softEllipse.stop(3)[1] }
                                 }
                                 PathAngleArc {
                                     centerX: softEllipse.width / 2
@@ -947,7 +921,7 @@ PopupWindow {
         radius: height / 2
         readonly property string style: root.pillLook
         readonly property bool hot: pillHover.hovered && enabled
-        // TEMPORARY (ticket 13): filled / glass / outline / soft / text, see pillStyles
+        // TEMPORARY (ticket 13): filled / glass / outline / soft / text, the look's `pills` (Theme.orbit.looks)
         color: {
             switch (style) {
             case "glass":
@@ -985,11 +959,6 @@ PopupWindow {
             enabled: pill.enabled
             onTapped: pill.clicked()
         }
-    }
-
-    Component {
-        id: gradientStop // TEMPORARY (ticket 13): stops of the soft ellipse
-        GradientStop {}
     }
 
     component OrbitText: Text {

@@ -1,7 +1,7 @@
 // Look of the Orbita and the launcher (ticket 13, user 2026-10-06): two set looks, "basic" and
-// "fancy" (their picks in Theme.orbit.looks), plus "prototype", the developer's look whose picks
-// change with the keys B, C, P and S in the Orbita (TEMPORARY, removed with the variants).
-// F2 in the Orbita or the launcher cycles basic → fancy → prototype, or
+// "fancy" (their picks in Theme.orbit.looks). The developer's "prototype" look with the keys B, C,
+// P and S was removed after code review 2 (user, 2026-10-06: "for now").
+// F2 in the Orbita or the launcher switches basic ↔ fancy, or
 // `qs -c ajmashell ipc call look cycle` / `qs -c ajmashell ipc call look set fancy`.
 // Note: ~/Projects/hyprland-lua-migration/.scratch/faza-b/prototyp-wygladu.md.
 
@@ -14,8 +14,8 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property var modes: ["basic", "fancy", "prototype"]
-    property string mode: "prototype" // the user is still judging the variants; a reload starts here
+    readonly property var modes: ["basic", "fancy"]
+    property string mode: "fancy" // a reload starts here
 
     function cycle(): void {
         mode = modes[(modes.indexOf(mode) + 1) % modes.length];

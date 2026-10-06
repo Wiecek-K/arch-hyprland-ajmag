@@ -297,7 +297,7 @@ function idFraction(id, salt) {
 
 // Radial offset (px) of node `id` at `time` (s): a sine of `amplitude` px whose phase and period
 // (`period` ms ± 12%) come from the id, so nodes are out of step and the orbit never breathes as one.
-// `inStep`: every node with the same phase and period, to compare (user, 2026-10-06).
+// `inStep`: every node with the same phase and period; Theme.orbit.wobble uses it (user, 2026-10-06).
 export function wobble(id, time, { amplitude, period, inStep = false }) {
     const phase = inStep ? 0 : idFraction(id, 0) * Math.PI * 2;
     const seconds = period / 1000 * (inStep ? 1 : 0.88 + 0.24 * idFraction(id, 1));
@@ -306,12 +306,12 @@ export function wobble(id, time, { amplitude, period, inStep = false }) {
 
 // --- lightning (ticket 13; serpantinum nodeLinesCanvas: three wavy strands per node, 25 ms) ---
 
-// Strand geometry from serpantinum, in px: a strand starts `gap` outside the core, ends under the
+// Strand geometry from serpantinum, in px: a strand ends under the
 // node's card at least `endInside` from each of its edges (more than half the glow plus the jitter),
 // has `steps` segments; `fadeDistance` is where a strand gets its dimmest and thinnest. `jitter`
 // bounds the sideways shake, which is not damped at the ends. serpantinum stopped 26 px short of the
 // node's centre; ours stopped 6 px short of the card's edge, which showed as a gap (user, 2026-10-06).
-export const BOLT = { gap: 5, endInside: 12, steps: 22, fadeDistance: 420, jitter: 3.75 };
+export const BOLT = { endInside: 12, steps: 22, fadeDistance: 420, jitter: 3.75 };
 
 // Per layer, bottom to top: a wave sin(speed·time + freq·t + phase·seed + shift) damped towards both
 // ends, plus a shake sin(shakeSpeed·time + shakeStep·step + shakeShift) growing for closer nodes.
@@ -336,11 +336,12 @@ export function hasBolts(nodes) {
 }
 
 // Strands of one bolt from the core at `from` to the centre `to` of a node's `card` ({ width, height })
-// at `time` (s); `seed` (node index) keeps bolts of different nodes out of step. `reach` 0 → 1 grows
+// at `time` (s), starting `start` px from `from`; `seed` (node index) keeps bolts of different nodes
+// out of step. `reach` 0 → 1 grows
 // the bolt out of the core, `fade` 0 → 1 scales its alpha. Returns
 // [{ layer, width, alpha, points: [{ x, y }] }] in BOLT_LAYERS order (glow, mid, core — Orbit.qml
 // colours them by that position), or [] when nothing is left to draw.
-export function boltStrands(from, to, time, seed, { coreRadius, card, reach, fade }) {
+export function boltStrands(from, to, time, seed, { start, card, reach, fade }) {
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const distance = Math.hypot(dx, dy);
@@ -352,7 +353,6 @@ export function boltStrands(from, to, time, seed, { coreRadius, card, reach, fad
     const halfWidth = Math.max(0, card.width / 2 - BOLT.endInside);
     const halfHeight = Math.max(0, card.height / 2 - BOLT.endInside);
     const inCard = Math.min(cos ? halfWidth / Math.abs(cos) : Infinity, sin ? halfHeight / Math.abs(sin) : Infinity);
-    const start = coreRadius + BOLT.gap;
     const length = (distance - inCard - start) * Math.min(1, reach);
     if (length <= 0)
         return [];

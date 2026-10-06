@@ -277,13 +277,20 @@ Item {
         return list;
     }
 
-    // Radial wash over the whole rounded panel: `stops` = [[position, colour, alpha], …] out to `reach` px.
+    // Radial wash over the whole rounded panel: `stops` = [[position, colour, alpha], …] (at most 5)
+    // out to `reach` px. Five fixed GradientStops, not createObject() in the binding: that made new
+    // stops on every change and never freed the old ones (code review 2, ticket 13).
     component Wash: Shape {
         id: wash
         property real centerX
         property real centerY
         property real reach
         property var stops: []
+        // the i-th stop; the missing ones repeat the last, which draws nothing new
+        function stop(i: int): var {
+            const s = stops[Math.min(i, stops.length - 1)] ?? [1, Theme.transparent, 0];
+            return { position: s[0], color: Qt.alpha(s[1], s[2]) };
+        }
         property bool rounded: true // clipped to the panel's rounded corners
         anchors.fill: parent
         preferredRendererType: Shape.CurveRenderer
@@ -295,7 +302,11 @@ Item {
                 centerRadius: wash.reach
                 focalX: wash.centerX
                 focalY: wash.centerY
-                stops: wash.stops.map(stop => gradientStop.createObject(wash, { position: stop[0], color: Qt.alpha(stop[1], stop[2]) }))
+                GradientStop { position: wash.stop(0).position; color: wash.stop(0).color }
+                GradientStop { position: wash.stop(1).position; color: wash.stop(1).color }
+                GradientStop { position: wash.stop(2).position; color: wash.stop(2).color }
+                GradientStop { position: wash.stop(3).position; color: wash.stop(3).color }
+                GradientStop { position: wash.stop(4).position; color: wash.stop(4).color }
             }
             PathRectangle {
                 width: wash.width
@@ -331,10 +342,5 @@ Item {
                 radius: streak.thickness / 2
             }
         }
-    }
-
-    Component {
-        id: gradientStop
-        GradientStop {}
     }
 }
