@@ -63,7 +63,7 @@ PopupWindow {
     property string hoverId: "" // node under the pointer; the orbit stops while set
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
-    // F2 / IPC "look": basic, fancy or still, their picks in Theme.orbit.looks (Look.qml)
+    // F2 / IPC "look": basic, fancy, fancy2 or still, their picks in Theme.orbit.looks (Look.qml)
     readonly property var look: Theme.orbit.looks[Look.mode]
     // without motion the orbit stands still at its start, connected nodes on top
     readonly property real turn: look.motion ? angle : 0
@@ -423,13 +423,13 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: Theme.orbit.background
+        color: root.look.opaque ? Theme.orbit.backgroundOpaque : Theme.orbit.background
 
         focus: true
         Keys.onEscapePressed: root.close()
         Keys.onTabPressed: root.tab = root.wifiTab ? "bt" : "wifi"
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_F2) { // next look: basic → fancy → still
+            if (event.key === Qt.Key_F2) { // next look: basic → fancy → fancy2 → still
                 Look.cycle();
                 event.accepted = true;
             }

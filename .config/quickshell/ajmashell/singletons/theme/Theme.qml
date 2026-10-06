@@ -93,6 +93,7 @@ Singleton {
     // (~/.config/rofi/config.rasi, matugen roles of rofi/colors.rasi)
     readonly property LauncherStyle launcher: LauncherStyle {
         background: Qt.alpha(root.colors.on_primary_fixed, 0.7) // rofi window; user, 2026-10-03: 0.7 (tried 0.8, 0.6); blur: rules.lua layerrule-6, needs alpha ≥ 0.5
+        backgroundOpaque: root.colors.on_primary_fixed // a look with `opaque` (fancy2), no blur under it
         border: root.colors.secondary_container
         field: root.colors.on_primary // search field and mode buttons
         text: root.colors.on_surface
@@ -108,6 +109,7 @@ Singleton {
     readonly property OrbitStyle orbit: OrbitStyle {
         id: orbitStyle
         background: Qt.alpha(root.colors.surface_container, 0.8) // user, 2026-10-03; blurred by Hyprland (blur_popups of the ajmashell-bar layer rule)
+        backgroundOpaque: root.colors.surface_container // a look with `opaque` (fancy2), no blur under it
         node: root.colors.surface_container_high // known network or device (saved / paired)
         // new node, only in range (user, 2026-10-05): outline only, dimmed text, outer ring
         unknown: root.transparent
@@ -310,6 +312,7 @@ Singleton {
         readonly property int calcDelay: 120 // ms; pause in typing before qalc runs (~70 ms per run)
         readonly property int calcKeyColumns: 5 // calculator keys per row (launcher.mjs CALC_KEYS: 15)
         property color background
+        property color backgroundOpaque
         property color border
         property color field
         property color text
@@ -367,11 +370,14 @@ Singleton {
         // buttons with coloured text instead of filled ones; motion: the orbit turns, nodes wobble,
         // fly out and glide, lightning flickers, colours fade. Without motion nothing moves and there
         // is no lightning (user, 2026-10-06: a moving Orbita costs ~80% of the iGPU; still strands look poor).
-        // still: fancy without motion.
+        // opaque: the Orbita and the launcher on `backgroundOpaque` with no blur under them (Look.qml switches
+        // the rules in ~/.config/hypr/configs/rules.lua); cheaper while moving and easier to read (user, 2026-10-07).
+        // still: fancy without motion; fancy2: fancy on an opaque background.
         readonly property var looks: ({
-            basic: { flare: false, glass: false, softPills: false, motion: false },
-            fancy: { flare: true, glass: true, softPills: true, motion: true },
-            still: { flare: true, glass: true, softPills: true, motion: false }
+            basic: { flare: false, glass: false, softPills: false, motion: false, opaque: false },
+            fancy: { flare: true, glass: true, softPills: true, motion: true, opaque: false },
+            fancy2: { flare: true, glass: true, softPills: true, motion: true, opaque: true },
+            still: { flare: true, glass: true, softPills: true, motion: false, opaque: false }
         })
         readonly property real glassAlpha: 0.45 // the glass core's fill
         // fade under the glass core, spread over fadeScale × coreSize: [position, alpha of `core`]
@@ -385,6 +391,7 @@ Singleton {
         readonly property var flare: ({ orbit: 0.42, phase: -2.3, reach: 140 })
         readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
         property color background
+        property color backgroundOpaque
         property color node
         property color unknown
         property color unknownBorder

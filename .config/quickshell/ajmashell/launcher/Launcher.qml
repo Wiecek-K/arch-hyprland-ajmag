@@ -321,7 +321,7 @@ Scope {
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius
-                color: Theme.launcher.background
+                color: Theme.orbit.looks[Look.mode].opaque ? Theme.launcher.backgroundOpaque : Theme.launcher.background
                 border.width: Theme.launcher.borderWidth
                 border.color: Theme.launcher.border
 
@@ -378,7 +378,7 @@ Scope {
                             focus: true
 
                             Keys.onEscapePressed: root.open = false
-                            // F2 switches to the next look: basic → fancy → still (ticket 13)
+                            // F2 switches to the next look: basic → fancy → fancy2 → still (ticket 13)
                             Keys.onPressed: event => {
                                 if (event.key === Qt.Key_F2) {
                                     Look.cycle();
