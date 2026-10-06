@@ -605,22 +605,49 @@ PopupWindow {
                     border.color: chosen ? Theme.orbit.selected : Theme.orbit.unknownBorder
                     opacity: node?.busy ? Theme.orbit.dimmed : 1
 
-                    // TEMPORARY (ticket 13): a true ellipse of the card's size
-                    Shape {
-                        anchors.fill: parent
-                        visible: nodeItem.shape === "ellipse"
-                        preferredRendererType: Shape.CurveRenderer
-                        ShapePath {
-                            fillColor: nodeItem.fill
-                            strokeWidth: nodeItem.edge > 0 ? nodeItem.edge : -1
-                            strokeColor: nodeItem.border.color
-                            PathAngleArc {
-                                centerX: nodeItem.width / 2
-                                centerY: nodeItem.height / 2
-                                radiusX: nodeItem.width / 2 - nodeItem.edge / 2
-                                radiusY: nodeItem.height / 2 - nodeItem.edge / 2
-                                startAngle: 0
-                                sweepAngle: 360
+                    // TEMPORARY (ticket 13): an ellipse with soft edges (user, 2026-10-06: "not the only element with a
+                    // sharp edge"): a radial gradient in a square, squashed to the card's height, so the fill and
+                    // the ring fade out instead of ending in a line
+                    Repeater {
+                        // fill, then the ring (chosen node, or the outline of a new one)
+                        model: nodeItem.shape === "ellipse" ? [
+                            [[0, nodeItem.fill], [0.8, nodeItem.fill], [1, Qt.alpha(nodeItem.fill, 0)]],
+                            nodeItem.edge > 0 ? [[0, Theme.transparent], [0.74, Qt.alpha(nodeItem.border.color, 0)], [0.87, nodeItem.border.color], [1, Qt.alpha(nodeItem.border.color, 0)]] : []
+                        ] : []
+
+                        Shape {
+                            id: softEllipse
+                            required property var modelData
+                            readonly property real soft: Theme.spacing.md // how far the fade reaches past the card
+                            visible: modelData.length > 0
+                            x: -soft
+                            y: nodeItem.height / 2 - width / 2
+                            width: nodeItem.width + 2 * soft
+                            height: width
+                            preferredRendererType: Shape.CurveRenderer
+                            transform: Scale {
+                                origin.x: softEllipse.width / 2
+                                origin.y: softEllipse.height / 2
+                                yScale: (nodeItem.height + 2 * softEllipse.soft) / softEllipse.width
+                            }
+                            ShapePath {
+                                strokeWidth: -1
+                                fillGradient: RadialGradient {
+                                    centerX: softEllipse.width / 2
+                                    centerY: softEllipse.height / 2
+                                    centerRadius: softEllipse.width / 2
+                                    focalX: centerX
+                                    focalY: centerY
+                                    stops: softEllipse.modelData.map(stop => gradientStop.createObject(softEllipse, { position: stop[0], color: stop[1] }))
+                                }
+                                PathAngleArc {
+                                    centerX: softEllipse.width / 2
+                                    centerY: softEllipse.height / 2
+                                    radiusX: softEllipse.width / 2
+                                    radiusY: softEllipse.height / 2
+                                    startAngle: 0
+                                    sweepAngle: 360
+                                }
                             }
                         }
                     }
@@ -635,9 +662,8 @@ PopupWindow {
 
                     Row {
                         anchors.fill: parent
-                        // an ellipse narrows at the ends: keep the glyph and the percentage off them
-                        anchors.leftMargin: nodeItem.shape === "ellipse" ? 2 * Theme.spacing.md : Theme.spacing.md
-                        anchors.rightMargin: nodeItem.shape === "ellipse" ? 2 * Theme.spacing.md : Theme.spacing.md
+                        anchors.leftMargin: Theme.spacing.md
+                        anchors.rightMargin: Theme.spacing.md
                         spacing: Theme.spacing.md
 
                         OrbitText {
@@ -891,6 +917,11 @@ PopupWindow {
             enabled: pill.enabled
             onTapped: pill.clicked()
         }
+    }
+
+    Component {
+        id: gradientStop // TEMPORARY (ticket 13): stops of the soft ellipse
+        GradientStop {}
     }
 
     component OrbitText: Text {
