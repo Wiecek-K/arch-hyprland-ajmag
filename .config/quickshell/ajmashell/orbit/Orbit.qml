@@ -21,7 +21,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Hyprland
@@ -63,10 +62,7 @@ PopupWindow {
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
     // F2 / IPC "look": basic or fancy, their picks in Theme.orbit.looks (Look.qml)
-    readonly property var setLook: Theme.orbit.looks[Look.mode]
-    readonly property string coreLook: setLook.core
-    readonly property string pillLook: setLook.pills
-    readonly property string shapeLook: setLook.nodes
+    readonly property var look: Theme.orbit.looks[Look.mode]
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
@@ -426,11 +422,9 @@ PopupWindow {
         }
 
         OrbitBackdrop {
-            id: backdrop
             anchors.fill: parent
+            visible: root.look.flare
             angle: root.angle
-            coreRadius: Theme.orbit.coreSize / 2
-            variant: variants.findIndex(v => v.name === root.setLook.backdrop)
         }
 
         Item {
@@ -441,15 +435,14 @@ PopupWindow {
             anchors.bottom: tabs.top
             anchors.margins: Theme.orbit.padding
 
-            // fade: dense under the text and buttons, gone at the edge — no visible rim;
-            // fade wide: the same, spread ~1.7× the core; under the nodes and lightning so it does not dim them (user, 2026-10-06: "a larger area")
+            // glass look: a fade under the core, dense under the text and buttons, gone at the edge (no
+            // visible rim), spread wider than the core; under the nodes and lightning so it does not dim them
             Shape {
                 id: fadeShape
-                readonly property bool wide: core.style === "fade wide" || core.style === "glass + fade wide"
                 anchors.centerIn: parent // the field: the core sits at its centre
-                width: wide ? Theme.orbit.coreSize * 1.7 : Theme.orbit.coreSize
+                width: Theme.orbit.coreSize * Theme.orbit.fadeScale
                 height: width
-                visible: root.spread > 0 && (core.style === "fade" || wide)
+                visible: root.spread > 0 && root.look.glass
                 preferredRendererType: Shape.CurveRenderer
                 ShapePath {
                     strokeWidth: -1
@@ -459,9 +452,9 @@ PopupWindow {
                         centerRadius: fadeShape.width / 2
                         focalX: centerX
                         focalY: centerY
-                        GradientStop { position: 0; color: Qt.alpha(Theme.orbit.core, 0.75) }
-                        GradientStop { position: fadeShape.wide ? 0.45 : 0.6; color: Qt.alpha(Theme.orbit.core, fadeShape.wide ? 0.6 : 0.55) }
-                        GradientStop { position: 1; color: Theme.transparent }
+                        GradientStop { position: Theme.orbit.fadeStops[0][0]; color: Qt.alpha(Theme.orbit.core, Theme.orbit.fadeStops[0][1]) }
+                        GradientStop { position: Theme.orbit.fadeStops[1][0]; color: Qt.alpha(Theme.orbit.core, Theme.orbit.fadeStops[1][1]) }
+                        GradientStop { position: Theme.orbit.fadeStops[2][0]; color: Qt.alpha(Theme.orbit.core, Theme.orbit.fadeStops[2][1]) }
                     }
                     PathRectangle {
                         width: fadeShape.width
@@ -574,114 +567,12 @@ PopupWindow {
                     y: field.height / 2 + point.y - height / 2
                     width: Theme.orbit.nodeWidth
                     height: Theme.orbit.nodeHeight
-                    readonly property string shape: root.shapeLook // TEMPORARY (ticket 13)
-                    radius: shape === "rounded" ? Theme.radius.sm : height / 2
-                    // known: filled; new: outline only (user, 2026-10-05); island: the Bar's translucent island colour
-                    readonly property color fill: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : known ? (shape === "island" ? Theme.bar.island : Theme.orbit.node) : Theme.orbit.unknown
-                    readonly property real edge: chosen ? Theme.bar.ringWidth : known ? 0 : Theme.orbit.unknownBorderWidth
-                    // TEMPORARY (ticket 13): "soft…" = a blurred ellipse, the same fade width on every side
-                    // (user, 2026-10-06: the squashed gradient ends sharply at the top and bottom; a new
-                    // network's hollow ring and the bright connected fill look poor); "dim new": a new network
-                    // gets a faint fill instead of the ring; "all": the connected fill is softer too
-                    readonly property bool soft: shape.startsWith("soft")
-                    readonly property bool plain: !(node?.connected ?? false) && !hover.hovered
-                    readonly property color softFill: shape !== "soft" && !known && plain ? Qt.alpha(Theme.orbit.node, 0.35) : shape === "soft, all" && (node?.connected ?? false) ? Qt.alpha(Theme.orbit.connected, 0.7) : fill
-                    readonly property real softEdge: shape === "soft" || chosen ? edge : 0
-                    color: shape === "ellipse" || soft ? Theme.transparent : fill // the ellipse is drawn by the Shape below
-                    border.width: shape === "ellipse" || soft ? 0 : edge
+                    radius: Theme.radius.sm
+                    // known: filled; new: outline only (user, 2026-10-05)
+                    color: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : known ? Theme.orbit.node : Theme.orbit.unknown
+                    border.width: chosen ? Theme.bar.ringWidth : known ? 0 : Theme.orbit.unknownBorderWidth
                     border.color: chosen ? Theme.orbit.selected : Theme.orbit.unknownBorder
                     opacity: node?.busy ? Theme.orbit.dimmed : 1
-
-                    // TEMPORARY (ticket 13): an ellipse with soft edges (user, 2026-10-06: "not the only element with a
-                    // sharp edge"): a radial gradient in a square, squashed to the card's height, so the fill and
-                    // the ring fade out instead of ending in a line
-                    Repeater {
-                        // fill, then the ring (chosen node, or the outline of a new one)
-                        model: nodeItem.shape === "ellipse" ? [
-                            [[0, nodeItem.fill], [0.8, nodeItem.fill], [1, Qt.alpha(nodeItem.fill, 0)]],
-                            nodeItem.edge > 0 ? [[0, Theme.transparent], [0.74, Qt.alpha(nodeItem.border.color, 0)], [0.87, nodeItem.border.color], [1, Qt.alpha(nodeItem.border.color, 0)]] : []
-                        ] : []
-
-                        Shape {
-                            id: softEllipse
-                            required property var modelData
-                            readonly property real soft: Theme.spacing.md // how far the fade reaches past the card
-                            // the i-th [position, colour]; the missing ones repeat the last
-                            function stop(i: int): var {
-                                return modelData[Math.min(i, modelData.length - 1)] ?? [1, Theme.transparent];
-                            }
-                            visible: modelData.length > 0
-                            x: -soft
-                            y: nodeItem.height / 2 - width / 2
-                            width: nodeItem.width + 2 * soft
-                            height: width
-                            preferredRendererType: Shape.CurveRenderer
-                            transform: Scale {
-                                origin.x: softEllipse.width / 2
-                                origin.y: softEllipse.height / 2
-                                yScale: (nodeItem.height + 2 * softEllipse.soft) / softEllipse.width
-                            }
-                            ShapePath {
-                                strokeWidth: -1
-                                fillGradient: RadialGradient {
-                                    centerX: softEllipse.width / 2
-                                    centerY: softEllipse.height / 2
-                                    centerRadius: softEllipse.width / 2
-                                    focalX: centerX
-                                    focalY: centerY
-                                    // four fixed stops (no createObject: it leaked a set of stops per change)
-                                    GradientStop { position: softEllipse.stop(0)[0]; color: softEllipse.stop(0)[1] }
-                                    GradientStop { position: softEllipse.stop(1)[0]; color: softEllipse.stop(1)[1] }
-                                    GradientStop { position: softEllipse.stop(2)[0]; color: softEllipse.stop(2)[1] }
-                                    GradientStop { position: softEllipse.stop(3)[0]; color: softEllipse.stop(3)[1] }
-                                }
-                                PathAngleArc {
-                                    centerX: softEllipse.width / 2
-                                    centerY: softEllipse.height / 2
-                                    radiusX: softEllipse.width / 2
-                                    radiusY: softEllipse.height / 2
-                                    startAngle: 0
-                                    sweepAngle: 360
-                                }
-                            }
-                        }
-                    }
-
-                    // a Loader, so the layer exists only in the "soft…" shapes (a layer must be on from the start)
-                    Loader {
-                        anchors.fill: parent
-                        active: nodeItem.soft
-                        sourceComponent: Item {
-                            Shape {
-                                id: blob
-                                readonly property real line: 2 * nodeItem.softEdge // the blur thins a ring
-                                anchors.fill: parent
-                                visible: false
-                                layer.enabled: true
-                                preferredRendererType: Shape.CurveRenderer
-                                ShapePath {
-                                    fillColor: nodeItem.softFill
-                                    strokeColor: blob.line > 0 ? nodeItem.border.color : Theme.transparent
-                                    strokeWidth: blob.line > 0 ? blob.line : -1
-                                    PathAngleArc {
-                                        centerX: blob.width / 2
-                                        centerY: blob.height / 2
-                                        radiusX: blob.width / 2 - blob.line
-                                        radiusY: blob.height / 2 - blob.line
-                                        startAngle: 0
-                                        sweepAngle: 360
-                                    }
-                                }
-                            }
-                            MultiEffect {
-                                anchors.fill: blob
-                                source: blob
-                                blurEnabled: true
-                                blur: 1
-                                blurMax: 12
-                            }
-                        }
-                    }
 
                     readonly property color textColor: node?.connected ? Theme.orbit.connectedText : known ? Theme.orbit.text : Theme.orbit.unknownText
 
@@ -755,10 +646,7 @@ PopupWindow {
                 width: Theme.orbit.coreSize
                 height: width
                 radius: width / 2
-                readonly property string style: root.coreLook
-                color: style === "solid" ? Theme.orbit.core : style === "glass" || style === "glass + fade wide" ? Qt.alpha(Theme.orbit.core, 0.45) : Theme.transparent
-                border.width: style === "ring" ? 1 : 0
-                border.color: Theme.orbit.unknownBorder
+                color: root.look.glass ? Qt.alpha(Theme.orbit.core, Theme.orbit.glassAlpha) : Theme.orbit.core
                 opacity: root.spread > 0 ? 1 : 0
 
                 Column {
@@ -919,25 +807,10 @@ PopupWindow {
         implicitWidth: Math.ceil(label.implicitWidth) + 2 * Theme.spacing.lg
         height: Theme.orbit.tabHeight
         radius: height / 2
-        readonly property string style: root.pillLook
+        readonly property bool soft: root.look.softPills // faint fill, coloured text (fancy look)
         readonly property bool hot: pillHover.hovered && enabled
-        // TEMPORARY (ticket 13): filled / glass / outline / soft / text, the look's `pills` (Theme.orbit.looks)
-        color: {
-            switch (style) {
-            case "glass":
-                return Qt.alpha(active ? Theme.orbit.tab : Theme.orbit.button, active ? 0.45 : hot ? 0.5 : 0.3);
-            case "outline":
-                return hot ? Qt.alpha(Theme.orbit.text, 0.08) : Theme.transparent;
-            case "soft":
-                return active ? Qt.alpha(Theme.orbit.tab, 0.25) : Qt.alpha(Theme.orbit.text, hot ? 0.14 : 0.07);
-            case "text":
-                return hot ? Qt.alpha(Theme.orbit.text, 0.06) : Theme.transparent;
-            default:
-                return active ? Theme.orbit.tab : hot ? Theme.orbit.hover : Theme.orbit.button;
-            }
-        }
-        border.width: style === "glass" || style === "outline" ? 1 : 0
-        border.color: active ? Theme.orbit.selected : style === "glass" ? Qt.alpha(Theme.orbit.text, 0.15) : Theme.orbit.unknownBorder
+        color: soft ? (active ? Qt.alpha(Theme.orbit.tab, Theme.orbit.softPill.active) : Qt.alpha(Theme.orbit.text, hot ? Theme.orbit.softPill.hover : Theme.orbit.softPill.idle))
+                    : active ? Theme.orbit.tab : hot ? Theme.orbit.hover : Theme.orbit.button
         opacity: enabled ? 1 : Theme.orbit.dimmed
 
         OrbitText {
@@ -946,8 +819,7 @@ PopupWindow {
             width: Math.min(implicitWidth, pill.width - 2 * Theme.spacing.sm)
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: Theme.font.sizeSmall
-            color: pill.style === "filled" ? (pill.active ? Theme.orbit.tabText : Theme.orbit.buttonText) : pill.active ? Theme.orbit.selected : Theme.orbit.text
-            font.weight: pill.active && pill.style === "text" ? Font.Bold : Theme.font.weight
+            color: pill.soft ? (pill.active ? Theme.orbit.selected : Theme.orbit.text) : pill.active ? Theme.orbit.tabText : Theme.orbit.buttonText
             text: pill.text
         }
 

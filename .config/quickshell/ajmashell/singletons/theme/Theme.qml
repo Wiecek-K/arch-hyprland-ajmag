@@ -106,6 +106,7 @@ Singleton {
 
     // Orbita (orbit/Orbit.qml, ticket 12): the popup of the Bar's Wi-Fi and BT islands
     readonly property OrbitStyle orbit: OrbitStyle {
+        id: orbitStyle
         background: Qt.alpha(root.colors.surface_container, 0.8) // user, 2026-10-03; blurred by Hyprland (blur_popups of the ajmashell-bar layer rule)
         node: root.colors.surface_container_high // known network or device (saved / paired)
         // new node, only in range (user, 2026-10-05): outline only, dimmed text, outer ring
@@ -130,13 +131,21 @@ Singleton {
         boltGlow: root.colors.primary
         boltMid: root.colors.primary_fixed
         boltCore: root.colors.on_surface
-        // TEMPORARY background variants (orbit/OrbitBackdrop.qml, ticket 13)
-        backdropGlow: root.colors.primary
-        backdropAccent: root.colors.tertiary
-        backdropStar: root.colors.on_surface
-        backdropGhost: root.colors.secondary
-        backdropShade: root.colors.shadow
-        backdropFlare: root.colors.on_surface
+        // lens flare behind the fancy look (orbit/OrbitBackdrop.qml, ticket 13)
+        flareSource: root.colors.on_surface
+        flareGlow: root.colors.primary
+        flareAccent: root.colors.tertiary
+        flareGhost: root.colors.secondary
+        // glow round the source: [position, colour, alpha], out to flare.reach
+        flareGlowStops: [[0, orbitStyle.flareSource, 0.7], [0.12, orbitStyle.flareSource, 0.35], [0.4, orbitStyle.flareGlow, 0.15], [1, orbitStyle.flareGlow, 0]]
+        // ghosts on the far side of the centre: t along the axis source → centre (1 = centre), radius px
+        flareGhosts: [
+            { t: 0.55, size: 26, color: orbitStyle.flareGhost, alpha: 0.22 },
+            { t: 1.35, size: 70, color: orbitStyle.flareGlow, alpha: 0.12 },
+            { t: 1.6, size: 18, color: orbitStyle.flareSource, alpha: 0.3 },
+            { t: 1.85, size: 110, color: orbitStyle.flareAccent, alpha: 0.1 },
+            { t: 2.15, size: 40, color: orbitStyle.flareGhost, alpha: 0.18 }
+        ]
     }
 
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
@@ -348,13 +357,24 @@ Singleton {
         // px from the centre where a strand starts: just inside the core's edge (coreSize / 2), so it comes
         // out from under the glass core (user, 2026-10-06: "shorten"; was 130, 70 and 120, each plus a 5 px gap that boltStrands added)
         readonly property int boltStart: 125
-        // The two set looks of the Orbita (ticket 13, user 2026-10-06), F2 switches (singletons/look):
-        // backdrop variant (orbit/OrbitBackdrop.qml), core style, button style, node shape (orbit/Orbit.qml).
-        // The launcher shows the backdrop "flare, no streak" behind its list in every look but basic.
+        // The two set looks of the Orbita and the launcher (ticket 13, user 2026-10-06), F2 switches
+        // (singletons/look). flare: a lens flare behind the Orbita and the launcher's list
+        // (orbit/OrbitBackdrop.qml); glass: a translucent core over a wide fade; softPills: faint
+        // buttons with coloured text instead of filled ones.
         readonly property var looks: ({
-            basic: { backdrop: "flat", core: "solid", pills: "filled", nodes: "rounded" },
-            fancy: { backdrop: "flare, no streak", core: "glass + fade wide", pills: "soft", nodes: "rounded" }
+            basic: { flare: false, glass: false, softPills: false },
+            fancy: { flare: true, glass: true, softPills: true }
         })
+        readonly property real glassAlpha: 0.45 // the glass core's fill
+        // fade under the glass core, spread over fadeScale × coreSize: [position, alpha of `core`]
+        // (user, 2026-10-06: "a larger area")
+        readonly property real fadeScale: 1.7
+        readonly property var fadeStops: [[0, 0.75], [0.45, 0.6], [1, 0]]
+        // alpha of the soft buttons: current tab (tab colour), hovered and idle (text colour)
+        readonly property var softPill: ({ active: 0.25, hover: 0.14, idle: 0.07 })
+        // the flare's source circles the centre at orbit × the panel's size, one lap per two orbit laps,
+        // starting at `phase` rad; its glow reaches `reach` px
+        readonly property var flare: ({ orbit: 0.42, phase: -2.3, reach: 140 })
         readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
         property color background
         property color node
@@ -377,12 +397,12 @@ Singleton {
         property color boltGlow
         property color boltMid
         property color boltCore
-        property color backdropGlow
-        property color backdropAccent
-        property color backdropStar
-        property color backdropGhost
-        property color backdropShade
-        property color backdropFlare
+        property color flareSource
+        property color flareGlow
+        property color flareAccent
+        property color flareGhost
+        property var flareGlowStops
+        property var flareGhosts
     }
 
     // Singletons load lazily and FileView reads asynchronously: read the file once, blocking,

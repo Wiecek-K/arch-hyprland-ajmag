@@ -24,7 +24,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.singletons.theme
 import "launcher.mjs" as Logic
-import "../orbit" // TEMPORARY (ticket 13): OrbitBackdrop behind the list
+import "../orbit" // OrbitBackdrop behind the list in the fancy look (ticket 13)
 import qs.singletons.look // F2: basic ↔ fancy look (ticket 13)
 
 Scope {
@@ -438,17 +438,15 @@ Scope {
                     }
                 }
 
-                // the look's backdrop behind the list (ticket 13, user 2026-10-06; fancy: "flare, no streak"),
-                // the same as the Orbita's; turns like the orbit while open
+                // fancy look (ticket 13, user 2026-10-06): the Orbita's lens flare behind the list; turns
+                // like the orbit while open
                 OrbitBackdrop {
                     id: listBackdrop
-                    visible: backdropName !== "flat" // the basic look has no background behind the list
+                    visible: Theme.orbit.looks[Look.mode].flare
                     x: pane.width
                     width: box.width - pane.width
                     height: box.height
                     radius: 0 // the box clips its own corners
-                    readonly property string backdropName: Theme.orbit.looks[Look.mode].backdrop
-                    variant: variants.findIndex(v => v.name === backdropName)
 
                     FrameAnimation {
                         running: win.visible && listBackdrop.visible
