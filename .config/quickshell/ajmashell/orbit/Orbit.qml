@@ -28,6 +28,7 @@ import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Bluetooth as BT
 import qs.singletons.theme
+import qs.singletons.prototype
 import "orbit.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
 
@@ -64,11 +65,16 @@ PopupWindow {
     readonly property var coreStyles: ["solid", "glass", "fade", "fade wide", "ring", "none", "glass + fade wide"]
     // TEMPORARY (ticket 13, user 2026-10-06): shape of the node cards, S cycles; island = like the Bar's islands
     readonly property var nodeShapes: ["rounded", "ellipse", "island"]
-    property int nodeShape: 0
+    property int nodeShape: nodeShapes.indexOf("ellipse") // starts at the user's current pick (2026-10-06)
     // TEMPORARY (ticket 13, user 2026-10-06: "take care of the buttons"): button styles, P cycles
     readonly property var pillStyles: ["filled", "glass", "outline", "soft", "text"]
     property int pillStyle: 0
-    property int coreStyle: 0
+    property int coreStyle: coreStyles.indexOf("glass + fade wide")
+    property int backdropChoice: 0 // set to "flare, soft streak" once the backdrop exists
+    // F2 / IPC "prototype": the basic look (first of each list) or the picks above (Prototype.qml)
+    readonly property string coreLook: Prototype.active ? coreStyles[coreStyle] : coreStyles[0]
+    readonly property string pillLook: Prototype.active ? pillStyles[pillStyle] : pillStyles[0]
+    readonly property string shapeLook: Prototype.active ? nodeShapes[nodeShape] : nodeShapes[0]
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
@@ -422,8 +428,11 @@ PopupWindow {
         Keys.onTabPressed: root.tab = root.wifiTab ? "bt" : "wifi"
         // TEMPORARY (ticket 13): B cycles the background variants to compare
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_B) {
-                backdrop.variant = (backdrop.variant + 1) % backdrop.variants.length;
+            if (event.key === Qt.Key_F2) { // TEMPORARY (ticket 13): basic look ↔ prototype
+                Prototype.toggle();
+                event.accepted = true;
+            } else if (event.key === Qt.Key_B) {
+                root.backdropChoice = (root.backdropChoice + 1) % backdrop.variants.length;
                 event.accepted = true;
             } else if (event.key === Qt.Key_P) { // TEMPORARY (ticket 13): button styles
                 root.pillStyle = (root.pillStyle + 1) % root.pillStyles.length;
@@ -442,6 +451,8 @@ PopupWindow {
             anchors.fill: parent
             angle: root.angle
             coreRadius: Theme.orbit.coreSize / 2
+            variant: Prototype.active ? root.backdropChoice : 0
+            Component.onCompleted: root.backdropChoice = variants.findIndex(v => v.name === "flare, soft streak")
         }
 
         // TEMPORARY (ticket 13): names of the background, core and button variants (top: the tab row is at the bottom)
@@ -451,7 +462,7 @@ PopupWindow {
             anchors.margins: Theme.orbit.padding + Theme.spacing.sm
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.orbit.subtext
-            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})   S: ${root.nodeShapes[root.nodeShape]} (${root.nodeShape + 1}/${root.nodeShapes.length})`
+            text: !Prototype.active ? "F2: basic look" : `F2: prototype   B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})   S: ${root.nodeShapes[root.nodeShape]} (${root.nodeShape + 1}/${root.nodeShapes.length})`
         }
 
         Item {
@@ -595,7 +606,7 @@ PopupWindow {
                     y: field.height / 2 + point.y - height / 2
                     width: Theme.orbit.nodeWidth
                     height: Theme.orbit.nodeHeight
-                    readonly property string shape: root.nodeShapes[root.nodeShape] // TEMPORARY (ticket 13)
+                    readonly property string shape: root.shapeLook // TEMPORARY (ticket 13)
                     radius: shape === "rounded" ? Theme.radius.sm : height / 2
                     // known: filled; new: outline only (user, 2026-10-05); island: the Bar's translucent island colour
                     readonly property color fill: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : known ? (shape === "island" ? Theme.bar.island : Theme.orbit.node) : Theme.orbit.unknown
@@ -724,7 +735,7 @@ PopupWindow {
                 width: Theme.orbit.coreSize
                 height: width
                 radius: width / 2
-                readonly property string style: root.coreStyles[root.coreStyle]
+                readonly property string style: root.coreLook
                 color: style === "solid" ? Theme.orbit.core : style === "glass" || style === "glass + fade wide" ? Qt.alpha(Theme.orbit.core, 0.45) : Theme.transparent
                 border.width: style === "ring" ? 1 : 0
                 border.color: Theme.orbit.unknownBorder
@@ -877,7 +888,7 @@ PopupWindow {
         implicitWidth: Math.ceil(label.implicitWidth) + 2 * Theme.spacing.lg
         height: Theme.orbit.tabHeight
         radius: height / 2
-        readonly property string style: root.pillStyles[root.pillStyle]
+        readonly property string style: root.pillLook
         readonly property bool hot: pillHover.hovered && enabled
         // TEMPORARY (ticket 13): filled / glass / outline / soft / text, see pillStyles
         color: {

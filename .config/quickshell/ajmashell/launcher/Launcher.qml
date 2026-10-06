@@ -25,6 +25,7 @@ import Quickshell.Widgets
 import qs.singletons.theme
 import "launcher.mjs" as Logic
 import "../orbit" // TEMPORARY (ticket 13): OrbitBackdrop behind the list
+import qs.singletons.prototype // TEMPORARY (ticket 13): F2 basic look ↔ prototype
 
 Scope {
     id: root
@@ -376,6 +377,13 @@ Scope {
                             focus: true
 
                             Keys.onEscapePressed: root.open = false
+                            // TEMPORARY (ticket 13): F2 switches the basic look ↔ the prototype
+                            Keys.onPressed: event => {
+                                if (event.key === Qt.Key_F2) {
+                                    Prototype.toggle();
+                                    event.accepted = true;
+                                }
+                            }
                             Keys.onReturnPressed: win.choose(win.current >= 0 ? win.items[win.current] : null) // -1: nothing selected
                             Keys.onEnterPressed: win.choose(win.current >= 0 ? win.items[win.current] : null) // -1: nothing selected
                             Keys.onUpPressed: win.move("up")
@@ -434,6 +442,7 @@ Scope {
                 // background behind the list, to see it here; turns like the orbit while open
                 OrbitBackdrop {
                     id: listBackdrop
+                    visible: Prototype.active // F2: the basic look has no background behind the list
                     x: pane.width
                     width: box.width - pane.width
                     height: box.height
@@ -441,7 +450,7 @@ Scope {
                     variant: variants.findIndex(v => v.name === "flare, no streak")
 
                     FrameAnimation {
-                        running: win.visible
+                        running: win.visible && listBackdrop.visible
                         onTriggered: listBackdrop.angle = (listBackdrop.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI)
                     }
                 }
