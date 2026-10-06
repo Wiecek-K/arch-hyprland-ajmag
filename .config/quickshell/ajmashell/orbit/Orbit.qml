@@ -12,7 +12,8 @@
 // intro choreography, sounds, multi-core layout, list caching; state through bindings (no Connections
 // per device), logic in orbit.mjs; a click selects a node and the core offers its actions (serpantinum
 // connects on click, disconnects by holding the core); our Theme instead of its palette; the orbit turns
-// every frame and pauses under the pointer; profile switching added (serpantinum only shows it);
+// every frame and pauses under the pointer, in a look without motion (Theme.orbit.looks) it stands
+// still with the connected nodes on top; profile switching added (serpantinum only shows it);
 // lightning to the connected nodes (serpantinum: to the info nodes of a connection), geometry in
 // orbit.mjs, colours from Theme.orbit, can be switched off (Theme.orbit.lightning).
 // Closes on a click outside (HyprlandFocusGrab), on Esc and on a second click on the same island.
@@ -61,8 +62,10 @@ PopupWindow {
     property string hoverId: "" // node under the pointer; the orbit stops while set
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
-    // F2 / IPC "look": basic or fancy, their picks in Theme.orbit.looks (Look.qml)
+    // F2 / IPC "look": basic, fancy or still, their picks in Theme.orbit.looks (Look.qml)
     readonly property var look: Theme.orbit.looks[Look.mode]
+    // without motion the orbit stands still at its start, connected nodes on top
+    readonly property real turn: look.motion ? angle : 0
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
     property var watched: null // Wi-Fi network being connected, for its connectionFailed
@@ -118,6 +121,7 @@ PopupWindow {
     }
     readonly property int btConnected: devices.filter(dev => dev.connected).length
     readonly property bool bolts: visible && Theme.orbit.lightning && Logic.hasBolts(nodes)
+    readonly property int connectedCount: nodes.filter(node => node.connected).length
 
     function network(id: string): var {
         return wifiDevice?.networks.values.find(net => net.name === id) ?? null;
@@ -362,7 +366,7 @@ PopupWindow {
 
     // one step per rendered frame, so the turn is as smooth as the monitor
     FrameAnimation {
-        running: root.visible && root.hoverId === "" && root.nodes.length > 0
+        running: root.visible && root.look.motion && root.hoverId === "" && root.nodes.length > 0
         onTriggered: {
             root.angle = (root.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI);
             root.clock += frameTime;
@@ -398,7 +402,7 @@ PopupWindow {
     color: Theme.transparent // only the rounded box below is drawn
 
     Behavior on spread {
-        enabled: root.visible
+        enabled: root.visible && root.look.motion
         NumberAnimation {
             duration: Theme.orbit.appear
             easing.type: Easing.OutBack
@@ -415,7 +419,7 @@ PopupWindow {
         Keys.onEscapePressed: root.close()
         Keys.onTabPressed: root.tab = root.wifiTab ? "bt" : "wifi"
         Keys.onPressed: event => {
-            if (event.key === Qt.Key_F2) { // basic ↔ fancy look
+            if (event.key === Qt.Key_F2) { // next look: basic → fancy → still
                 Look.cycle();
                 event.accepted = true;
             }
@@ -424,7 +428,7 @@ PopupWindow {
         OrbitBackdrop {
             anchors.fill: parent
             visible: root.look.flare
-            angle: root.angle
+            angle: root.turn
         }
 
         Item {
@@ -473,7 +477,7 @@ PopupWindow {
                 visible: fade > 0
 
                 Behavior on fade {
-                    enabled: root.visible
+                    enabled: root.visible && root.look.motion
                     NumberAnimation {
                         duration: Theme.orbit.boltFade
                     }
@@ -481,16 +485,41 @@ PopupWindow {
 
                 Timer {
                     interval: Theme.orbit.boltTick
-                    running: lightning.visible
+                    running: lightning.visible && root.look.motion
                     repeat: true
                     onTriggered: lightning.requestPaint()
+                }
+
+                // Without motion the strands are drawn once, again only when the nodes or the look change.
+                function redraw(): void {
+                    if (!root.look.motion)
+                        Qt.callLater(lightning.requestPaint); // after the delegates took their places
+                }
+                onVisibleChanged: redraw()
+                onWidthChanged: redraw()
+                onHeightChanged: redraw()
+
+                Connections {
+                    target: root
+
+                    function onNodesChanged(): void {
+                        lightning.redraw();
+                    }
+
+                    function onSpreadChanged(): void {
+                        lightning.redraw();
+                    }
+
+                    function onLookChanged(): void {
+                        lightning.redraw();
+                    }
                 }
 
                 onPaint: {
                     const ctx = getContext("2d");
                     ctx.clearRect(0, 0, width, height);
                     const center = { x: width / 2, y: height / 2 };
-                    const time = Date.now() / 1000;
+                    const time = root.look.motion ? Date.now() / 1000 : 0;
                     const colors = [Theme.orbit.boltGlow, Theme.orbit.boltMid, Theme.orbit.boltCore]; // strand order of boltStrands
                     ctx.lineJoin = "round";
                     ctx.lineCap = "round";
@@ -531,7 +560,7 @@ PopupWindow {
                     readonly property bool known: node?.known ?? true
                     // When the list changes the node glides to its new place, the short way round,
                     // and between the rings (user, 2026-10-06: nodes jumped when a network went away).
-                    readonly property real target: Logic.slotAngle(index, root.nodes.length)
+                    readonly property real target: Logic.slotAngle(index, root.nodes.length, root.connectedCount)
                     property real slot // set once on creation, then follows target through the Behavior
                     property bool placed: false
                     onTargetChanged: if (placed) slot = Logic.nearestAngle(slot, target)
@@ -542,12 +571,12 @@ PopupWindow {
                     // known nodes on the inner ring, new ones (only in range) on the outer
                     property real ringShift: known ? 0 : Theme.orbit.ring
                     // drifts slightly towards and away from the core, in step or not as Theme.orbit.wobble says (user, 2026-10-06)
-                    readonly property real drift: ringShift + Logic.wobble(modelData, root.clock, Theme.orbit.wobble)
-                    readonly property var point: Logic.ellipsePoint(root.angle + slot,
+                    readonly property real drift: ringShift + (root.look.motion ? Logic.wobble(modelData, root.clock, Theme.orbit.wobble) : 0)
+                    readonly property var point: Logic.ellipsePoint(root.turn + slot,
                         (Theme.orbit.radiusX + drift) * root.spread, (Theme.orbit.radiusY + drift) * root.spread)
 
                     Behavior on slot {
-                        enabled: nodeItem.placed && root.visible
+                        enabled: nodeItem.placed && root.visible && root.look.motion
                         NumberAnimation {
                             duration: Theme.orbit.reflow
                             easing.type: Easing.InOutCubic
@@ -555,7 +584,7 @@ PopupWindow {
                     }
 
                     Behavior on ringShift {
-                        enabled: root.visible
+                        enabled: root.visible && root.look.motion
                         NumberAnimation {
                             duration: Theme.orbit.reflow
                             easing.type: Easing.InOutCubic
@@ -577,6 +606,7 @@ PopupWindow {
                     readonly property color textColor: node?.connected ? Theme.orbit.connectedText : known ? Theme.orbit.text : Theme.orbit.unknownText
 
                     Behavior on color {
+                        enabled: root.look.motion
                         ColorAnimation {
                             duration: Theme.motion.fast
                         }

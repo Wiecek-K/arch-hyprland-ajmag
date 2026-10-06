@@ -357,13 +357,17 @@ Singleton {
         // px from the centre where a strand starts: just inside the core's edge (coreSize / 2), so it comes
         // out from under the glass core (user, 2026-10-06: "shorten"; was 130, 70 and 120, each plus a 5 px gap that boltStrands added)
         readonly property int boltStart: 125
-        // The two set looks of the Orbita and the launcher (ticket 13, user 2026-10-06), F2 switches
+        // The set looks of the Orbita and the launcher (ticket 13, user 2026-10-06), F2 switches
         // (singletons/look). flare: a lens flare behind the Orbita and the launcher's list
         // (orbit/OrbitBackdrop.qml); glass: a translucent core over a wide fade; softPills: faint
-        // buttons with coloured text instead of filled ones.
+        // buttons with coloured text instead of filled ones; motion: the orbit turns, nodes wobble,
+        // fly out and glide, lightning flickers, colours fade. Without motion nothing moves, the
+        // lightning is drawn once (user, 2026-10-06: a moving Orbita costs ~80% of the iGPU).
+        // still: fancy without motion.
         readonly property var looks: ({
-            basic: { flare: false, glass: false, softPills: false },
-            fancy: { flare: true, glass: true, softPills: true }
+            basic: { flare: false, glass: false, softPills: false, motion: false },
+            fancy: { flare: true, glass: true, softPills: true, motion: true },
+            still: { flare: true, glass: true, softPills: true, motion: false }
         })
         readonly property real glassAlpha: 0.45 // the glass core's fill
         // fade under the glass core, spread over fadeScale × coreSize: [position, alpha of `core`]

@@ -377,7 +377,7 @@ Scope {
                             focus: true
 
                             Keys.onEscapePressed: root.open = false
-                            // F2 switches the look: basic ↔ fancy (ticket 13)
+                            // F2 switches to the next look: basic → fancy → still (ticket 13)
                             Keys.onPressed: event => {
                                 if (event.key === Qt.Key_F2) {
                                     Look.cycle();
@@ -438,8 +438,8 @@ Scope {
                     }
                 }
 
-                // fancy look (ticket 13, user 2026-10-06): the Orbita's lens flare behind the list; turns
-                // like the orbit while open
+                // fancy and still looks (ticket 13, user 2026-10-06): the Orbita's lens flare behind the
+                // list; turns like the orbit while open, only in a look with motion
                 OrbitBackdrop {
                     id: listBackdrop
                     visible: Theme.orbit.looks[Look.mode].flare
@@ -449,7 +449,7 @@ Scope {
                     radius: 0 // the box clips its own corners
 
                     FrameAnimation {
-                        running: win.visible && listBackdrop.visible
+                        running: win.visible && listBackdrop.visible && Theme.orbit.looks[Look.mode].motion
                         onTriggered: listBackdrop.angle = (listBackdrop.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI)
                     }
                 }

@@ -265,9 +265,12 @@ export function orbitPoint(index, count, angle, { rx, ry, ring }, outer) {
     return ellipsePoint(angle + slotAngle(index, count), rx + extra, ry + extra);
 }
 
-// Place of node `index` of `count` on the orbit, as an angle from the right (rad).
-export function slotAngle(index, count) {
-    return (index / Math.max(1, count)) * Math.PI * 2;
+// Place of node `index` of `count` on the orbit, as an angle from the right (rad; y grows downwards).
+// The first `connected` nodes (wifiNodes and btNodes put connected ones first) sit together around
+// the top, the first node alone is straight on top (user, 2026-10-06: "connected always on top").
+export function slotAngle(index, count, connected = 0) {
+    const step = Math.PI * 2 / Math.max(1, count);
+    return -Math.PI / 2 + (index - Math.max(0, connected - 1) / 2) * step;
 }
 
 // Offset of the point at angle `theta` on an ellipse with radii `rx`, `ry`.
