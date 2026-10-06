@@ -25,6 +25,7 @@ Item {
         { name: "flare", layers: ["flare", "streak"] },
         { name: "flare + stars", layers: ["flare", "stars"] },
         { name: "flare + stars, soft streak", layers: ["flare", "softStreak", "stars"] },
+        { name: "flare, soft streak", layers: ["flare", "softStreak"] },
         { name: "halo", layers: ["halo"] },
         { name: "mesh", layers: ["mesh"] },
         { name: "spotlight", layers: ["nebula", "vignette"] },
