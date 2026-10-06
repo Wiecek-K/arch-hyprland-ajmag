@@ -480,12 +480,36 @@ PopupWindow {
                     readonly property var node: root.nodes.find(node => node.id === modelData) ?? null
                     readonly property bool chosen: root.selected?.id === modelData
                     readonly property bool known: node?.known ?? true
+                    // When the list changes the node glides to its new place, the short way round,
+                    // and between the rings (user, 2026-10-06: nodes jumped when a network went away).
+                    readonly property real target: Logic.slotAngle(index, root.nodes.length)
+                    property real slot // set once on creation, then follows target through the Behavior
+                    property bool placed: false
+                    onTargetChanged: if (placed) slot = Logic.nearestAngle(slot, target)
+                    Component.onCompleted: {
+                        slot = target;
+                        placed = true;
+                    }
                     // known nodes on the inner ring, new ones (only in range) on the outer
-                    readonly property var point: Logic.orbitPoint(index, root.nodes.length, root.angle, {
-                        rx: Theme.orbit.radiusX * root.spread,
-                        ry: Theme.orbit.radiusY * root.spread,
-                        ring: Theme.orbit.ring * root.spread
-                    }, !known)
+                    property real ringShift: known ? 0 : Theme.orbit.ring
+                    readonly property var point: Logic.ellipsePoint(root.angle + slot,
+                        (Theme.orbit.radiusX + ringShift) * root.spread, (Theme.orbit.radiusY + ringShift) * root.spread)
+
+                    Behavior on slot {
+                        enabled: nodeItem.placed && root.visible
+                        NumberAnimation {
+                            duration: Theme.orbit.reflow
+                            easing.type: Easing.InOutCubic
+                        }
+                    }
+
+                    Behavior on ringShift {
+                        enabled: root.visible
+                        NumberAnimation {
+                            duration: Theme.orbit.reflow
+                            easing.type: Easing.InOutCubic
+                        }
+                    }
 
                     // not rounded: at ~7 px/s whole-pixel steps show as stutter
                     x: field.width / 2 + point.x - width / 2

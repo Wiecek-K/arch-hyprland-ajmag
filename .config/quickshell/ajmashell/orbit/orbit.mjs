@@ -252,9 +252,25 @@ export function actionLabel(action, profile) {
 // (rx, ry); a new node (`outer`) sits on an outer ring `ring` px further out (serpantinum put every
 // odd node there; here the ring tells known from new, user 2026-10-05). `angle` turns the whole orbit.
 export function orbitPoint(index, count, angle, { rx, ry, ring }, outer) {
-    const theta = angle + (index / Math.max(1, count)) * Math.PI * 2;
     const extra = outer ? ring : 0;
-    return { x: Math.cos(theta) * (rx + extra), y: Math.sin(theta) * (ry + extra) };
+    return ellipsePoint(angle + slotAngle(index, count), rx + extra, ry + extra);
+}
+
+// Place of node `index` of `count` on the orbit, as an angle from the right (rad).
+export function slotAngle(index, count) {
+    return (index / Math.max(1, count)) * Math.PI * 2;
+}
+
+// Offset of the point at angle `theta` on an ellipse with radii `rx`, `ry`.
+export function ellipsePoint(theta, rx, ry) {
+    return { x: Math.cos(theta) * rx, y: Math.sin(theta) * ry };
+}
+
+// `to` shifted by whole turns to lie nearest `from`: a node gliding to its new place after the list
+// changed goes the short way round, never a whole lap (user, 2026-10-06: nodes jumped).
+export function nearestAngle(from, to) {
+    const turn = Math.PI * 2;
+    return to + Math.round((from - to) / turn) * turn;
 }
 
 // --- lightning (ticket 13; serpantinum nodeLinesCanvas: three wavy strands per node, 25 ms) ---

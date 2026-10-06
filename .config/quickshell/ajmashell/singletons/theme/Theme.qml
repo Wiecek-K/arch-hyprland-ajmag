@@ -328,6 +328,7 @@ Singleton {
         // to whole pixels looked like ~15 fps (user, 2026-10-03).
         readonly property int period: 240000
         readonly property int appear: 400 // ms; nodes fly out from the core on open (serpantinum entryAnim 600 ms)
+        readonly property int reflow: 600 // ms; nodes glide to their new places when the list changes (user, 2026-10-06)
         readonly property int cardsDelay: 1500 // ms; PipeWire adds a BT card a moment after the connection
         // Lightning (ticket 13, D6): wavy strands from the core to the connected nodes, a Canvas drawn
         // on the CPU every `boltTick` ms (serpantinum: 25 ms, ~40 fps) only while the Orbita is open.
