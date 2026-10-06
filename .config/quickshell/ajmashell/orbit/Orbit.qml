@@ -61,7 +61,10 @@ PopupWindow {
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
     // TEMPORARY (ticket 13, user 2026-10-06: "the middle element stands out too much"): core styles, C cycles
-    readonly property var coreStyles: ["solid", "glass", "fade", "fade wide", "ring", "none"]
+    readonly property var coreStyles: ["solid", "glass", "fade", "fade wide", "ring", "none", "glass + fade wide"]
+    // TEMPORARY (ticket 13, user 2026-10-06): shape of the node cards, S cycles; island = like the Bar's islands
+    readonly property var nodeShapes: ["rounded", "ellipse", "island"]
+    property int nodeShape: 0
     // TEMPORARY (ticket 13, user 2026-10-06: "take care of the buttons"): button styles, P cycles
     readonly property var pillStyles: ["filled", "glass", "outline", "soft", "text"]
     property int pillStyle: 0
@@ -425,6 +428,9 @@ PopupWindow {
             } else if (event.key === Qt.Key_P) { // TEMPORARY (ticket 13): button styles
                 root.pillStyle = (root.pillStyle + 1) % root.pillStyles.length;
                 event.accepted = true;
+            } else if (event.key === Qt.Key_S) { // TEMPORARY (ticket 13): node shapes
+                root.nodeShape = (root.nodeShape + 1) % root.nodeShapes.length;
+                event.accepted = true;
             } else if (event.key === Qt.Key_C) { // TEMPORARY (ticket 13): core styles
                 root.coreStyle = (root.coreStyle + 1) % root.coreStyles.length;
                 event.accepted = true;
@@ -445,7 +451,7 @@ PopupWindow {
             anchors.margins: Theme.orbit.padding + Theme.spacing.sm
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.orbit.subtext
-            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})`
+            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})   S: ${root.nodeShapes[root.nodeShape]} (${root.nodeShape + 1}/${root.nodeShapes.length})`
         }
 
         Item {
@@ -460,7 +466,7 @@ PopupWindow {
             // fade wide: the same, spread ~1.7× the core; under the nodes and lightning so it does not dim them (user, 2026-10-06: "a larger area")
             Shape {
                 id: fadeShape
-                readonly property bool wide: core.style === "fade wide"
+                readonly property bool wide: core.style === "fade wide" || core.style === "glass + fade wide"
                 anchors.centerIn: parent // the field: the core sits at its centre
                 width: wide ? Theme.orbit.coreSize * 1.7 : Theme.orbit.coreSize
                 height: width
@@ -521,7 +527,7 @@ PopupWindow {
                         if (!item || !Logic.getsBolt(root.nodes[i]))
                             continue;
                         const target = { x: item.x + item.width / 2, y: item.y + item.height / 2 };
-                        Logic.boltStrands(center, target, time, i, { coreRadius: Theme.orbit.coreSize / 2, card: item, reach: root.spread, fade: fade }).forEach((strand, layer) => {
+                        Logic.boltStrands(center, target, time, i, { coreRadius: Theme.orbit.boltStart, card: item, reach: root.spread, fade: fade }).forEach((strand, layer) => {
                             ctx.beginPath();
                             ctx.moveTo(strand.points[0].x, strand.points[0].y);
                             for (const point of strand.points.slice(1))
@@ -589,12 +595,35 @@ PopupWindow {
                     y: field.height / 2 + point.y - height / 2
                     width: Theme.orbit.nodeWidth
                     height: Theme.orbit.nodeHeight
-                    radius: Theme.radius.sm
-                    // known: filled; new: outline only (user, 2026-10-05)
-                    color: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : known ? Theme.orbit.node : Theme.orbit.unknown
-                    border.width: chosen ? Theme.bar.ringWidth : known ? 0 : Theme.orbit.unknownBorderWidth
+                    readonly property string shape: root.nodeShapes[root.nodeShape] // TEMPORARY (ticket 13)
+                    radius: shape === "rounded" ? Theme.radius.sm : height / 2
+                    // known: filled; new: outline only (user, 2026-10-05); island: the Bar's translucent island colour
+                    readonly property color fill: node?.connected ? Theme.orbit.connected : hover.hovered ? Theme.orbit.hover : known ? (shape === "island" ? Theme.bar.island : Theme.orbit.node) : Theme.orbit.unknown
+                    readonly property real edge: chosen ? Theme.bar.ringWidth : known ? 0 : Theme.orbit.unknownBorderWidth
+                    color: shape === "ellipse" ? Theme.transparent : fill // the ellipse is drawn by the Shape below
+                    border.width: shape === "ellipse" ? 0 : edge
                     border.color: chosen ? Theme.orbit.selected : Theme.orbit.unknownBorder
                     opacity: node?.busy ? Theme.orbit.dimmed : 1
+
+                    // TEMPORARY (ticket 13): a true ellipse of the card's size
+                    Shape {
+                        anchors.fill: parent
+                        visible: nodeItem.shape === "ellipse"
+                        preferredRendererType: Shape.CurveRenderer
+                        ShapePath {
+                            fillColor: nodeItem.fill
+                            strokeWidth: nodeItem.edge > 0 ? nodeItem.edge : -1
+                            strokeColor: nodeItem.border.color
+                            PathAngleArc {
+                                centerX: nodeItem.width / 2
+                                centerY: nodeItem.height / 2
+                                radiusX: nodeItem.width / 2 - nodeItem.edge / 2
+                                radiusY: nodeItem.height / 2 - nodeItem.edge / 2
+                                startAngle: 0
+                                sweepAngle: 360
+                            }
+                        }
+                    }
 
                     readonly property color textColor: node?.connected ? Theme.orbit.connectedText : known ? Theme.orbit.text : Theme.orbit.unknownText
 
@@ -606,8 +635,9 @@ PopupWindow {
 
                     Row {
                         anchors.fill: parent
-                        anchors.leftMargin: Theme.spacing.md
-                        anchors.rightMargin: Theme.spacing.md
+                        // an ellipse narrows at the ends: keep the glyph and the percentage off them
+                        anchors.leftMargin: nodeItem.shape === "ellipse" ? 2 * Theme.spacing.md : Theme.spacing.md
+                        anchors.rightMargin: nodeItem.shape === "ellipse" ? 2 * Theme.spacing.md : Theme.spacing.md
                         spacing: Theme.spacing.md
 
                         OrbitText {
@@ -669,7 +699,7 @@ PopupWindow {
                 height: width
                 radius: width / 2
                 readonly property string style: root.coreStyles[root.coreStyle]
-                color: style === "solid" ? Theme.orbit.core : style === "glass" ? Qt.alpha(Theme.orbit.core, 0.45) : Theme.transparent
+                color: style === "solid" ? Theme.orbit.core : style === "glass" || style === "glass + fade wide" ? Qt.alpha(Theme.orbit.core, 0.45) : Theme.transparent
                 border.width: style === "ring" ? 1 : 0
                 border.color: Theme.orbit.unknownBorder
                 opacity: root.spread > 0 ? 1 : 0

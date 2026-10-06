@@ -345,6 +345,7 @@ Singleton {
         // on the CPU every `boltTick` ms (serpantinum: 25 ms, ~40 fps) only while the Orbita is open.
         readonly property bool lightning: true
         readonly property int boltTick: 25
+        readonly property int boltStart: 70 // px from the centre where a strand starts, inside the core (user, 2026-10-06: "closer to the centre"; was the core's edge, 130)
         readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
         property color background
         property color node
