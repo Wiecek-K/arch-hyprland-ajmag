@@ -61,7 +61,10 @@ PopupWindow {
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
     // TEMPORARY (ticket 13, user 2026-10-06: "the middle element stands out too much"): core styles, C cycles
-    readonly property var coreStyles: ["solid", "glass", "fade", "ring", "none"]
+    readonly property var coreStyles: ["solid", "glass", "fade", "fade wide", "ring", "none"]
+    // TEMPORARY (ticket 13, user 2026-10-06: "take care of the buttons"): button styles, P cycles
+    readonly property var pillStyles: ["filled", "glass", "outline", "soft", "text"]
+    property int pillStyle: 0
     property int coreStyle: 0
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
     property var cards: ({}) // Logic.parseCards() of `pactl -f json list cards`
@@ -419,6 +422,9 @@ PopupWindow {
             if (event.key === Qt.Key_B) {
                 backdrop.variant = (backdrop.variant + 1) % backdrop.variants.length;
                 event.accepted = true;
+            } else if (event.key === Qt.Key_P) { // TEMPORARY (ticket 13): button styles
+                root.pillStyle = (root.pillStyle + 1) % root.pillStyles.length;
+                event.accepted = true;
             } else if (event.key === Qt.Key_C) { // TEMPORARY (ticket 13): core styles
                 root.coreStyle = (root.coreStyle + 1) % root.coreStyles.length;
                 event.accepted = true;
@@ -432,14 +438,14 @@ PopupWindow {
             coreRadius: Theme.orbit.coreSize / 2
         }
 
-        // TEMPORARY (ticket 13): name of the background variant
+        // TEMPORARY (ticket 13): names of the background, core and button variants (top: the tab row is at the bottom)
         OrbitText {
             anchors.left: parent.left
-            anchors.bottom: parent.bottom
+            anchors.top: parent.top
             anchors.margins: Theme.orbit.padding + Theme.spacing.sm
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.orbit.subtext
-            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})`
+            text: `B: ${backdrop.name} (${backdrop.variant + 1}/${backdrop.variants.length})   C: ${root.coreStyles[root.coreStyle]} (${root.coreStyle + 1}/${root.coreStyles.length})   P: ${root.pillStyles[root.pillStyle]} (${root.pillStyle + 1}/${root.pillStyles.length})`
         }
 
         Item {
@@ -449,6 +455,36 @@ PopupWindow {
             anchors.top: parent.top
             anchors.bottom: tabs.top
             anchors.margins: Theme.orbit.padding
+
+            // fade: dense under the text and buttons, gone at the edge — no visible rim;
+            // fade wide: the same, spread ~1.7× the core; under the nodes and lightning so it does not dim them (user, 2026-10-06: "a larger area")
+            Shape {
+                id: fadeShape
+                readonly property bool wide: core.style === "fade wide"
+                anchors.centerIn: parent // the field: the core sits at its centre
+                width: wide ? Theme.orbit.coreSize * 1.7 : Theme.orbit.coreSize
+                height: width
+                visible: root.spread > 0 && (core.style === "fade" || wide)
+                preferredRendererType: Shape.CurveRenderer
+                ShapePath {
+                    strokeWidth: -1
+                    fillGradient: RadialGradient {
+                        centerX: fadeShape.width / 2
+                        centerY: fadeShape.height / 2
+                        centerRadius: fadeShape.width / 2
+                        focalX: centerX
+                        focalY: centerY
+                        GradientStop { position: 0; color: Qt.alpha(Theme.orbit.core, 0.75) }
+                        GradientStop { position: fadeShape.wide ? 0.45 : 0.6; color: Qt.alpha(Theme.orbit.core, fadeShape.wide ? 0.6 : 0.55) }
+                        GradientStop { position: 1; color: Theme.transparent }
+                    }
+                    PathRectangle {
+                        width: fadeShape.width
+                        height: fadeShape.height
+                        radius: fadeShape.width / 2
+                    }
+                }
+            }
 
             // Lightning from the core to the connected nodes, under the nodes and the core.
             // Repainted every boltTick ms only while it shows: a closed Orbita costs nothing.
@@ -638,31 +674,6 @@ PopupWindow {
                 border.color: Theme.orbit.unknownBorder
                 opacity: root.spread > 0 ? 1 : 0
 
-                // fade: dense under the text and buttons, gone at the edge — no visible rim
-                Shape {
-                    anchors.fill: parent
-                    visible: core.style === "fade"
-                    preferredRendererType: Shape.CurveRenderer
-                    ShapePath {
-                        strokeWidth: -1
-                        fillGradient: RadialGradient {
-                            centerX: core.width / 2
-                            centerY: core.height / 2
-                            centerRadius: core.width / 2
-                            focalX: centerX
-                            focalY: centerY
-                            GradientStop { position: 0; color: Qt.alpha(Theme.orbit.core, 0.75) }
-                            GradientStop { position: 0.6; color: Qt.alpha(Theme.orbit.core, 0.55) }
-                            GradientStop { position: 1; color: Theme.transparent }
-                        }
-                        PathRectangle {
-                            width: core.width
-                            height: core.height
-                            radius: core.width / 2
-                        }
-                    }
-                }
-
                 Column {
                     anchors.centerIn: parent
                     width: parent.width - 2 * Theme.orbit.padding - 2 * Theme.spacing.lg
@@ -810,7 +821,25 @@ PopupWindow {
         implicitWidth: Math.ceil(label.implicitWidth) + 2 * Theme.spacing.lg
         height: Theme.orbit.tabHeight
         radius: height / 2
-        color: active ? Theme.orbit.tab : pillHover.hovered && enabled ? Theme.orbit.hover : Theme.orbit.button
+        readonly property string style: root.pillStyles[root.pillStyle]
+        readonly property bool hot: pillHover.hovered && enabled
+        // TEMPORARY (ticket 13): filled / glass / outline / soft / text, see pillStyles
+        color: {
+            switch (style) {
+            case "glass":
+                return Qt.alpha(active ? Theme.orbit.tab : Theme.orbit.button, active ? 0.45 : hot ? 0.5 : 0.3);
+            case "outline":
+                return hot ? Qt.alpha(Theme.orbit.text, 0.08) : Theme.transparent;
+            case "soft":
+                return active ? Qt.alpha(Theme.orbit.tab, 0.25) : Qt.alpha(Theme.orbit.text, hot ? 0.14 : 0.07);
+            case "text":
+                return hot ? Qt.alpha(Theme.orbit.text, 0.06) : Theme.transparent;
+            default:
+                return active ? Theme.orbit.tab : hot ? Theme.orbit.hover : Theme.orbit.button;
+            }
+        }
+        border.width: style === "glass" || style === "outline" ? 1 : 0
+        border.color: active ? Theme.orbit.selected : style === "glass" ? Qt.alpha(Theme.orbit.text, 0.15) : Theme.orbit.unknownBorder
         opacity: enabled ? 1 : Theme.orbit.dimmed
 
         OrbitText {
@@ -819,7 +848,8 @@ PopupWindow {
             width: Math.min(implicitWidth, pill.width - 2 * Theme.spacing.sm)
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: Theme.font.sizeSmall
-            color: pill.active ? Theme.orbit.tabText : Theme.orbit.buttonText
+            color: pill.style === "filled" ? (pill.active ? Theme.orbit.tabText : Theme.orbit.buttonText) : pill.active ? Theme.orbit.selected : Theme.orbit.text
+            font.weight: pill.active && pill.style === "text" ? Font.Bold : Theme.font.weight
             text: pill.text
         }
 
