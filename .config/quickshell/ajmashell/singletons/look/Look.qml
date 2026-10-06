@@ -6,7 +6,8 @@
 // "prototype" look with the keys B, C, P and S was removed after code review 2 (user, 2026-10-06: "for now").
 // F2 in the Orbita or the launcher switches to the next look, or
 // `qs -c ajmashell ipc call look cycle` / `qs -c ajmashell ipc call look set fancy`.
-// Note: ~/Projects/hyprland-lua-migration/.scratch/faza-b/prototyp-wygladu.md.
+// Note: ~/Projects/hyprland-lua-migration/.scratch/faza-b/prototyp-wygladu.md. How to change the default
+// look or a look's picks: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.
 
 pragma Singleton
 
@@ -20,7 +21,7 @@ Singleton {
     id: root
 
     readonly property var modes: ["basic", "fancy", "fancy2", "still"]
-    property string mode: "still" // a reload starts here (user, 2026-10-06)
+    property string mode: "fancy2" // a reload starts here (user, 2026-10-07; was "still")
     readonly property bool opaque: Theme.orbit.looks[mode].opaque
 
     function applyBlur(): void {
