@@ -6,6 +6,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Shapes
 import qs.singletons.theme
 
@@ -26,6 +27,7 @@ Item {
         { name: "flare + stars", layers: ["flare", "stars"] },
         { name: "flare + stars, soft streak", layers: ["flare", "softStreak", "stars"] },
         { name: "flare, soft streak", layers: ["flare", "softStreak"] },
+        { name: "lava lamp", layers: ["lava"] },
         { name: "halo", layers: ["halo"] },
         { name: "mesh", layers: ["mesh"] },
         { name: "spotlight", layers: ["nebula", "vignette"] },
@@ -260,6 +262,87 @@ Item {
                 // a ghost has a brighter rim, like an aperture reflection
                 stops: [[0, modelData.color, modelData.alpha * 0.5], [0.8, modelData.color, modelData.alpha], [1, modelData.color, 0]]
             }
+        }
+    }
+
+    // lava lamp: soft blobs drift up and down and melt together where they meet. Each blob is a
+    // radial fade; MultiEffect cuts the sum at an alpha threshold, so overlapping fades merge into one
+    // gooey shape (metaballs without a custom shader: qsb is not installed). Coloured by a vertical
+    // gradient, warm at the bottom like the lamp. Integer multiples of the orbit's angle keep the
+    // motion seamless when the angle wraps; one blob cycle takes 240 s / k (k 4…9: 27–60 s).
+    Item {
+        id: lava
+        anchors.fill: parent
+        visible: backdrop.has("lava")
+
+        Item {
+            id: lavaBlobs
+            anchors.fill: parent
+            visible: false
+            layer.enabled: true // MultiEffect does not pick up a layer enabled later
+
+            Repeater {
+                model: [
+                    { x: 0.18, k: 4, phase: 0.0, sway: 3, size: 210 },
+                    { x: 0.38, k: 7, phase: 2.1, sway: 5, size: 150 },
+                    { x: 0.55, k: 5, phase: 4.0, sway: 4, size: 230 },
+                    { x: 0.72, k: 9, phase: 1.2, sway: 6, size: 130 },
+                    { x: 0.86, k: 6, phase: 3.3, sway: 3, size: 190 },
+                    { x: 0.30, k: 8, phase: 5.2, sway: 7, size: 120 },
+                    { x: 0.64, k: 4, phase: 3.0, sway: 5, size: 170 }
+                ]
+
+                Shape {
+                    id: blob
+                    required property var modelData
+                    readonly property real a: backdrop.angle
+                    width: modelData.size
+                    height: width
+                    x: modelData.x * backdrop.width + Math.sin(modelData.sway * a + modelData.phase) * 40 - width / 2
+                    // from below the bottom edge to above the top one and back
+                    y: backdrop.height / 2 + Math.sin(modelData.k * a + modelData.phase) * (backdrop.height / 2 + width * 0.15) - height / 2
+                    preferredRendererType: Shape.CurveRenderer
+                    ShapePath {
+                        strokeWidth: -1
+                        fillGradient: RadialGradient {
+                            centerX: blob.width / 2
+                            centerY: blob.height / 2
+                            centerRadius: blob.width / 2
+                            focalX: centerX
+                            focalY: centerY
+                            GradientStop { position: 0; color: "black" }
+                            GradientStop { position: 0.55; color: Qt.rgba(0, 0, 0, 0.5) }
+                            GradientStop { position: 1; color: Theme.transparent }
+                        }
+                        PathRectangle {
+                            width: blob.width
+                            height: blob.height
+                            radius: blob.width / 2
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            id: lavaColour
+            anchors.fill: parent
+            visible: false
+            layer.enabled: true // MultiEffect does not pick up a layer enabled later
+            radius: backdrop.radius
+            gradient: Gradient {
+                GradientStop { position: 0; color: Qt.alpha(Theme.orbit.backdropAccent, 0.45) }
+                GradientStop { position: 1; color: Qt.alpha(Theme.orbit.backdropGlow, 0.6) }
+            }
+        }
+
+        MultiEffect {
+            anchors.fill: parent
+            source: lavaColour
+            maskEnabled: true
+            maskSource: lavaBlobs
+            maskThresholdMin: 0.45
+            maskSpreadAtMin: 0.08
         }
     }
 
