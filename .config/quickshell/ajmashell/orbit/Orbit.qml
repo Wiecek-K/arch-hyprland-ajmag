@@ -12,7 +12,8 @@
 // intro choreography, sounds, multi-core layout, list caching; state through bindings (no Connections
 // per device), logic in orbit.mjs; a click selects a node and the core offers its actions (serpantinum
 // connects on click, disconnects by holding the core); our Theme instead of its palette; the orbit turns
-// every frame and pauses under the pointer, in a look without motion (Theme.orbit.looks) it stands
+// and the lightning flickers on one clock (Theme.orbit.fps, not every 25 ms), the orbit pauses under
+// the pointer, in a look without motion (Theme.orbit.looks) it stands
 // still with the connected nodes on top; profile switching added (serpantinum only shows it);
 // lightning to the connected nodes (serpantinum: to the info nodes of a connection), geometry in
 // orbit.mjs, colours from Theme.orbit, can be switched off (Theme.orbit.lightning).
@@ -364,12 +365,20 @@ PopupWindow {
         onTriggered: root.refreshCards()
     }
 
-    // one step per rendered frame, so the turn is as smooth as the monitor
-    FrameAnimation {
-        running: root.visible && root.look.motion && root.hoverId === "" && root.nodes.length > 0
+    // One clock for all motion, Theme.orbit.fps steps a second: the turn and the lightning in the same
+    // step, so the shell draws one frame per tick (two separate clocks drew up to both rates together).
+    // The orbit pauses under the pointer, the lightning keeps flickering.
+    Timer {
+        interval: 1000 / Theme.orbit.fps
+        repeat: true
+        running: root.visible && root.look.motion && root.nodes.length > 0
         onTriggered: {
-            root.angle = (root.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI);
-            root.clock += frameTime;
+            if (root.hoverId === "") {
+                root.angle = (root.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI);
+                root.clock += interval / 1000;
+            }
+            if (lightning.visible)
+                lightning.requestPaint();
         }
     }
 
@@ -469,7 +478,7 @@ PopupWindow {
             }
 
             // Lightning from the core to the connected nodes, under the nodes and the core.
-            // Repainted every boltTick ms only while it shows: a closed Orbita costs nothing.
+            // Repainted on each step of the motion clock only while it shows: a closed Orbita costs nothing.
             Canvas {
                 id: lightning
                 anchors.fill: parent
@@ -481,13 +490,6 @@ PopupWindow {
                     NumberAnimation {
                         duration: Theme.orbit.boltFade
                     }
-                }
-
-                Timer {
-                    interval: Theme.orbit.boltTick
-                    running: lightning.visible && root.look.motion
-                    repeat: true
-                    onTriggered: lightning.requestPaint()
                 }
 
                 // Without motion the strands are drawn once, again only when the nodes or the look change.

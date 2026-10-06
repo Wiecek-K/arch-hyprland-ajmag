@@ -448,9 +448,11 @@ Scope {
                     height: box.height
                     radius: 0 // the box clips its own corners
 
-                    FrameAnimation {
+                    Timer {
+                        interval: 1000 / Theme.orbit.fps
+                        repeat: true
                         running: win.visible && listBackdrop.visible && Theme.orbit.looks[Look.mode].motion
-                        onTriggered: listBackdrop.angle = (listBackdrop.angle + 2 * Math.PI * frameTime * 1000 / Theme.orbit.period) % (2 * Math.PI)
+                        onTriggered: listBackdrop.angle = (listBackdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
                     }
                 }
 

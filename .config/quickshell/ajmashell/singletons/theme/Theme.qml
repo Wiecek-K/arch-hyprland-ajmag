@@ -340,9 +340,13 @@ Singleton {
         readonly property int coreIconSize: 34
         readonly property real dimmed: 0.4 // busy node, disabled button
         readonly property int maxNodes: 14 // more would overlap on the orbit
-        // ms per turn of the orbit. It turns every frame with sub-pixel positions: 50 ms steps rounded
-        // to whole pixels looked like ~15 fps (user, 2026-10-03).
+        // ms per turn of the orbit. It turns with sub-pixel positions: 50 ms steps rounded to whole
+        // pixels looked like ~15 fps (user, 2026-10-03).
         readonly property int period: 240000
+        // steps a second of everything that moves in the Orbita and the launcher's flare (turn, wobble,
+        // lightning): one clock, one frame per step. Was every monitor frame plus lightning at 40 fps
+        // (user, 2026-10-06: 30 fps, ~50% CPU of qs at 60).
+        readonly property int fps: 30
         readonly property int appear: 400 // ms; nodes fly out from the core on open (serpantinum entryAnim 600 ms)
         readonly property int reflow: 1200 // ms; nodes glide to their new places when the list changes (user, 2026-10-06: 600 too quick)
         // each node drifts ± amplitude px towards and away from the core, period ± 12% per node (user, 2026-10-06);
@@ -351,9 +355,9 @@ Singleton {
         readonly property var wobble: ({ amplitude: 10, period: 10000, inStep: true })
         readonly property int cardsDelay: 1500 // ms; PipeWire adds a BT card a moment after the connection
         // Lightning (ticket 13, D6): wavy strands from the core to the connected nodes, a Canvas drawn
-        // on the CPU every `boltTick` ms (serpantinum: 25 ms, ~40 fps) only while the Orbita is open.
+        // on the CPU on each step of the motion clock (`fps`; serpantinum: every 25 ms, ~40 fps) only while
+        // the Orbita is open.
         readonly property bool lightning: true
-        readonly property int boltTick: 25
         // px from the centre where a strand starts: just inside the core's edge (coreSize / 2), so it comes
         // out from under the glass core (user, 2026-10-06: "shorten"; was 130, 70 and 120, each plus a 5 px gap that boltStrands added)
         readonly property int boltStart: 125
