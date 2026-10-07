@@ -5,8 +5,8 @@
 // "prototype" look with the keys B, C, P and S was removed after code review 2 (user, 2026-10-06: "for now").
 // F2 in the Orbita or the launcher switches to the next look, or
 // `qs -c ajmashell ipc call look cycle` / `qs -c ajmashell ipc call look set fancy`.
-// Note: ~/Projects/hyprland-lua-migration/.scratch/faza-b/prototyp-wygladu.md. How to change the default
-// look or a look's picks: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.
+// Decisions: ADR 0006 in ~/Projects/hyprland-lua-migration/docs/adr. How to change the default look or a
+// look's picks: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.
 
 pragma Singleton
 
