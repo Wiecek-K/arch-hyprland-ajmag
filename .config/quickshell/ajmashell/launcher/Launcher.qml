@@ -321,7 +321,7 @@ Scope {
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius
-                color: Theme.orbit.looks[Look.mode].opaque ? Theme.launcher.backgroundOpaque : Theme.launcher.background
+                color: Look.current.opaque ? Theme.launcher.backgroundOpaque : Theme.launcher.background
                 border.width: Theme.launcher.borderWidth
                 border.color: Theme.launcher.border
 
@@ -443,7 +443,7 @@ Scope {
                 // list; turns like the orbit while open, only in a look with motion
                 OrbitBackdrop {
                     id: listBackdrop
-                    visible: Theme.orbit.looks[Look.mode].flare
+                    visible: Look.current.flare
                     x: pane.width
                     width: box.width - pane.width
                     height: box.height
@@ -452,7 +452,7 @@ Scope {
                     Timer {
                         interval: 1000 / Theme.orbit.fps
                         repeat: true
-                        running: win.visible && listBackdrop.visible && Theme.orbit.looks[Look.mode].motion
+                        running: win.visible && listBackdrop.visible && Look.current.motion
                         onTriggered: listBackdrop.angle = (listBackdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
                     }
                 }

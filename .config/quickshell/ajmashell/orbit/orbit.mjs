@@ -255,15 +255,7 @@ export function actionRows(actions) {
     return rows;
 }
 
-// --- orbit geometry (serpantinum: singleBaseAngle, ringOffset, singleRadX/Y) -----------------
-
-// Offset of node `index` of `count` from the orbit's centre: nodes spread evenly on an ellipse
-// (rx, ry); a new node (`outer`) sits on an outer ring `ring` px further out (serpantinum put every
-// odd node there; here the ring tells known from new, user 2026-10-05). `angle` turns the whole orbit.
-export function orbitPoint(index, count, angle, { rx, ry, ring }, outer) {
-    const extra = outer ? ring : 0;
-    return ellipsePoint(angle + slotAngle(index, count), rx + extra, ry + extra);
-}
+// --- orbit geometry (serpantinum: singleBaseAngle, singleRadX/Y; the outer ring is ringShift in Orbit.qml) ---
 
 // Place of node `index` of `count` on the orbit, as an angle from the right (rad; y grows downwards).
 // The first `connected` nodes (wifiNodes and btNodes put connected ones first) sit together around

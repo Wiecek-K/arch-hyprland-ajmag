@@ -64,7 +64,9 @@ PopupWindow {
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
     // F2 / IPC "look": basic, fancy, fancy2 or still, their picks in Theme.orbit.looks (Look.qml)
-    readonly property var look: Theme.orbit.looks[Look.mode]
+    readonly property var look: Look.current
+    // the open Orbita in a look with motion: the orbit turns, nodes wobble and glide, colours fade
+    readonly property bool animate: visible && look.motion
     // without motion the orbit stands still at its start, connected nodes on top
     readonly property real turn: look.motion ? angle : 0
     property real spread: 0 // 0 → 1 on open: nodes fly out from the core
@@ -122,7 +124,7 @@ PopupWindow {
     }
     readonly property int btConnected: devices.filter(dev => dev.connected).length
     // only in a look with motion: still strands looked poor (user, 2026-10-06)
-    readonly property bool bolts: visible && look.motion && Theme.orbit.lightning && Logic.hasBolts(nodes)
+    readonly property bool bolts: animate && Theme.orbit.lightning && Logic.hasBolts(nodes)
     readonly property int connectedCount: nodes.filter(node => node.connected).length
 
     function network(id: string): var {
@@ -372,7 +374,7 @@ PopupWindow {
     Timer {
         interval: 1000 / Theme.orbit.fps
         repeat: true
-        running: root.visible && root.look.motion && root.nodes.length > 0
+        running: root.animate && root.nodes.length > 0
         onTriggered: {
             if (root.hoverId === "") {
                 root.angle = (root.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI);
@@ -412,7 +414,7 @@ PopupWindow {
     color: Theme.transparent // only the rounded box below is drawn
 
     Behavior on spread {
-        enabled: root.visible && root.look.motion
+        enabled: root.animate
         NumberAnimation {
             duration: Theme.orbit.appear
             easing.type: Easing.OutBack
@@ -493,7 +495,6 @@ PopupWindow {
                     }
                 }
 
-
                 onPaint: {
                     const ctx = getContext("2d");
                     ctx.clearRect(0, 0, width, height);
@@ -555,7 +556,7 @@ PopupWindow {
                         (Theme.orbit.radiusX + drift) * root.spread, (Theme.orbit.radiusY + drift) * root.spread)
 
                     Behavior on slot {
-                        enabled: nodeItem.placed && root.visible && root.look.motion
+                        enabled: nodeItem.placed && root.animate
                         NumberAnimation {
                             duration: Theme.orbit.reflow
                             easing.type: Easing.InOutCubic
@@ -563,7 +564,7 @@ PopupWindow {
                     }
 
                     Behavior on ringShift {
-                        enabled: root.visible && root.look.motion
+                        enabled: root.animate
                         NumberAnimation {
                             duration: Theme.orbit.reflow
                             easing.type: Easing.InOutCubic
