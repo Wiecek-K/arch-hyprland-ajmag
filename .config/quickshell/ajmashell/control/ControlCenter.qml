@@ -238,6 +238,7 @@ Scope {
                             id: power
                             anchors.right: parent.right
                             text: OrbitLogic.POWER_ICON
+                            fontSize: Theme.font.sizeLarge // a lone glyph, read at a glance (user, 2026-10-07)
                             // wlogout until the Panel zasilania (ticket 18)
                             onClicked: {
                                 root.open = false;

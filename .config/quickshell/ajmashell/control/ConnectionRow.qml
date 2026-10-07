@@ -25,8 +25,13 @@ Rectangle {
         id: rowHover
     }
 
+    // the switch has its own TapHandler, but this one fires too: a tap on the switch must not open the Orbita
     TapHandler {
-        onTapped: root.opened()
+        onTapped: eventPoint => {
+            const p = moduleSwitch.mapFromItem(root, eventPoint.position);
+            if (!moduleSwitch.contains(p))
+                root.opened();
+        }
     }
 
     Rectangle {

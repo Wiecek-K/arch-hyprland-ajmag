@@ -12,6 +12,7 @@ Rectangle {
 
     property string text
     property bool active: false
+    property int fontSize: Theme.font.sizeSmall
     signal clicked
 
     implicitWidth: Math.ceil(label.implicitWidth) + 2 * Theme.spacing.lg
@@ -28,7 +29,7 @@ Rectangle {
         anchors.centerIn: parent
         width: Math.min(implicitWidth, pill.width - 2 * Theme.spacing.sm)
         horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: Theme.font.sizeSmall
+        font.pixelSize: pill.fontSize
         color: pill.soft ? (pill.active ? Theme.orbit.selected : Theme.orbit.text) : pill.active ? Theme.orbit.tabText : Theme.orbit.buttonText
         text: pill.text
     }
