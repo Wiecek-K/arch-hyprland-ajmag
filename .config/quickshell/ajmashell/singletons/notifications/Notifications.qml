@@ -34,7 +34,7 @@ Singleton {
     // appKey → entries, for the group headers in the Centrum
     readonly property var groupCounts: {
         historyModel.count; // re-count on every insert / remove
-        return Logic.groupCounts(keys(historyModel, "appKey"));
+        return Logic.groupCounts(roleValues(historyModel, "appKey"));
     }
     // Silent mode (DND): right click on the bell or the switch in the Centrum. Notifications still reach the
     // history and the count; only critical ones pop up. Saved, so a restart keeps it (ticket 16).
@@ -66,7 +66,7 @@ Singleton {
         return -1;
     }
 
-    function keys(model, role: string): var {
+    function roleValues(model, role: string): var {
         const list = [];
         for (let i = 0; i < model.count; i++)
             list.push(model.get(i)[role]);
@@ -90,7 +90,7 @@ Singleton {
     function showPopup(n: Notification): void {
         const key = Logic.syncKey(n.hints);
         // from the end, so the indexes stay valid; a transient one is gone with its popup
-        for (const index of Logic.replacedPopups(keys(popupsModel, "syncKey"), key).reverse()) {
+        for (const index of Logic.replacedPopups(roleValues(popupsModel, "syncKey"), key).reverse()) {
             const old = root.live[popupsModel.get(index).uid];
             popupsModel.remove(index, 1);
             if (old?.transient)
@@ -141,12 +141,12 @@ Singleton {
     // a new entry goes on top of its app's group, and the group moves to the top (ticket 16)
     function addToHistory(n: Notification): void {
         const data = Object.assign(entry(n), { arrival: ++root.arrivals });
-        const block = Logic.groupBlock(keys(historyModel, "appKey"), data.appKey);
+        const block = Logic.groupBlock(roleValues(historyModel, "appKey"), data.appKey);
         if (block && block.from > 0)
             historyModel.move(block.from, 0, block.count);
         historyModel.insert(0, data);
         for (let i = Logic.overLimit(historyModel.count); i > 0; i--) {
-            const index = Logic.oldestIndex(keys(historyModel, "arrival"));
+            const index = Logic.oldestIndex(roleValues(historyModel, "arrival"));
             const oldest = historyModel.get(index).uid;
             historyModel.remove(index, 1);
             root.live[oldest]?.dismiss();
