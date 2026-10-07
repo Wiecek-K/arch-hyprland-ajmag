@@ -5,6 +5,13 @@
 iDIR="$HOME/.config/swaync/icons"
 sDIR="$HOME/.config/hypr/scripts"
 
+# Ajmashell's OSD while the shell runs (ticket 15); false without it (Waybar + swaync: notify-send below,
+# until ticket 23) or when the running shell has no `osd` target yet (it prints "Target not found.", exit 0)
+show_osd() {
+    local out
+    out=$(qs -c ajmashell ipc call osd "$@" 2>&1) && [[ -z "$out" ]]
+}
+
 # Get Volume
 get_volume() {
     volume=$(pamixer --get-volume)
@@ -31,6 +38,7 @@ get_icon() {
 
 # Notify
 notify_user() {
+    show_osd volume && return
     if [[ "$(get_volume)" == "Muted" ]]; then
         notify-send -e -h string:x-canonical-private-synchronous:volume_notif -u low -i "$(get_icon)" " Volume:" " Muted"
     else
@@ -60,9 +68,9 @@ dec_volume() {
 # Toggle Mute
 toggle_mute() {
 	if [ "$(pamixer --get-mute)" == "false" ]; then
-		pamixer -m && notify-send -e -u low -i "$iDIR/volume-mute.png" " Mute"
+		pamixer -m && { show_osd volume || notify-send -e -u low -i "$iDIR/volume-mute.png" " Mute"; }
 	elif [ "$(pamixer --get-mute)" == "true" ]; then
-		pamixer -u && notify-send -e -u low -i "$(get_icon)" " Volume:" " Switched ON"
+		pamixer -u && { show_osd volume || notify-send -e -u low -i "$(get_icon)" " Volume:" " Switched ON"; }
 	fi
 }
 
