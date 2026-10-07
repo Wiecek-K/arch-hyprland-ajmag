@@ -13,6 +13,7 @@ import qs.bar
 import qs.control
 import qs.launcher
 import qs.notifications
+import qs.osd
 import qs.wallpaper
 
 ShellRoot {
@@ -28,6 +29,9 @@ ShellRoot {
     }
 
     NotificationPopups {}
+
+    // OSD of the volume and brightness keys (ticket 15): volume.sh / brightness.sh call it over IPC
+    Osd {}
 
     WallpaperPicker {}
 

@@ -6,6 +6,13 @@ iDIR="$HOME/.config/swaync/icons"
 notification_timeout=1000
 step=10  # INCREASE/DECREASE BY THIS VALUE
 
+# Ajmashell's OSD while the shell runs (ticket 15); false without it (Waybar + swaync: notify-send below,
+# until ticket 23) or when the running shell has no `osd` target yet (it prints "Target not found.", exit 0)
+show_osd() {
+    local out
+    out=$(qs -c ajmashell ipc call osd "$@" 2>&1) && [[ -z "$out" ]]
+}
+
 # Get brightness
 get_backlight() {
 	brightnessctl -m | cut -d, -f4 | sed 's/%//'
@@ -29,6 +36,7 @@ get_icon() {
 
 # Notify
 notify_user() {
+	show_osd brightness "$current" && return
 	notify-send -e -h string:x-canonical-private-synchronous:brightness_notif -h int:value:$current -u low -i $icon "Screen" "Brightness:$current%"
 }
 

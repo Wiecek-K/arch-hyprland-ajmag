@@ -167,6 +167,12 @@ Singleton {
         separator: Qt.alpha(root.orbit.text, 0.12)
     }
 
+    // OSD of the volume and brightness keys (osd/Osd.qml, ticket 15): an island like the Bar's at the bottom
+    // centre, holding the Centrum's slider (Theme.control colours), so a level looks the same everywhere.
+    readonly property OsdStyle osd: OsdStyle {
+        background: root.bar.island // blurred by Hyprland (rules.lua layerrule-9) while alpha ≥ 0.5
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkinsonHyperlegibleMono Nerd Font" // same as Waybar
@@ -458,6 +464,15 @@ Singleton {
         property color fillText
         property color muted
         property color separator
+    }
+
+    component OsdStyle: QtObject {
+        readonly property int width: 320
+        readonly property int padding: 6 // round the slider, inside the island
+        readonly property int marginBottom: 64 // above the bottom edge of the monitor
+        readonly property int timeout: 1500 // ms after the last key press
+        readonly property int fade: 150 // ms; in and out
+        property color background
     }
 
     // Singletons load lazily and FileView reads asynchronously: read the file once, blocking,
