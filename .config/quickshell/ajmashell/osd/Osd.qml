@@ -110,6 +110,7 @@ Scope {
 
                     anchors.fill: parent
                     anchors.margins: Theme.osd.padding
+                    implicitHeight: Theme.osd.sliderHeight
                     iconClickable: false
                     position: root.view.position
                     icon: root.view.icon

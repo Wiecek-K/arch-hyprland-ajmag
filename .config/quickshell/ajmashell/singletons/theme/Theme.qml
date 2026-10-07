@@ -467,8 +467,9 @@ Singleton {
     }
 
     component OsdStyle: QtObject {
-        readonly property int width: 320
-        readonly property int padding: 6 // round the slider, inside the island
+        readonly property int width: 400 // user, 2026-10-07: a bit bigger (was 320)
+        readonly property int sliderHeight: 44 // Centrum's slider is 36
+        readonly property int padding: 8 // round the slider, inside the island
         readonly property int marginBottom: 64 // above the bottom edge of the monitor
         readonly property int timeout: 1500 // ms after the last key press
         readonly property int fade: 150 // ms; in and out
