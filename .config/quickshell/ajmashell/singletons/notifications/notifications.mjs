@@ -1,5 +1,6 @@
 // Pure logic of Ajmashell notifications (ticket 10): popup lifetime, history, popup replacement,
-// the bell's badge and icon sources. A JS module (not QML) so tools/test-notifications.mjs can test it with node.
+// the bell's badge and icon sources; the full Notification centre (ticket 16): groups per app, action buttons,
+// progress bars and the saved silent mode. A JS module (not QML) so tools/test-notifications.mjs can test it with node.
 // Popup timeouts from our swaync (~/.config/swaync/config.json: timeout-low 3, timeout 6, timeout-critical 0);
 // icon source rules from serpantinum notifications/types/Default.qml (idea only):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
@@ -78,3 +79,75 @@ export function iconSource(icon) {
 export function overLimit(count) {
     return Math.max(0, count - HISTORY_LIMIT);
 }
+
+// --- full Notification centre (ticket 16) ---
+
+// One group per app. Notifications without an app name (bare `notify-send -a ""`) share one group.
+export const OTHER_GROUP = "Other";
+
+export function groupKey(appName) {
+    const name = (appName ?? "").trim();
+    return name || OTHER_GROUP;
+}
+
+// The history is kept grouped: groups by their newest entry, newest first inside a group. A group is
+// one run of entries, so a new notification moves its group's block to the top and goes in above it.
+export function groupBlock(keys, key) {
+    const from = keys.indexOf(key);
+    if (from < 0)
+        return null;
+    let count = 0;
+    while (from + count < keys.length && keys[from + count] === key)
+        count++;
+    return { from, count };
+}
+
+export function groupCounts(keys) {
+    const counts = {};
+    keys.forEach(key => counts[key] = (counts[key] ?? 0) + 1);
+    return counts;
+}
+
+// Index of the oldest entry by arrival number (the last entry belongs to the quietest group, not the oldest one).
+export function oldestIndex(arrivals) {
+    let index = -1;
+    arrivals.forEach((arrival, i) => {
+        if (index < 0 || arrival < arrivals[index])
+            index = i;
+    });
+    return index;
+}
+
+// Buttons under a notification: every labelled action except "default", which is the click on the card.
+export function actionButtons(actions) {
+    return (actions ?? []).filter(a => a.identifier !== "default" && a.text)
+        .map(a => ({ identifier: a.identifier, text: a.text }));
+}
+
+// Progress bar: the `value` hint (freedesktop spec, 0–100) as whole percent; -1 = no bar.
+export function progressValue(hints) {
+    const value = hints?.value;
+    if (value === undefined || value === null || value === "")
+        return -1;
+    const number = Number(value);
+    if (!Number.isFinite(number))
+        return -1;
+    return Math.round(Math.max(0, Math.min(100, number)));
+}
+
+// Silent mode survives a restart (~/.local/state/ajmashell/notifications.json); anything unreadable = off.
+export function parseState(text) {
+    try {
+        return { silent: JSON.parse(text).silent === true };
+    } catch (e) {
+        return { silent: false };
+    }
+}
+
+export function formatState({ silent }) {
+    return JSON.stringify({ silent: silent === true }) + "\n";
+}
+
+// group header in the Centrum: chevron of a group with more than one entry (Nerd Font md-chevron-down / -up)
+export const GROUP_CLOSED_ICON = "\u{f0140}";
+export const GROUP_OPEN_ICON = "\u{f0143}";

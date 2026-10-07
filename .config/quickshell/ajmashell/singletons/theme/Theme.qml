@@ -77,6 +77,11 @@ Singleton {
         // like the focused workspace on the Bar (user, 2026-10-05; was error / on_error, Waybar's red dot)
         badge: root.bar.workspace.activeBackground
         badgeText: root.bar.workspace.activeText
+        // ticket 16: action buttons and the progress bar (hint `value`) on a card
+        action: Qt.alpha(root.colors.on_surface, 0.08)
+        actionHover: Qt.alpha(root.colors.on_surface, 0.16)
+        progress: root.colors.primary
+        progressTrack: Qt.alpha(root.colors.on_surface, 0.12)
     }
 
     // Wallpaper carousel (wallpaper/WallpaperPicker.qml, ticket 19)
@@ -273,12 +278,18 @@ Singleton {
         readonly property int disappear: 200 // ms
         readonly property int reflow: 220 // ms; the other popups move up or down
         readonly property real slide: 0.35 // of the popup width
+        readonly property int actionHeight: 28 // action button under the body (ticket 16)
+        readonly property int progressHeight: 6 // progress bar (hint `value`, ticket 16)
         property color background
         property color text
         property color subtext
         property color critical
         property color badge
         property color badgeText
+        property color action
+        property color actionHover
+        property color progress
+        property color progressTrack
     }
 
     component WallpaperStyle: QtObject {

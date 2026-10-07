@@ -1,8 +1,9 @@
-// NotificationCard — one notification: icon, app name, title and body (ticket 10).
+// NotificationCard — one notification: icon, app name, title and body (ticket 10); a progress bar for the
+// `value` hint and buttons for the app's actions (ticket 16). Used by the popups and the Centrum powiadomień.
 // Own implementation; layout after serpantinum notifications/types/Default.qml (icon left, app name
 // above the title, glyph when the icon does not load), idea only:
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
-// Kept small on purpose: no actions, expanding, swipe or grouping (full Notification centre, ticket 16).
+// No expanding or swipe; grouping is the Centrum's job (control/ControlCenter.qml).
 
 pragma ComponentBehavior: Bound
 
@@ -18,9 +19,13 @@ Rectangle {
     required property string body
     required property string icon
     required property int urgency
+    required property int progress // 0–100, -1 = no bar
+    required property var actions // ListModel: identifier, text (notifications.mjs actionButtons)
+    property bool showAppName: true // the Centrum shows it once, on the group header
     readonly property alias hovered: hover.hovered
 
     signal clicked
+    signal actionInvoked(string identifier)
 
     implicitHeight: Math.max(iconBox.height, texts.implicitHeight) + 2 * Theme.notifications.padding
     radius: Theme.radius.lg // like the Bar islands
@@ -32,8 +37,13 @@ Rectangle {
         id: hover
     }
 
+    // the buttons have their own TapHandler, but this one fires too: a tap on a button is not a click on the card
     TapHandler {
-        onTapped: root.clicked()
+        onTapped: eventPoint => {
+            const p = root.mapToItem(actionRow, eventPoint.position);
+            if (!actionRow.visible || !actionRow.contains(p))
+                root.clicked();
+        }
     }
 
     Item {
@@ -76,7 +86,7 @@ Rectangle {
 
         Text {
             width: parent.width
-            visible: text !== ""
+            visible: root.showAppName && text !== ""
             text: root.appName
             elide: Text.ElideRight
             textFormat: Text.PlainText
@@ -107,6 +117,65 @@ Rectangle {
             font.family: Theme.font.family
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.notifications.text
+        }
+
+        // hint `value` (copying files, downloads): updates live, the app re-sends the notification with the same id
+        Rectangle {
+            width: parent.width
+            height: Theme.notifications.progressHeight
+            visible: root.progress >= 0
+            radius: height / 2
+            color: Theme.notifications.progressTrack
+
+            Rectangle {
+                width: Math.round(parent.width * Math.max(0, root.progress) / 100)
+                height: parent.height
+                radius: height / 2
+                color: Theme.notifications.progress
+            }
+        }
+
+        Flow {
+            id: actionRow
+
+            width: parent.width
+            visible: actionRepeater.count > 0
+            spacing: Theme.spacing.sm
+
+            Repeater {
+                id: actionRepeater
+                model: root.actions
+
+                Rectangle {
+                    id: button
+
+                    required property string identifier
+                    required property string text
+
+                    width: Math.ceil(label.implicitWidth) + 2 * Theme.spacing.lg
+                    height: Theme.notifications.actionHeight
+                    radius: height / 2
+                    color: buttonHover.hovered ? Theme.notifications.actionHover : Theme.notifications.action
+
+                    Text {
+                        id: label
+                        anchors.centerIn: parent
+                        text: button.text
+                        textFormat: Text.PlainText
+                        font.family: Theme.font.family
+                        font.pixelSize: Theme.font.sizeSmall
+                        color: Theme.notifications.text
+                    }
+
+                    HoverHandler {
+                        id: buttonHover
+                    }
+
+                    TapHandler {
+                        onTapped: root.actionInvoked(button.identifier)
+                    }
+                }
+            }
         }
     }
 }

@@ -1,7 +1,8 @@
 // Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
 // right edge, full height under the Bar. Top to bottom: date and the power button, look buttons (on top: user,
 // 2026-10-07), Wiersze Wi-Fi / Bluetooth, sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
-// (for now the history list of ticket 10; the full one is ticket 16).
+// (ticket 16: groups per app, collapsed to the newest entry with a header to expand and clear the group; silent
+// mode switch; clear all; action buttons and progress bars on the cards).
 // Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.
 // Also the one place to switch the Wygląd of the Orbita and the launcher: look buttons and F2 (user, 2026-10-07).
 // IPC: qs -c ajmashell ipc call control toggle
@@ -28,6 +29,7 @@ import "control.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
 import "../launcher/launcher.mjs" as Launch
 import "../orbit/orbit.mjs" as OrbitLogic
+import "../singletons/notifications/notifications.mjs" as NotifLogic
 
 Scope {
     id: root
@@ -36,6 +38,15 @@ Scope {
     property string screenName: ""
     // 0 = hidden, 1 = fully in; the window shows while above 0, so the panel can slide out before it hides
     property real shown: open ? 1 : 0
+
+    // appKey → true: groups of the Centrum powiadomień shown in full (collapsed = newest entry only)
+    property var expanded: ({})
+
+    function toggleGroup(key: string): void {
+        const next = Object.assign({}, expanded);
+        next[key] = !next[key];
+        expanded = next;
+    }
 
     // a Wi-Fi / BT row asks for the Orbita; shell.qml passes it to the Bar of the same screen
     signal orbitRequested(string tab, string screenName)
@@ -336,23 +347,35 @@ Scope {
                         color: Theme.control.separator
                     }
 
-                    // Centrum powiadomień, for now: count, clear, the history list (ticket 16 builds the full one)
+                    // Centrum powiadomień (ticket 16): count, silent mode (DND, as PPM on the bell), clear all
                     Item {
                         width: parent.width
                         height: clear.height
 
                         OrbitText {
                             anchors.left: parent.left
+                            anchors.right: notifButtons.left
                             anchors.verticalCenter: parent.verticalCenter
                             text: Notifications.count > 0 ? "Notifications (" + Notifications.count + ")" : "Notifications"
                         }
 
-                        Pill {
-                            id: clear
+                        Row {
+                            id: notifButtons
                             anchors.right: parent.right
-                            text: "Clear"
-                            enabled: Notifications.count > 0
-                            onClicked: Notifications.clear()
+                            spacing: Theme.spacing.sm
+
+                            Pill {
+                                text: NotifLogic.bellIcon(true) + "  Silent"
+                                active: Notifications.silent
+                                onClicked: Notifications.toggleSilent()
+                            }
+
+                            Pill {
+                                id: clear
+                                text: "Clear"
+                                enabled: Notifications.count > 0
+                                onClicked: Notifications.clear()
+                            }
                         }
                     }
                 }
@@ -367,13 +390,77 @@ Scope {
                     anchors.bottomMargin: Theme.control.padding
                     width: top.width
                     clip: true
-                    spacing: Theme.notifications.spacing
                     model: Notifications.history
 
-                    delegate: NotificationCard {
-                        required property int uid
+                    // the history is kept as runs per app (Notifications.qml), so every run is one section
+                    section.property: "appKey"
+                    section.delegate: Item {
+                        id: groupHeader
+
+                        required property string section
+                        readonly property int count: Notifications.groupCounts[section] ?? 0
+                        readonly property bool open: root.expanded[section] === true
+
                         width: list.width
-                        onClicked: Notifications.activate(uid)
+                        height: groupClear.height + Theme.spacing.md
+
+                        OrbitText {
+                            anchors.left: parent.left
+                            anchors.right: groupClear.left
+                            anchors.rightMargin: Theme.spacing.md
+                            anchors.verticalCenter: groupClear.verticalCenter
+                            elide: Text.ElideRight
+                            text: (groupHeader.count > 1 ? (groupHeader.open ? NotifLogic.GROUP_OPEN_ICON : NotifLogic.GROUP_CLOSED_ICON) + "  " : "")
+                                  + groupHeader.section + (groupHeader.count > 1 ? " (" + groupHeader.count + ")" : "")
+                            font.pixelSize: Theme.font.sizeSmall
+                            color: Theme.control.subtext
+                        }
+
+                        Pill {
+                            id: groupClear
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: Theme.spacing.sm
+                            text: "Clear"
+                            onClicked: Notifications.clearGroup(groupHeader.section)
+                        }
+
+                        // Clear has its own TapHandler, but this one fires too: a tap on Clear does not expand
+                        TapHandler {
+                            enabled: groupHeader.count > 1
+                            onTapped: eventPoint => {
+                                const p = groupHeader.mapToItem(groupClear, eventPoint.position);
+                                if (!groupClear.contains(p))
+                                    root.toggleGroup(groupHeader.section);
+                            }
+                        }
+                    }
+
+                    delegate: Item {
+                        id: row
+
+                        required property var model
+                        // the newest entry of a group always shows; the rest while the group is expanded
+                        readonly property bool shown: ListView.previousSection !== ListView.section || root.expanded[model.appKey] === true
+
+                        width: list.width
+                        height: shown ? card.height + Theme.notifications.spacing : 0
+                        visible: shown
+
+                        NotificationCard {
+                            id: card
+                            width: parent.width
+                            showAppName: false
+                            appName: row.model.appName
+                            summary: row.model.summary
+                            body: row.model.body
+                            icon: row.model.icon
+                            urgency: row.model.urgency
+                            progress: row.model.progress
+                            actions: row.model.actions
+                            onClicked: Notifications.activate(row.model.uid, "")
+                            onActionInvoked: identifier => Notifications.activate(row.model.uid, identifier)
+                        }
                     }
 
                     OrbitText {

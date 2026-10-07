@@ -1,5 +1,5 @@
 // Notifications — the shell's notification server (replaces swaync while Ajmashell runs, ticket 10):
-// history in memory for the bell's count (and later the Notification centre, tickets 14, 16)
+// history in memory for the bell's count and the Centrum powiadomień (tickets 14, 16), kept grouped per app,
 // and the model of the popups shown by notifications/NotificationPopups.qml.
 // Adapted from serpantinum src/quickshell/notifications/NotificationManager.qml:
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
@@ -9,7 +9,8 @@
 // no app resolving via DesktopEntries; history only in memory (no history on disk), capped;
 // transient notifications popup only; popups replaced by x-canonical-private-synchronous;
 // replaced notifications (same id) update their entry and show their popup again;
-// the D-Bus id is the uid; silent mode (DND) as a plain property; logic in notifications.mjs.
+// the D-Bus id is the uid; silent mode (DND) as a plain property saved in ~/.local/state/ajmashell/notifications.json;
+// grouping per app as runs of the history model (no separate group objects); logic in notifications.mjs.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma Singleton
@@ -24,14 +25,28 @@ import "notifications.mjs" as Logic
 Singleton {
     id: root
 
-    // newest first; roles: uid, appName, summary, body, icon, urgency
+    // grouped per app (appKey): groups by their newest entry, newest first inside a group (ticket 16).
+    // roles: uid, appName, appKey, arrival, summary, body, icon, urgency, actions (identifier, text), progress (-1 = none)
     readonly property alias history: historyModel
     // newest first; history roles + timeout (ms, 0 = until clicked), syncKey, generation (bumped on update)
     readonly property alias popups: popupsModel
     readonly property int count: historyModel.count
-    // Silent mode (DND): right click on the bell. Notifications still reach the history and the count;
-    // only critical ones pop up. In memory: a restart turns it off (persisting it: ticket 16).
+    // appKey → entries, for the group headers in the Centrum
+    readonly property var groupCounts: {
+        historyModel.count; // re-count on every insert / remove
+        return Logic.groupCounts(keys(historyModel, "appKey"));
+    }
+    // Silent mode (DND): right click on the bell or the switch in the Centrum. Notifications still reach the
+    // history and the count; only critical ones pop up. Saved, so a restart keeps it (ticket 16).
     property bool silent: false
+    property int arrivals: 0 // arrival number of the newest entry: the history limit drops the oldest one
+
+    FileView {
+        id: stateFile
+        path: Quickshell.env("HOME") + "/.local/state/ajmashell/notifications.json"
+        printErrors: false // missing until silent mode is first switched: that means off
+        onLoaded: root.silent = Logic.parseState(text()).silent
+    }
 
     // uid → Notification; only notifications still tracked by the server
     property var live: ({})
@@ -51,10 +66,20 @@ Singleton {
         return -1;
     }
 
+    function keys(model, role: string): var {
+        const list = [];
+        for (let i = 0; i < model.count; i++)
+            list.push(model.get(i)[role]);
+        return list;
+    }
+
     function entry(n: Notification): var {
         return {
             uid: n.id,
             appName: n.appName,
+            appKey: Logic.groupKey(n.appName),
+            actions: Logic.actionButtons(Array.from(n.actions).map(a => ({ identifier: a.identifier, text: a.text }))), // qmllint disable unresolved-type
+            progress: Logic.progressValue(n.hints),
             summary: n.summary,
             body: n.body,
             icon: Logic.iconSource(n.image || n.appIcon),
@@ -64,11 +89,8 @@ Singleton {
 
     function showPopup(n: Notification): void {
         const key = Logic.syncKey(n.hints);
-        const keys = [];
-        for (let i = 0; i < popupsModel.count; i++)
-            keys.push(popupsModel.get(i).syncKey);
         // from the end, so the indexes stay valid; a transient one is gone with its popup
-        for (const index of Logic.replacedPopups(keys, key).reverse()) {
+        for (const index of Logic.replacedPopups(keys(popupsModel, "syncKey"), key).reverse()) {
             const old = root.live[popupsModel.get(index).uid];
             popupsModel.remove(index, 1);
             if (old?.transient)
@@ -86,7 +108,7 @@ Singleton {
         const data = entry(n);
         const h = indexOf(historyModel, n.id);
         if (h >= 0)
-            historyModel.set(h, data);
+            historyModel.set(h, Object.assign({}, data, { arrival: historyModel.get(h).arrival }));
         const p = indexOf(popupsModel, n.id);
         if (p >= 0) {
             popupsModel.set(p, Object.assign(data, {
@@ -116,14 +138,31 @@ Singleton {
             n.expire();
     }
 
-    // click on a popup: the app's default action when it has one, then the notification is gone
-    function activate(uid: int): void {
+    // a new entry goes on top of its app's group, and the group moves to the top (ticket 16)
+    function addToHistory(n: Notification): void {
+        const data = Object.assign(entry(n), { arrival: ++root.arrivals });
+        const block = Logic.groupBlock(keys(historyModel, "appKey"), data.appKey);
+        if (block && block.from > 0)
+            historyModel.move(block.from, 0, block.count);
+        historyModel.insert(0, data);
+        for (let i = Logic.overLimit(historyModel.count); i > 0; i--) {
+            const index = Logic.oldestIndex(keys(historyModel, "arrival"));
+            const oldest = historyModel.get(index).uid;
+            historyModel.remove(index, 1);
+            root.live[oldest]?.dismiss();
+        }
+    }
+
+    // click on a card: the app's default action when it has one, then the notification is gone;
+    // a button under the card: that action (blueman's Confirm / Deny, ticket 16)
+    function activate(uid: int, identifier: string): void {
         const n = root.live[uid];
         if (!n) {
             removePopup(uid);
             return;
         }
-        const action = Array.from(n.actions).find(a => a.identifier === "default");
+        const wanted = identifier || "default";
+        const action = Array.from(n.actions).find(a => a.identifier === wanted);
         if (action)
             action.invoke(); // dismisses a non-resident notification itself
         if (!root.live[uid])
@@ -135,7 +174,12 @@ Singleton {
     }
 
     function toggleSilent(): void {
-        silent = !silent;
+        setSilent(!silent);
+    }
+
+    function setSilent(value: bool): void {
+        silent = value;
+        stateFile.setText(Logic.formatState({ silent }));
         if (!silent)
             return;
         // popups already on screen go too, except critical ones
@@ -149,6 +193,20 @@ Singleton {
             root.live[uid]?.dismiss(); // closed → forget
         historyModel.clear();
         popupsModel.clear();
+    }
+
+    // "Clear" on a group header in the Centrum
+    function clearGroup(appKey: string): void {
+        const uids = [];
+        for (let i = 0; i < historyModel.count; i++)
+            if (historyModel.get(i).appKey === appKey)
+                uids.push(historyModel.get(i).uid);
+        for (const uid of uids) {
+            if (root.live[uid])
+                root.live[uid].dismiss(); // closed → forget
+            else
+                forget(uid);
+        }
     }
 
     // qs -c ajmashell ipc call notifications toggleSilent | clear  (pattern from caelestia services/Notifs.qml, research B08)
@@ -183,15 +241,11 @@ Singleton {
             };
             n.summaryChanged.connect(() => Qt.callLater(refresh));
             n.bodyChanged.connect(() => Qt.callLater(refresh));
+            n.hintsChanged.connect(() => Qt.callLater(refresh)); // progress bar (hint `value`) on every update
+            n.actionsChanged.connect(() => Qt.callLater(refresh));
 
-            if (Logic.keptInHistory(n)) {
-                historyModel.insert(0, root.entry(n));
-                for (let i = Logic.overLimit(historyModel.count); i > 0; i--) {
-                    const oldest = historyModel.get(historyModel.count - 1).uid;
-                    historyModel.remove(historyModel.count - 1, 1);
-                    root.live[oldest]?.dismiss();
-                }
-            }
+            if (Logic.keptInHistory(n))
+                root.addToHistory(n);
             if (!n.lastGeneration && Logic.popupAllowed({ silent: root.silent, urgency: n.urgency }))
                 root.showPopup(n);
             else if (!Logic.keptInHistory(n))

@@ -123,7 +123,8 @@ PanelWindow { // qmllint disable uncreatable-type
 
             width: ListView.view.width
 
-            onClicked: Notifications.activate(uid)
+            onClicked: Notifications.activate(uid, "")
+            onActionInvoked: identifier => Notifications.activate(uid, identifier)
             onGenerationChanged: dismissTimer.restart()
 
             Timer {
