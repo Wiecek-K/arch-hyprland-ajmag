@@ -12,6 +12,7 @@
 // Ticket 12: one Orbita per screen under the Wi-Fi / BT island; IpcHandler "orbit" opens it on the focused screen.
 // Ticket 14: the bell asks for the Centrum sterowania (controlRequested, handled in shell.qml); its rows open the Orbita.
 // Ticket 17: media island left of the clock; IpcHandler "media" opens its popup on the focused screen.
+// Tray and volume islands swapped (user, 2026-10-07): tray on the left edge, volume · microphone · separator before the pill.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma ComponentBehavior: Bound
@@ -104,18 +105,14 @@ Scope {
                 }
             }
 
-            // Left edge (ADR 0002 §3): output volume · microphone.
+            // Left edge (ADR 0002 §3, changed 2026-10-07): tray. It hides while empty.
             Row {
                 anchors.left: parent.left
                 anchors.leftMargin: Theme.bar.edgePadding + Theme.bar.islandGap
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: Theme.bar.islandGap
 
-                Volume {}
-
-                Volume {
-                    microphone: true
-                }
+                Tray {}
             }
 
             // Centre (ADR 0002 §3–4, changed 2026-09-29): media (ticket 17) · clock · workspaces.
@@ -138,7 +135,8 @@ Scope {
                 anchors.verticalCenter: parent.verticalCenter
             }
 
-            // Right edge (ADR 0002 §3): tray · one pill with BT · Wi-Fi · bell (user, 2026-10-05).
+            // Right edge (ADR 0002 §3, changed 2026-10-07): output volume · microphone · separator (Waybar dot-line)
+            // · one pill with BT · Wi-Fi · bell (user, 2026-10-05).
             // The tray hides while empty.
             Row {
                 anchors.right: parent.right
@@ -146,7 +144,13 @@ Scope {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: Theme.bar.islandGap
 
-                Tray {}
+                Volume {}
+
+                Volume {
+                    microphone: true
+                }
+
+                Separator {}
 
                 IslandGroup {
                     Bluetooth {

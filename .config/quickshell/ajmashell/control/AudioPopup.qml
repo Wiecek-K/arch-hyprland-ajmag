@@ -19,7 +19,13 @@ PopupWindow {
     required property Item source // island the popup hangs under
     property bool microphone: false
 
+    property real shift: 0 // px left, so the popup stays on screen (set on open)
+
     function toggle(): void {
+        // here, not in a binding: mapToItem does not follow the island's position, which settles after start
+        // (the volume islands moved to the right edge on 2026-10-07, where a stale value pushes it off screen)
+        if (!visible)
+            shift = Math.min(0, source.Window.width - Theme.control.margin - implicitWidth - source.mapToItem(null, 0, 0).x);
         visible = !visible;
     }
 
@@ -39,10 +45,7 @@ PopupWindow {
     visible: false
     anchor.item: source
     // under the island's left edge, moved left when it would stick out of the screen (Hyprland does not slide it)
-    anchor.rect.x: {
-        const left = source.mapToItem(null, 0, 0).x;
-        return Math.min(0, source.Window.width - Theme.control.margin - implicitWidth - left);
-    }
+    anchor.rect.x: shift
     anchor.rect.y: 0
     anchor.rect.width: source.width
     anchor.rect.height: source.height + Theme.bar.tooltip.gap

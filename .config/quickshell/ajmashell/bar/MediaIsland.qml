@@ -1,6 +1,6 @@
 // Media island — the MPRIS player on the Bar (ticket 17, D8): cover, track title (elided, never scrolled) and
-// ⏮ ⏯ ⏭. Resting on the cover or title shows the preview (media/MediaPreview.qml), a click there opens the player
-// popup (media/MediaPopup.qml; also IPC `media toggle`). Hidden while no player has a track (media.mjs `candidates`).
+// ⏮ ⏯ ⏭. A click on the cover or title opens the player popup (media/MediaPopup.qml; also IPC `media toggle`);
+// no hover preview (user, 2026-10-07: removed). Hidden while no player has a track (media.mjs `candidates`).
 // Shown player: the Media singleton, one for every screen.
 // Own implementation; layout after serpantinum src/quickshell/bar/modules/MediaWidget.qml (cover + title open the
 // popup, buttons beside them; no marquee, no position line), idea only:
@@ -33,7 +33,7 @@ Island {
         }
     }
 
-    // cover + title: hover → preview, click → popup (serpantinum: the same area opens its popup)
+    // cover + title: a click opens the popup (serpantinum: the same area opens its popup)
     Item {
         id: info
         anchors.verticalCenter: parent?.verticalCenter
@@ -60,10 +60,6 @@ Island {
                 font.weight: Theme.media.titleWeight
                 color: Theme.media.text
             }
-        }
-
-        HoverHandler {
-            id: infoHover
         }
 
         TapHandler {
@@ -93,11 +89,6 @@ Island {
             enabled: root.player?.canGoNext ?? false
             onClicked: root.player?.next()
         }
-    }
-
-    MediaPreview {
-        target: info
-        hovered: infoHover.hovered && !popup.visible
     }
 
     MediaPopup {
