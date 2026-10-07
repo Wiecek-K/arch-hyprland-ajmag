@@ -17,7 +17,7 @@ PopupWindow {
     required property Item target
     property bool hovered: false
     readonly property MprisPlayer player: Media.player
-    readonly property var time: Logic.timeline(player) // unknown without a length (Zen / YouTube): no bar, no time
+    readonly property var time: Logic.timeline(player, Media.knownLength) // unknown without a length (Zen / YouTube): no bar, no time
 
     anchor.item: target
     anchor.rect.x: 0

@@ -57,7 +57,7 @@ Island {
                 text: Logic.title(root.player, Media.players)
                 font.family: Theme.font.family
                 font.pixelSize: Theme.font.size
-                font.weight: Theme.font.weight
+                font.weight: Theme.media.titleWeight
                 color: Theme.media.text
             }
         }

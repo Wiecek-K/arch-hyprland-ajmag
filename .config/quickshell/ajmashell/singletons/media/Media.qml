@@ -23,7 +23,36 @@ Singleton {
     readonly property MprisPlayer player: Logic.pick(Mpris.players.values, { chosen: chosen, current: current })
 
     // later, not in the handler: `player` reads `current`, so a direct write is a binding loop
-    onPlayerChanged: Qt.callLater(() => current = player?.dbusName ?? "")
+    onPlayerChanged: Qt.callLater(() => {
+        current = player?.dbusName ?? "";
+        rememberLength();
+    })
+
+    // Last length the player reported for the shown track: YouTube in Zen drops it after a seek until the next
+    // pause / play, and the popup would lose its time (media.mjs `timeline`).
+    property string lengthKey: ""
+    property real lastLength: 0
+    readonly property real knownLength: player && lengthKey === Logic.trackKey(player) ? lastLength : 0
+
+    function rememberLength(): void {
+        if (player?.lengthSupported && player.length > 0) {
+            lengthKey = Logic.trackKey(player);
+            lastLength = player.length;
+        }
+    }
+
+    // without a length Quickshell emits lengthChanged on every position change: rememberLength skips those
+    Connections {
+        target: root.player
+
+        function onLengthChanged(): void {
+            root.rememberLength();
+        }
+
+        function onTrackTitleChanged(): void {
+            root.rememberLength();
+        }
+    }
 
     function select(p: MprisPlayer): void {
         chosen = p?.dbusName ?? "";

@@ -26,7 +26,7 @@ PopupWindow {
 
     required property Item source // island the popup hangs under
     readonly property MprisPlayer player: Media.player
-    readonly property var time: Logic.timeline(player) // position, length, text; unknown without a length (Zen / YouTube)
+    readonly property var time: Logic.timeline(player, Media.knownLength) // position, length, text; unknown without a length (Zen / YouTube)
     property real shift: 0 // px right, so the popup stays on screen (set on open)
 
     function toggle(): void {

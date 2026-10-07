@@ -493,6 +493,7 @@ Singleton {
 
     component MediaStyle: QtObject {
         readonly property int titleWidth: 220 // px; longer titles on the Bar are elided, never scrolled (ticket 17)
+        readonly property int titleWeight: Font.Medium // title on the Bar; user, 2026-10-07: lighter (was Theme.font.weight, Bold)
         readonly property int coverSize: 26 // cover on the Bar
         readonly property int coverRadius: 6
         readonly property int buttonGap: 10 // between ⏮ ⏯ ⏭ on the Bar; user, 2026-10-07: a bit more (was 6)

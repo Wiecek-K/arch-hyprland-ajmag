@@ -78,19 +78,28 @@ export function seekPosition(fraction, length) {
 // position: Zen / Firefox on a YouTube page without position state sends no mpris:length and keeps Position at 0,
 // and Quickshell then reports length = its own estimate of the position (bar always full, seeking to nonsense).
 // Such a track shows no time and cannot be seeked (user, 2026-10-07: seeking on Zen / YouTube did not work).
+// YouTube in Zen also drops the length after a seek until the next pause / play; `knownLength` = the length
+// remembered for this track (Media.qml) stands in then — the position is Quickshell's estimate from the seek
+// target, which is right (user, 2026-10-07: "czas… przestał się wyświetlać do momentu aż zrobiłem pause > unpause").
 // `p`: { position, length, lengthSupported, canSeek } (MprisPlayer fields) or null.
-export function timeline(p) {
-    if (!p || !p.lengthSupported || !(p.length > 0))
+export function timeline(p, knownLength = 0) {
+    const length = p?.lengthSupported && p.length > 0 ? p.length : p ? knownLength : 0;
+    if (!(length > 0))
         return { known: false, position: 0, length: 0, fraction: 0, text: "", seekable: false };
-    const position = Math.max(0, Math.min(p.position, p.length)); // the estimate runs on past the track's end
+    const position = Math.max(0, Math.min(p.position, length)); // the estimate runs on past the track's end
     return {
         known: true,
         position,
-        length: p.length,
-        fraction: progress(position, p.length),
-        text: timeText(position, p.length),
+        length,
+        fraction: progress(position, length),
+        text: timeText(position, length),
         seekable: !!p.canSeek,
     };
+}
+
+// one track of one player, for the remembered length
+export function trackKey(p) {
+    return p ? `${p.dbusName}\n${p.trackTitle}` : "";
 }
 
 export function playIcon(playing) {
