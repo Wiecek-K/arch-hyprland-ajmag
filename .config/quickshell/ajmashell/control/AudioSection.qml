@@ -17,7 +17,9 @@ Column {
     id: root
 
     property bool microphone: false
-    property bool active: false // read the node list only while shown
+    // true while shown: read and track every node (devices, apps). False: only the default node stays tracked,
+    // which the slider needs anyway (the Bar's volume islands track it too)
+    property bool active: false
     property bool showSlider: true
     property bool showDevices: true
     property bool showStreams: true

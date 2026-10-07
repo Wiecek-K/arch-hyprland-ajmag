@@ -48,6 +48,7 @@ Scope {
             open = false;
             return;
         }
+        // empty name (IPC, keyboard): the monitor with the focus
         screenName = name || (Hyprland.focusedMonitor?.name ?? "");
         open = true;
     }

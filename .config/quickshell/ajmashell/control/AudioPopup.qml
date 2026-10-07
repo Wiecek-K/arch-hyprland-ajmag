@@ -1,5 +1,6 @@
 // AudioPopup — right click on a Bar volume island (ticket 14, user 2026-10-07): choose the device and set the
-// volume of the device and of each app, like pavucontrol (which it replaces on the Bar), in the Orbita's look.
+// volume of the device and of each app, like pavucontrol (which it replaces on the Bar), in the Orbita's look
+// (background and lens flare by the look, Look.qml).
 // Hangs under its island; closes on a click outside (HyprlandFocusGrab), on Esc and on a second right click.
 // Own implementation; popup placement and focus grab as in orbit/Orbit.qml.
 
@@ -61,6 +62,21 @@ PopupWindow {
 
         focus: true
         Keys.onEscapePressed: root.visible = false
+
+        // big popups inherit the look's background (user, 2026-10-07): the flare in looks with `flare`,
+        // turning only with `motion`, as in the Orbita, the launcher and the Centrum sterowania
+        OrbitBackdrop {
+            id: backdrop
+            anchors.fill: parent
+            visible: Look.current.flare
+
+            Timer {
+                interval: 1000 / Theme.orbit.fps
+                repeat: true
+                running: root.visible && backdrop.visible && Look.current.motion
+                onTriggered: backdrop.angle = (backdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
+            }
+        }
 
         AudioSection {
             id: section
