@@ -26,6 +26,7 @@ PopupWindow {
 
     required property Item source // island the popup hangs under
     readonly property MprisPlayer player: Media.player
+    readonly property var time: Logic.timeline(player) // position, length, text; unknown without a length (Zen / YouTube)
     property real shift: 0 // px right, so the popup stays on screen (set on open)
 
     function toggle(): void {
@@ -36,9 +37,9 @@ PopupWindow {
     }
 
     function seek(fraction: real): void {
-        if (!player?.canSeek)
+        if (!time.seekable)
             return;
-        player.position = Logic.seekPosition(fraction, player.length);
+        player.position = Logic.seekPosition(fraction, time.length);
         player.positionChanged();
     }
 
@@ -189,11 +190,12 @@ PopupWindow {
                 property real pending: -1 // seek once on release, not on every drag step
 
                 width: parent.width
-                enabled: root.player?.canSeek ?? false
+                enabled: root.time.seekable
+                opacity: enabled ? 1 : Theme.orbit.dimmed
                 iconClickable: false
                 icon: Logic.ICONS.music
-                position: Logic.progress(root.player?.position ?? 0, root.player?.length ?? 0)
-                text: Logic.timeText(dragging ? Logic.seekPosition(dragPosition, root.player?.length ?? 0) : root.player?.position ?? 0, root.player?.length ?? 0)
+                position: root.time.fraction
+                text: dragging ? Logic.timeText(Logic.seekPosition(dragPosition, root.time.length), root.time.length) : root.time.text
                 onMoved: fraction => {
                     if (dragging) {
                         pending = fraction;

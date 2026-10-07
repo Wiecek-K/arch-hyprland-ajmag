@@ -495,7 +495,8 @@ Singleton {
         readonly property int titleWidth: 220 // px; longer titles on the Bar are elided, never scrolled (ticket 17)
         readonly property int coverSize: 26 // cover on the Bar
         readonly property int coverRadius: 6
-        readonly property int buttonGap: 6 // between ⏮ ⏯ ⏭ on the Bar
+        readonly property int buttonGap: 10 // between ⏮ ⏯ ⏭ on the Bar; user, 2026-10-07: a bit more (was 6)
+        readonly property int buttonSize: 18 // px, ⏮ ⏯ ⏭ on the Bar; user, 2026-10-07: a bit bigger (was Theme.font.size 16)
         readonly property int previewWidth: 340
         readonly property int previewCover: 72
         readonly property int progressHeight: 4 // preview's position bar

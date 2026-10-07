@@ -21,6 +21,7 @@ Item {
         id: slot
         icons: root.icons
         text: root.text
+        font.pixelSize: Theme.media.buttonSize
         color: hover.hovered && root.enabled ? Theme.media.buttonHover : Theme.media.text
     }
 

@@ -74,6 +74,25 @@ export function seekPosition(fraction, length) {
     return Math.max(0, Math.min(1, fraction)) * length;
 }
 
+// Position bar of the preview and popup. Only a player that reports the track's length has a trustworthy
+// position: Zen / Firefox on a YouTube page without position state sends no mpris:length and keeps Position at 0,
+// and Quickshell then reports length = its own estimate of the position (bar always full, seeking to nonsense).
+// Such a track shows no time and cannot be seeked (user, 2026-10-07: seeking on Zen / YouTube did not work).
+// `p`: { position, length, lengthSupported, canSeek } (MprisPlayer fields) or null.
+export function timeline(p) {
+    if (!p || !p.lengthSupported || !(p.length > 0))
+        return { known: false, position: 0, length: 0, fraction: 0, text: "", seekable: false };
+    const position = Math.max(0, Math.min(p.position, p.length)); // the estimate runs on past the track's end
+    return {
+        known: true,
+        position,
+        length: p.length,
+        fraction: progress(position, p.length),
+        text: timeText(position, p.length),
+        seekable: !!p.canSeek,
+    };
+}
+
 export function playIcon(playing) {
     return playing ? ICONS.pause : ICONS.play;
 }

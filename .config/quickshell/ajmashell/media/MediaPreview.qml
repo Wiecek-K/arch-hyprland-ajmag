@@ -17,6 +17,7 @@ PopupWindow {
     required property Item target
     property bool hovered: false
     readonly property MprisPlayer player: Media.player
+    readonly property var time: Logic.timeline(player) // unknown without a length (Zen / YouTube): no bar, no time
 
     anchor.item: target
     anchor.rect.x: 0
@@ -96,14 +97,14 @@ PopupWindow {
             }
 
             Rectangle {
-                visible: (root.player?.length ?? 0) > 0
+                visible: root.time.known
                 width: parent.width
                 height: Theme.media.progressHeight
                 radius: height / 2
                 color: Theme.media.progressTrack
 
                 Rectangle {
-                    width: Math.round(parent.width * Logic.progress(root.player?.position ?? 0, root.player?.length ?? 0))
+                    width: Math.round(parent.width * root.time.fraction)
                     height: parent.height
                     radius: height / 2
                     color: Theme.media.progress
@@ -111,7 +112,8 @@ PopupWindow {
             }
 
             PreviewText {
-                text: (Media.players.length > 1 ? Media.label(root.player) + " · " : "") + Logic.timeText(root.player?.position ?? 0, root.player?.length ?? 0)
+                visible: text !== ""
+                text: [Media.players.length > 1 ? Media.label(root.player) : "", root.time.text].filter(part => part !== "").join(" · ")
                 color: Theme.media.previewSubtext
             }
         }
