@@ -123,7 +123,7 @@ Scope {
             MediaIsland {
                 id: mediaIsland
                 anchors.right: clock.left
-                anchors.rightMargin: Theme.bar.islandGap
+                anchors.rightMargin: Math.round(clock.width * Theme.media.clockGap) // user, 2026-10-07: further from the clock
                 anchors.verticalCenter: parent.verticalCenter
             }
 

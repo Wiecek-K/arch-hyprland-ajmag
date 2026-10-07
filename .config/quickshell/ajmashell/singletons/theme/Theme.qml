@@ -492,7 +492,8 @@ Singleton {
     }
 
     component MediaStyle: QtObject {
-        readonly property int titleWidth: 220 // px; longer titles on the Bar are elided, never scrolled (ticket 17)
+        readonly property int titleWidth: 300 // px; longer titles on the Bar are elided, never scrolled (ticket 17); user, 2026-10-07: wider (was 220)
+        readonly property real clockGap: 2 / 3 // gap to the clock as a share of the clock island's width (user, 2026-10-07)
         readonly property int titleWeight: Font.Medium // title on the Bar; user, 2026-10-07: lighter (was Theme.font.weight, Bold)
         readonly property int coverSize: 26 // cover on the Bar
         readonly property int coverRadius: 6
