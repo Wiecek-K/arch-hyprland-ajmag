@@ -179,3 +179,37 @@ export function appWindow(windows, { desktopEntry, appName }) {
         .sort((a, b) => recent(a) - recent(b));
     return matching.length > 0 ? matching[0].address : "";
 }
+
+// Sender's own window (user, 2026-10-07): a script run in a terminal (the claude-notify hook of Claude Code) sends
+// through notify-send, whose `sender-pid` hint is notify-send itself. Walking its parents up to a process that
+// owns a window finds the exact terminal window, also with several kitty windows (one process each).
+export function senderPid(hints) {
+    const pid = Number(hints?.["sender-pid"]);
+    return Number.isInteger(pid) && pid > 1 ? pid : 0;
+}
+
+// `ps` per step: /proc/<pid>/stat breaks on process names with spaces. Prints the pid, then each parent.
+export function ancestryCommand(pid) {
+    return ["sh", "-c", 'p=$1; while [ "$p" -gt 1 ] 2>/dev/null; do echo "$p"; p=$(ps -o ppid= -p "$p" | tr -d " "); done',
+        "sh", String(pid)];
+}
+
+export function parsePids(text) {
+    const pids = [];
+    text.split("\n").forEach(line => {
+        const pid = parseInt(line.trim(), 10);
+        if (Number.isInteger(pid))
+            pids.push(pid);
+    });
+    return pids;
+}
+
+// windows: [{ address, pid }]; pids: sender first, then its parents. "" = none of them has a window.
+export function senderWindow(windows, pids) {
+    for (const pid of pids) {
+        const window = windows.find(w => w.pid === pid);
+        if (window)
+            return window.address;
+    }
+    return "";
+}

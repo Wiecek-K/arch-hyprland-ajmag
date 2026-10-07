@@ -52,6 +52,27 @@ Singleton {
 
     // uid → Notification; only notifications still tracked by the server
     property var live: ({})
+    // uid → pids from the sender up through its parents (sender-pid hint, notify-send); read when it comes,
+    // because the sender may be gone by the time the card is clicked
+    property var senders: ({})
+
+    Component {
+        id: ancestry
+
+        Process {
+            id: proc
+
+            property int uid
+
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    if (root.live[proc.uid])
+                        root.senders[proc.uid] = Logic.parsePids(text);
+                    Qt.callLater(() => proc.destroy());
+                }
+            }
+        }
+    }
 
     ListModel {
         id: historyModel
@@ -125,6 +146,7 @@ Singleton {
 
     function forget(uid: int): void {
         delete root.live[uid];
+        delete root.senders[uid];
         const h = indexOf(historyModel, uid);
         if (h >= 0)
             historyModel.remove(h, 1);
@@ -180,16 +202,20 @@ Singleton {
 
     // The app's window gets the focus through Hyprland: a native Wayland app (Slack) gets no activation
     // token from the action, so Hyprland ignores the app's own focus request (user, 2026-10-07).
+    // A notification sent from a terminal (claude-notify) focuses that terminal window.
     function focusApp(n: Notification): void {
         const windows = Hyprland.toplevels.values.map(t => {
             const ipc = t.lastIpcObject;
             return {
                 address: t.address.startsWith("0x") ? t.address : "0x" + t.address,
                 appId: ipc.class || t.wayland?.appId || "",
-                focusHistory: ipc.focusHistoryID ?? -1
+                focusHistory: ipc.focusHistoryID ?? -1,
+                pid: ipc.pid ?? 0
             };
         });
-        const address = Logic.appWindow(windows, { desktopEntry: n.desktopEntry, appName: n.appName });
+        // the sender's own terminal window first (claude-notify), else a window of the app by its name
+        const address = Logic.senderWindow(windows, root.senders[n.id] ?? [])
+            || Logic.appWindow(windows, { desktopEntry: n.desktopEntry, appName: n.appName });
         if (address)
             Hyprland.dispatch(Launch.focusRequest(address));
     }
@@ -253,6 +279,9 @@ Singleton {
             n.tracked = true;
             const uid = n.id;
             Hyprland.refreshToplevels(); // focus order for focusApp() when the card is clicked
+            const pid = Logic.senderPid(n.hints);
+            if (pid)
+                ancestry.createObject(root, { uid, command: Logic.ancestryCommand(pid), running: true });
             root.live[uid] = n;
             n.closed.connect(() => root.forget(uid));
             // one closure per notification: Qt.callLater merges calls of the same function
