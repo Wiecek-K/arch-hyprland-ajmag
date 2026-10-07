@@ -11,6 +11,7 @@
 // Ticket 10: bell island on the right edge.
 // Ticket 12: one Orbita per screen under the Wi-Fi / BT island; IpcHandler "orbit" opens it on the focused screen.
 // Ticket 14: the bell asks for the Centrum sterowania (controlRequested, handled in shell.qml); its rows open the Orbita.
+// Ticket 17: media island left of the clock; IpcHandler "media" opens its popup on the focused screen.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma ComponentBehavior: Bound
@@ -30,6 +31,7 @@ Scope {
 
     signal orbitRequested(string tab, string screenName)
     signal controlRequested(string screenName)
+    signal mediaRequested(string screenName)
 
     // SUPER+H: qs -c ajmashell ipc call bar toggle (via ~/.config/hypr/scripts/shellset.sh hide)
     IpcHandler {
@@ -46,6 +48,15 @@ Scope {
 
         function toggle(tab: string): void {
             root.orbitRequested(tab === "bt" ? "bt" : "wifi", Hyprland.focusedMonitor?.name ?? "");
+        }
+    }
+
+    // qs -c ajmashell ipc call media toggle — the media popup on the focused screen (tests; the Bar opens it by a click)
+    IpcHandler {
+        target: "media"
+
+        function toggle(): void {
+            root.mediaRequested(Hyprland.focusedMonitor?.name ?? "");
         }
     }
 
@@ -86,6 +97,11 @@ Scope {
                     if (screenName === barWindow.modelData.name)
                         orbit.toggle(tab === "bt" ? btIsland : wifiIsland, tab);
                 }
+
+                function onMediaRequested(screenName: string): void {
+                    if (screenName === barWindow.modelData.name)
+                        mediaIsland.togglePopup();
+                }
             }
 
             // Left edge (ADR 0002 §3): output volume · microphone.
@@ -104,6 +120,13 @@ Scope {
 
             // Centre (ADR 0002 §3–4, changed 2026-09-29): media (ticket 17) · clock · workspaces.
             // The clock sits on the monitor's axis; neighbours hang off its sides, so their width never moves it.
+            MediaIsland {
+                id: mediaIsland
+                anchors.right: clock.left
+                anchors.rightMargin: Theme.bar.islandGap
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
             Clock {
                 id: clock
                 anchors.centerIn: parent

@@ -178,6 +178,20 @@ Singleton {
         background: root.bar.island // blurred by Hyprland (rules.lua layerrule-9) while alpha ≥ 0.5
     }
 
+    // Media (ticket 17): island on the Bar (bar/MediaIsland.qml), hover preview (media/MediaPreview.qml, dressed like
+    // the Bar tooltips) and the player popup (media/MediaPopup.qml, Theme.control colours and the look's background).
+    readonly property MediaStyle media: MediaStyle {
+        text: root.bar.text
+        buttonHover: root.bar.workspace.hover // ⏮⏯⏭ on the Bar under the pointer, like a workspace number
+        cover: root.colors.surface_container_high // behind a missing cover
+        coverIcon: root.colors.on_surface_variant
+        previewBackground: root.bar.tooltip.background
+        previewText: root.bar.tooltip.text
+        previewSubtext: Qt.alpha(root.bar.tooltip.text, 0.7)
+        progress: root.colors.primary // preview's position bar, like a notification's progress
+        progressTrack: Qt.alpha(root.bar.tooltip.text, 0.2)
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkinsonHyperlegibleMono Nerd Font" // same as Waybar
@@ -475,6 +489,29 @@ Singleton {
         property color fillText
         property color muted
         property color separator
+    }
+
+    component MediaStyle: QtObject {
+        readonly property int titleWidth: 220 // px; longer titles on the Bar are elided, never scrolled (ticket 17)
+        readonly property int coverSize: 26 // cover on the Bar
+        readonly property int coverRadius: 6
+        readonly property int buttonGap: 6 // between ⏮ ⏯ ⏭ on the Bar
+        readonly property int previewWidth: 340
+        readonly property int previewCover: 72
+        readonly property int progressHeight: 4 // preview's position bar
+        readonly property int popupWidth: 460
+        readonly property int popupCover: 128
+        readonly property int popupButtonWidth: 56 // ⏮ ⏯ ⏭ in the popup; fixed, so ⏯ keeps its width
+        readonly property int poll: 1000 // ms; position re-read while the preview or popup is open and playing
+        property color text
+        property color buttonHover
+        property color cover
+        property color coverIcon
+        property color previewBackground
+        property color previewText
+        property color previewSubtext
+        property color progress
+        property color progressTrack
     }
 
     component OsdStyle: QtObject {
