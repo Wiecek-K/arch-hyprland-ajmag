@@ -151,3 +151,31 @@ export function formatState({ silent }) {
 // group header in the Centrum: chevron of a group with more than one entry (Nerd Font md-chevron-down / -up)
 export const GROUP_CLOSED_ICON = "\u{f0140}";
 export const GROUP_OPEN_ICON = "\u{f0143}";
+
+// Time on a card (user, 2026-10-07): "now" under a minute, minutes under an hour, the clock today, else date and clock.
+export function timeText(time, now) {
+    const minutes = Math.floor((now - time) / 60000);
+    if (minutes < 1)
+        return "now";
+    if (minutes < 60)
+        return `${minutes} min`;
+    const at = new Date(time);
+    const clock = `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+    if (at.toDateString() === new Date(now).toDateString())
+        return clock;
+    return `${at.getDate()}.${at.getMonth() + 1} ${clock}`;
+}
+
+// Window to focus after a click on a card (user, 2026-10-07): a native Wayland app (Slack) gets no activation
+// token from the action, so Hyprland ignores its own focus request. Match the window class with the desktop entry
+// or the app name, case-insensitive; with several windows the one focused last. windows: [{ address, appId,
+// focusHistory }] as in launcher.mjs (focusHistory 0 = focused now, -1 = never). "" = no window.
+export function appWindow(windows, { desktopEntry, appName }) {
+    const names = [desktopEntry, appName].filter(name => name).map(name => name.toLowerCase());
+    if (names.length === 0)
+        return "";
+    const recent = w => w.focusHistory < 0 ? Infinity : w.focusHistory;
+    const matching = windows.filter(w => names.includes((w.appId ?? "").toLowerCase()))
+        .sort((a, b) => recent(a) - recent(b));
+    return matching.length > 0 ? matching[0].address : "";
+}

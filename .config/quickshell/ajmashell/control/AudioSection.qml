@@ -12,6 +12,7 @@ import qs.orbit
 import qs.singletons.theme
 import "control.mjs" as Logic
 import "../bar/audio.mjs" as Audio
+import "../singletons/notifications/notifications.mjs" as NotifLogic
 
 Column {
     id: root
@@ -23,6 +24,10 @@ Column {
     property bool showSlider: true
     property bool showDevices: true
     property bool showStreams: true
+    // the app list folds under its header like a notification group (Centrum, user 2026-10-07: it can take a lot
+    // of room and is not always needed); the audio popup keeps it open
+    property bool streamsFoldable: false
+    property bool streamsOpen: true
 
     readonly property PwNode node: microphone ? Pipewire.defaultAudioSource : Pipewire.defaultAudioSink
     // plain objects for control.mjs; the PwNode rides along
@@ -120,14 +125,24 @@ Column {
     }
 
     OrbitText {
+        width: root.width
         visible: root.streams.length > 0
-        text: root.microphone ? "Recording apps" : "Apps"
+        text: root.streamsFoldable
+              ? (root.streamsOpen ? NotifLogic.GROUP_OPEN_ICON : NotifLogic.GROUP_CLOSED_ICON) + "  " + appsTitle + " (" + root.streams.length + ")"
+              : appsTitle
         font.pixelSize: Theme.font.sizeSmall
         color: Theme.control.subtext
+
+        readonly property string appsTitle: root.microphone ? "Recording apps" : "Apps"
+
+        TapHandler {
+            enabled: root.streamsFoldable
+            onTapped: root.streamsOpen = !root.streamsOpen
+        }
     }
 
     Repeater {
-        model: root.streams
+        model: !root.streamsFoldable || root.streamsOpen ? root.streams : []
 
         Column {
             id: stream

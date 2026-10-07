@@ -22,6 +22,8 @@ Rectangle {
     required property int progress // 0–100, -1 = no bar
     required property var actions // ListModel: identifier, text (notifications.mjs actionButtons)
     property bool showAppName: true // the Centrum shows it once, on the group header
+    required property real time // ms, when it came (or was last updated)
+    property real now: Date.now() // the Centrum passes its clock; a popup is always "now"
     readonly property alias hovered: hover.hovered
 
     signal clicked
@@ -74,6 +76,19 @@ Rectangle {
         }
     }
 
+    // time in the top-right corner (user, 2026-10-07); the first line of text leaves room for it
+    Text {
+        id: timeLabel
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.notifications.padding
+        y: Theme.notifications.padding
+        text: Logic.timeText(root.time, root.now)
+        textFormat: Text.PlainText
+        font.family: Theme.font.family
+        font.pixelSize: Theme.font.sizeSmall
+        color: Theme.notifications.subtext
+    }
+
     Column {
         id: texts
 
@@ -88,6 +103,7 @@ Rectangle {
             width: parent.width
             visible: root.showAppName && text !== ""
             text: root.appName
+            rightPadding: timeLabel.width + Theme.spacing.md
             elide: Text.ElideRight
             textFormat: Text.PlainText
             font.family: Theme.font.family
@@ -98,6 +114,7 @@ Rectangle {
         Text {
             width: parent.width
             text: root.summary
+            rightPadding: root.showAppName ? 0 : timeLabel.width + Theme.spacing.md
             elide: Text.ElideRight
             textFormat: Text.PlainText
             font.family: Theme.font.family

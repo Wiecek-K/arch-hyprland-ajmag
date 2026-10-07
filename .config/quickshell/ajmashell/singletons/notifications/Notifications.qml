@@ -18,15 +18,17 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 import "notifications.mjs" as Logic
+import "../../launcher/launcher.mjs" as Launch
 
 Singleton {
     id: root
 
     // grouped per app (appKey): groups by their newest entry, newest first inside a group (ticket 16).
-    // roles: uid, appName, appKey, arrival, summary, body, icon, urgency, actions (identifier, text), progress (-1 = none)
+    // roles: uid, appName, appKey, arrival, time (ms; arrival or last update), summary, body, icon, urgency, actions (identifier, text), progress (-1 = none)
     readonly property alias history: historyModel
     // newest first; history roles + timeout (ms, 0 = until clicked), syncKey, generation (bumped on update)
     readonly property alias popups: popupsModel
@@ -80,6 +82,7 @@ Singleton {
             appKey: Logic.groupKey(n.appName),
             actions: Logic.actionButtons(Array.from(n.actions).map(a => ({ identifier: a.identifier, text: a.text }))), // qmllint disable unresolved-type
             progress: Logic.progressValue(n.hints),
+            time: Date.now(), // an update (replaces_id, progress) counts as new; a hot reload resets it
             summary: n.summary,
             body: n.body,
             icon: Logic.iconSource(n.image || n.appIcon),
@@ -163,6 +166,8 @@ Singleton {
         }
         const wanted = identifier || "default";
         const action = Array.from(n.actions).find(a => a.identifier === wanted);
+        if (wanted === "default")
+            focusApp(n); // only the click on the card: an action button (Confirm, Deny) must not move the focus
         if (action)
             action.invoke(); // dismisses a non-resident notification itself
         if (!root.live[uid])
@@ -171,6 +176,22 @@ Singleton {
             removePopup(uid); // resident: stays in the history after its action
         else
             n.dismiss();
+    }
+
+    // The app's window gets the focus through Hyprland: a native Wayland app (Slack) gets no activation
+    // token from the action, so Hyprland ignores the app's own focus request (user, 2026-10-07).
+    function focusApp(n: Notification): void {
+        const windows = Hyprland.toplevels.values.map(t => {
+            const ipc = t.lastIpcObject;
+            return {
+                address: t.address.startsWith("0x") ? t.address : "0x" + t.address,
+                appId: ipc.class || t.wayland?.appId || "",
+                focusHistory: ipc.focusHistoryID ?? -1
+            };
+        });
+        const address = Logic.appWindow(windows, { desktopEntry: n.desktopEntry, appName: n.appName });
+        if (address)
+            Hyprland.dispatch(Launch.focusRequest(address));
     }
 
     function toggleSilent(): void {
@@ -231,6 +252,7 @@ Singleton {
         onNotification: n => {
             n.tracked = true;
             const uid = n.id;
+            Hyprland.refreshToplevels(); // focus order for focusApp() when the card is clicked
             root.live[uid] = n;
             n.closed.connect(() => root.forget(uid));
             // one closure per notification: Qt.callLater merges calls of the same function

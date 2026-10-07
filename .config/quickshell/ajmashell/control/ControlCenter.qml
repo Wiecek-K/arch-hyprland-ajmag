@@ -339,6 +339,8 @@ Scope {
                         width: parent.width
                         showSlider: false
                         active: win.visible
+                        streamsFoldable: true
+                        streamsOpen: false // folded after start; stays as the user left it
                     }
 
                     Rectangle {
@@ -451,6 +453,8 @@ Scope {
                             id: card
                             width: parent.width
                             showAppName: false
+                            time: row.model.time
+                            now: clock.date.getTime()
                             appName: row.model.appName
                             summary: row.model.summary
                             body: row.model.body
