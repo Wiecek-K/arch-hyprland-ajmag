@@ -1,0 +1,388 @@
+// Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
+// right edge, full height under the Bar. Top to bottom: date and the power button, look buttons (on top: user,
+// 2026-10-07), Wiersze Wi-Fi / Bluetooth, sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
+// (for now the history list of ticket 10; the full one is ticket 16).
+// Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.
+// Also the one place to switch the Wygląd of the Orbita and the launcher: look buttons and F2 (user, 2026-10-07).
+// IPC: qs -c ajmashell ipc call control toggle
+// Own implementation. Layout after caelestia's sidebar (B11 #09: full height at the right edge, slides in) and
+// end-4's right sidebar (B11 #12: header with the power button, toggles and sliders above the notifications),
+// ideas only; colours, buttons and lens flare (OrbitBackdrop) of our Orbita (Theme.control).
+// Brightness through logind SetBrightness (B10 §2.1a): no video group needed.
+
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import Quickshell
+import Quickshell.Bluetooth as BT
+import Quickshell.Hyprland
+import Quickshell.Io
+import Quickshell.Networking
+import Quickshell.Wayland
+import qs.notifications
+import qs.orbit
+import qs.singletons.look
+import qs.singletons.notifications
+import qs.singletons.theme
+import "control.mjs" as Logic
+import "../bar/connectivity.mjs" as Net
+import "../launcher/launcher.mjs" as Launch
+import "../orbit/orbit.mjs" as OrbitLogic
+
+Scope {
+    id: root
+
+    property bool open: false
+    property string screenName: ""
+    // 0 = hidden, 1 = fully in; the window shows while above 0, so the panel can slide out before it hides
+    property real shown: open ? 1 : 0
+
+    // a Wi-Fi / BT row asks for the Orbita; shell.qml passes it to the Bar of the same screen
+    signal orbitRequested(string tab, string screenName)
+
+    readonly property string backlight: "intel_backlight" // eDP-1 (B10 §2.1)
+    readonly property string home: Quickshell.env("HOME")
+
+    function toggle(name: string): void {
+        if (open) {
+            open = false;
+            return;
+        }
+        screenName = name || (Hyprland.focusedMonitor?.name ?? "");
+        open = true;
+    }
+
+    function openOrbit(tab: string): void {
+        open = false; // its focus grab would close the Orbita at once
+        const name = screenName;
+        Qt.callLater(() => root.orbitRequested(tab, name));
+    }
+
+    Behavior on shown {
+        NumberAnimation {
+            duration: Theme.control.slide
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    IpcHandler {
+        target: "control"
+
+        function toggle(): void {
+            root.toggle("");
+        }
+
+    }
+
+    // --- Wi-Fi and BT (as the Bar's islands) ---
+    readonly property list<NetworkDevice> wifiDevices: Networking.devices.values.filter(device => device.type === DeviceType.Wifi)
+    readonly property NetworkDevice wiredDevice: Networking.devices.values.find(device => device.type === DeviceType.Wired && device.connected) ?? null
+    readonly property WifiNetwork network: wifiDevices.map(device => device.networks.values.find(net => net.connected)).find(net => net) ?? null
+    readonly property BT.BluetoothAdapter adapter: BT.Bluetooth.defaultAdapter // qmllint disable unresolved-type
+    readonly property list<BT.BluetoothDevice> btConnected: adapter?.devices.values.filter(device => device.connected) ?? [] // qmllint disable unresolved-type
+
+    // --- brightness: sysfs to read, logind to write; one write at a time, the newest level wins ---
+    property int brightness: 0
+    property int maxBrightness: 0
+    property int brightnessWanted: -1 // level not yet sent
+
+    FileView {
+        id: brightnessFile
+        path: "/sys/class/backlight/" + root.backlight + "/brightness"
+        onLoaded: root.brightness = parseInt(text()) || 0
+    }
+
+    FileView {
+        id: maxBrightnessFile
+        path: "/sys/class/backlight/" + root.backlight + "/max_brightness"
+        onLoaded: root.maxBrightness = parseInt(text()) || 0
+    }
+
+    // sysfs sends no change events: re-read while open (keys change it too)
+    Timer {
+        running: root.open
+        repeat: true
+        triggeredOnStart: true
+        interval: Theme.control.poll
+        onTriggered: brightnessFile.reload()
+    }
+
+    function setBrightness(position: real): void {
+        if (maxBrightness <= 0)
+            return;
+        brightnessWanted = Logic.brightnessRaw(position, maxBrightness);
+        brightness = brightnessWanted; // the slider follows at once
+        if (!brightnessProc.running)
+            sendBrightness();
+    }
+
+    function sendBrightness(): void {
+        if (brightnessWanted < 0)
+            return;
+        brightnessProc.command = Logic.brightnessCommand(backlight, brightnessWanted);
+        brightnessWanted = -1;
+        brightnessProc.running = true;
+    }
+
+    Process {
+        id: brightnessProc
+        onRunningChanged: if (!running) root.sendBrightness()
+    }
+
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+        enabled: root.open
+    }
+
+    // Created once at startup and only hidden (as the launcher: no stall on open).
+    LazyLoader {
+        active: true
+
+        // qmltypes mark PanelWindow uncreatable; Quickshell substitutes the Wayland implementation at runtime
+        PanelWindow { // qmllint disable uncreatable-type
+            id: win
+
+            visible: root.shown > 0
+            screen: Quickshell.screens.find(s => s.name === root.screenName) ?? null
+            anchors {
+                top: true
+                bottom: true
+                right: true
+            }
+            margins { // qmllint disable unqualified unresolved-type
+                top: Theme.control.margin
+                bottom: Theme.control.margin
+                right: Theme.control.margin
+            }
+            implicitWidth: Theme.control.width
+            color: Theme.transparent // the panel has rounded corners
+            exclusionMode: ExclusionMode.Normal // under the Bar, reserves nothing itself
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.namespace: "ajmashell-control"
+            // OnDemand + focus grab, as the launcher: Exclusive would break the grab's click beside the panel
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+            onVisibleChanged: {
+                // the grab refuses a window that is not mapped yet, so arm it after the window shows
+                Qt.callLater(() => grab.active = win.visible);
+                if (visible) {
+                    brightnessFile.reload();
+                    maxBrightnessFile.reload();
+                    panel.forceActiveFocus();
+                }
+            }
+
+            HyprlandFocusGrab {
+                id: grab
+                windows: [win]
+                onCleared: root.open = false
+            }
+
+            Rectangle {
+                id: panel
+
+                x: Math.round((1 - root.shown) * width) // slides in from the right edge
+                width: parent.width
+                height: parent.height
+                radius: Theme.radius.lg
+                color: Look.current.opaque ? Theme.control.backgroundOpaque : Theme.control.background
+
+                focus: true
+                Keys.onEscapePressed: root.open = false
+                // F2: next look; the only place besides the buttons below and IPC (user, 2026-10-07)
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_F2) {
+                        Look.cycle();
+                        event.accepted = true;
+                    }
+                }
+
+                // looks with `flare` (fancy, fancy2, still; user 2026-10-07): the Orbita's lens flare behind the
+                // content, as in the launcher; turns only in a look with motion
+                OrbitBackdrop {
+                    id: backdrop
+                    anchors.fill: parent
+                    visible: Look.current.flare
+
+                    Timer {
+                        interval: 1000 / Theme.orbit.fps
+                        repeat: true
+                        running: win.visible && backdrop.visible && Look.current.motion
+                        onTriggered: backdrop.angle = (backdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
+                    }
+                }
+
+                Column {
+                    id: top
+
+                    x: Theme.control.padding
+                    y: Theme.control.padding
+                    width: parent.width - 2 * Theme.control.padding
+                    spacing: Theme.control.spacing
+
+                    // header: date · power button (ADR 0002 §6: the power button lives here, not on the Bar)
+                    Item {
+                        width: parent.width
+                        height: power.height
+
+                        OrbitText {
+                            anchors.left: parent.left
+                            anchors.right: power.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: Qt.formatDate(clock.date, "dddd, d MMMM")
+                        }
+
+                        Pill {
+                            id: power
+                            anchors.right: parent.right
+                            text: OrbitLogic.POWER_ICON
+                            // wlogout until the Panel zasilania (ticket 18)
+                            onClicked: {
+                                root.open = false;
+                                Hyprland.dispatch(Launch.execRequest([root.home + "/.config/hypr/scripts/Wlogout.sh"], ""));
+                            }
+                        }
+                    }
+
+                    // Wygląd of the Orbita and the launcher (ADR 0006): shown here, so nobody has to remember F2
+                    Item {
+                        width: parent.width
+                        height: looks.height
+
+                        OrbitText {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Look"
+                            font.pixelSize: Theme.font.sizeSmall
+                            color: Theme.control.subtext
+                        }
+
+                        Row {
+                            id: looks
+                            anchors.right: parent.right
+                            spacing: Theme.spacing.sm
+
+                            Repeater {
+                                model: Look.modes
+
+                                Pill {
+                                    required property string modelData
+                                    text: modelData
+                                    active: Look.mode === modelData
+                                    onClicked: Look.mode = modelData
+                                }
+                            }
+                        }
+                    }
+
+                    ConnectionRow {
+                        width: parent.width
+                        title: "Wi-Fi"
+                        active: Networking.wifiEnabled
+                        icon: Net.wifiIcon({ enabled: Networking.wifiEnabled, signal: root.network?.signalStrength ?? null, wired: root.wiredDevice !== null })
+                        text: Logic.wifiRowText({ enabled: Networking.wifiEnabled, name: root.network?.name, wiredName: root.wiredDevice?.name })
+                        onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
+                        onOpened: root.openOrbit("wifi")
+                    }
+
+                    ConnectionRow {
+                        width: parent.width
+                        title: "Bluetooth"
+                        active: root.adapter?.enabled ?? false
+                        icon: Net.btIcon({ enabled: root.adapter?.enabled ?? false, connected: root.btConnected.length })
+                        text: Logic.btRowText({ enabled: root.adapter?.enabled ?? false, names: root.btConnected.map(device => device.name) })
+                        onToggled: {
+                            if (root.adapter)
+                                root.adapter.enabled = !root.adapter.enabled;
+                        }
+                        onOpened: root.openOrbit("bt")
+                    }
+
+                    AudioSection {
+                        width: parent.width
+                        showDevices: false
+                        showStreams: false
+                    }
+
+                    AudioSection {
+                        width: parent.width
+                        microphone: true
+                        showDevices: false
+                        showStreams: false
+                    }
+
+                    ControlSlider {
+                        width: parent.width
+                        iconClickable: false
+                        icon: "\u{f00df}" // brightness
+                        position: root.maxBrightness > 0 ? root.brightness / root.maxBrightness : 0
+                        text: Logic.brightnessPercent(root.brightness, root.maxBrightness) + "%"
+                        onMoved: position => root.setBrightness(position)
+                    }
+
+                    // output device and app volumes (B10 §1.2–1.3); hidden while there is nothing to choose
+                    AudioSection {
+                        width: parent.width
+                        showSlider: false
+                        active: win.visible
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Theme.control.separator
+                    }
+
+                    // Centrum powiadomień, for now: count, clear, the history list (ticket 16 builds the full one)
+                    Item {
+                        width: parent.width
+                        height: clear.height
+
+                        OrbitText {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: Notifications.count > 0 ? "Notifications (" + Notifications.count + ")" : "Notifications"
+                        }
+
+                        Pill {
+                            id: clear
+                            anchors.right: parent.right
+                            text: "Clear"
+                            enabled: Notifications.count > 0
+                            onClicked: Notifications.clear()
+                        }
+                    }
+                }
+
+                ListView {
+                    id: list
+
+                    x: Theme.control.padding
+                    anchors.top: top.bottom
+                    anchors.topMargin: Theme.control.spacing
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: Theme.control.padding
+                    width: top.width
+                    clip: true
+                    spacing: Theme.notifications.spacing
+                    model: Notifications.history
+
+                    delegate: NotificationCard {
+                        required property int uid
+                        width: list.width
+                        onClicked: Notifications.activate(uid)
+                    }
+
+                    OrbitText {
+                        anchors.centerIn: parent
+                        visible: list.count === 0
+                        text: "No notifications"
+                        font.pixelSize: Theme.font.sizeSmall
+                        color: Theme.control.subtext
+                    }
+                }
+            }
+        }
+    }
+}

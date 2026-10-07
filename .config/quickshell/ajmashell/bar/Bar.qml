@@ -10,6 +10,7 @@
 // Ticket 09: BT island on the left edge; right zone with tray and Wi-Fi.
 // Ticket 10: bell island on the right edge.
 // Ticket 12: one Orbita per screen under the Wi-Fi / BT island; IpcHandler "orbit" opens it on the focused screen.
+// Ticket 14: the bell asks for the Centrum sterowania (controlRequested, handled in shell.qml); its rows open the Orbita.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma ComponentBehavior: Bound
@@ -28,6 +29,7 @@ Scope {
     property bool shown: true
 
     signal orbitRequested(string tab, string screenName)
+    signal controlRequested(string screenName)
 
     // SUPER+H: qs -c ajmashell ipc call bar toggle (via ~/.config/hypr/scripts/shellset.sh hide)
     IpcHandler {
@@ -38,7 +40,7 @@ Scope {
         }
     }
 
-    // qs -c ajmashell ipc call orbit toggle wifi|bt — for tests and, later, the Centrum sterowania rows (D4)
+    // qs -c ajmashell ipc call orbit toggle wifi|bt — for tests; the Centrum sterowania rows (D4) emit orbitRequested directly
     IpcHandler {
         target: "orbit"
 
@@ -140,6 +142,7 @@ Scope {
 
                     Bell {
                         grouped: true
+                        onClicked: root.controlRequested(barWindow.modelData.name)
                     }
                 }
             }

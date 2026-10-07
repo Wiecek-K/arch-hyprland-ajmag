@@ -25,7 +25,7 @@ import Quickshell.Widgets
 import qs.singletons.theme
 import "launcher.mjs" as Logic
 import "../orbit" // OrbitBackdrop behind the list in the fancy look (ticket 13)
-import qs.singletons.look // F2: basic ↔ fancy look (ticket 13)
+import qs.singletons.look // look flags (ticket 13); switched in the Centrum sterowania (ticket 14)
 
 Scope {
     id: root
@@ -378,13 +378,6 @@ Scope {
                             focus: true
 
                             Keys.onEscapePressed: root.open = false
-                            // F2 switches to the next look: basic → fancy → fancy2 → still (ticket 13)
-                            Keys.onPressed: event => {
-                                if (event.key === Qt.Key_F2) {
-                                    Look.cycle();
-                                    event.accepted = true;
-                                }
-                            }
                             Keys.onReturnPressed: win.choose(win.current >= 0 ? win.items[win.current] : null) // -1: nothing selected
                             Keys.onEnterPressed: win.choose(win.current >= 0 ? win.items[win.current] : null) // -1: nothing selected
                             Keys.onUpPressed: win.move("up")

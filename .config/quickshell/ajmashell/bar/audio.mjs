@@ -6,7 +6,7 @@
 // https://github.com/AvengeMedia/DankMaterialShell/blob/9dc5b2c5af7d18b7231f425fe0d8fa7243233109/quickshell/Services/AudioService.qml
 
 const STEP = 5; // percent per wheel step; Waybar "scroll-step": 5, volume.sh `pamixer -i 5`
-const LIMIT = 150; // percent; volume.sh `--allow-boost --set-limit 150`
+export const LIMIT = 150; // percent; volume.sh `--allow-boost --set-limit 150`
 
 const MUTED_ICON = ""; // Waybar "format-muted"
 const LEVEL_ICONS = ["", "", ""]; // Waybar "format-icons" → "default"

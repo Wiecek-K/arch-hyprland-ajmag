@@ -150,6 +150,23 @@ Singleton {
         ]
     }
 
+    // Centrum sterowania (control/ControlCenter.qml) and the audio popup under the Bar's volume islands
+    // (control/AudioPopup.qml), ticket 14: the Orbita's colours and buttons, so the three look alike (user, 2026-10-07).
+    // Background follows the look like the Orbita: `opaque` (fancy2) → backgroundOpaque without blur
+    // (rules.lua layerrule-8 + ajmashellBlurOffRules), otherwise background with blur.
+    readonly property ControlStyle control: ControlStyle {
+        background: root.orbit.background
+        backgroundOpaque: root.orbit.backgroundOpaque
+        text: root.orbit.text
+        subtext: root.orbit.subtext
+        track: Qt.alpha(root.orbit.text, root.orbit.softPill.idle) // empty part of a slider, idle row
+        hover: Qt.alpha(root.orbit.text, root.orbit.softPill.hover) // row under the pointer
+        fill: root.orbit.tab // filled part of a slider, module switch while on, chosen device
+        fillText: root.orbit.tabText
+        muted: root.bar.muted // filled part of a muted slider, like the Bar's muted volume island
+        separator: Qt.alpha(root.orbit.text, 0.12)
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkinsonHyperlegibleMono Nerd Font" // same as Waybar
@@ -364,7 +381,7 @@ Singleton {
         // px from the centre where a strand starts: just inside the core's edge (coreSize / 2), so it comes
         // out from under the glass core (user, 2026-10-06: "shorten"; was 130, 70 and 120, each plus a 5 px gap that boltStrands added)
         readonly property int boltStart: 125
-        // The set looks of the Orbita and the launcher (ticket 13, user 2026-10-06), F2 switches
+        // The set looks of the Orbita and the launcher (ticket 13, user 2026-10-06), switched in the Centrum sterowania
         // (singletons/look). flare: a lens flare behind the Orbita and the launcher's list
         // (orbit/OrbitBackdrop.qml); glass: a translucent core over a wide fade; softPills: faint
         // buttons with coloured text instead of filled ones; motion: the orbit turns, nodes wobble,
@@ -418,6 +435,29 @@ Singleton {
         property color flareGhost
         property var flareGlowStops
         property var flareGhosts
+    }
+
+    component ControlStyle: QtObject {
+        readonly property int width: 420 // Centrum sterowania; end-4's right sidebar is ~460
+        readonly property int popupWidth: 400 // audio popup under a volume island
+        readonly property int margin: 8 // gap to the screen edges and the Bar (floating panel, end-4)
+        readonly property int padding: 16
+        readonly property int spacing: 12 // between sections
+        readonly property int rowHeight: 52 // Wi-Fi / BT row
+        readonly property int sliderHeight: 36
+        readonly property int itemHeight: 34 // device row, stream name
+        readonly property int slide: 250 // ms; slides in from the right edge (like the notification popups)
+        readonly property int poll: 1000 // ms; brightness re-read while open (sysfs has no change events)
+        property color background
+        property color backgroundOpaque
+        property color text
+        property color subtext
+        property color track
+        property color hover
+        property color fill
+        property color fillText
+        property color muted
+        property color separator
     }
 
     // Singletons load lazily and FileView reads asynchronously: read the file once, blocking,

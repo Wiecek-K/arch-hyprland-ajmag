@@ -2,8 +2,8 @@
 // like our Waybar "custom/swaync" (count + bell, red dot while there are notifications).
 // The count sits on a badge, not beside the bell, so the island keeps its width (no jumps).
 // Right click toggles silent mode (DND): crossed-out bell, no popups except critical ones.
-// Left click: TEMPORARY — clears the notifications. Target (ADR 0002 §3, plan D1): it opens the
-// Control centre with the Notification centre; ticket 14 replaces the handler below.
+// Left click opens the Centrum sterowania (ticket 14, D1; wired in Bar.qml). Until then (ticket 10) it cleared
+// the notifications; clearing is now in the Centrum.
 // Own implementation; badge idea from end-4 modules/ii/bar/NotificationUnreadCount.qml:
 // https://github.com/end-4/dots-hyprland/blob/239b532ec6084c3c4a0b55c4089663a25fbb2576/dots/.config/quickshell/ii/modules/ii/bar/NotificationUnreadCount.qml
 
@@ -17,7 +17,6 @@ Island {
 
     circle: true
 
-    onClicked: Notifications.clear() // TEMPORARY until ticket 14: open the Control centre instead
     onRightClicked: Notifications.toggleSilent()
 
     IconSlot {

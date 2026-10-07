@@ -63,7 +63,7 @@ PopupWindow {
     property string hoverId: "" // node under the pointer; the orbit stops while set
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
-    // F2 / IPC "look": basic, fancy, fancy2 or still, their picks in Theme.orbit.looks (Look.qml)
+    // Look buttons and F2 in the Centrum sterowania, IPC "look": basic, fancy, fancy2 or still, their picks in Theme.orbit.looks (Look.qml)
     readonly property var look: Look.current
     // the open Orbita in a look with motion: the orbit turns, nodes wobble and glide, colours fade
     readonly property bool animate: visible && look.motion
@@ -430,12 +430,6 @@ PopupWindow {
         focus: true
         Keys.onEscapePressed: root.close()
         Keys.onTabPressed: root.tab = root.wifiTab ? "bt" : "wifi"
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_F2) { // next look: basic → fancy → fancy2 → still
-                Look.cycle();
-                event.accepted = true;
-            }
-        }
 
         OrbitBackdrop {
             anchors.fill: parent
@@ -804,50 +798,5 @@ PopupWindow {
                 }
             }
         }
-    }
-
-    // Rounded button: tabs, the module switch, the core's actions.
-    component Pill: Rectangle {
-        id: pill
-
-        property string text
-        property bool active: false
-        signal clicked
-
-        implicitWidth: Math.ceil(label.implicitWidth) + 2 * Theme.spacing.lg
-        height: Theme.orbit.tabHeight
-        radius: height / 2
-        readonly property bool soft: root.look.softPills // faint fill, coloured text (fancy look)
-        readonly property bool hot: pillHover.hovered && enabled
-        color: soft ? (active ? Qt.alpha(Theme.orbit.tab, Theme.orbit.softPill.active) : Qt.alpha(Theme.orbit.text, hot ? Theme.orbit.softPill.hover : Theme.orbit.softPill.idle))
-                    : active ? Theme.orbit.tab : hot ? Theme.orbit.hover : Theme.orbit.button
-        opacity: enabled ? 1 : Theme.orbit.dimmed
-
-        OrbitText {
-            id: label
-            anchors.centerIn: parent
-            width: Math.min(implicitWidth, pill.width - 2 * Theme.spacing.sm)
-            horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: Theme.font.sizeSmall
-            color: pill.soft ? (pill.active ? Theme.orbit.selected : Theme.orbit.text) : pill.active ? Theme.orbit.tabText : Theme.orbit.buttonText
-            text: pill.text
-        }
-
-        HoverHandler {
-            id: pillHover
-        }
-
-        TapHandler {
-            enabled: pill.enabled
-            onTapped: pill.clicked()
-        }
-    }
-
-    component OrbitText: Text {
-        font.family: Theme.font.family
-        font.pixelSize: Theme.font.size
-        font.weight: Theme.font.weight
-        color: Theme.orbit.text
-        elide: Text.ElideRight
     }
 }

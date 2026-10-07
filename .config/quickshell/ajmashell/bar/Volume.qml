@@ -1,6 +1,8 @@
 // Volume island — output volume of the default PipeWire sink, like our Waybar "pulseaudio" module
 // (~/.config/waybar/Modules) and ~/.config/hypr/scripts/volume.sh.
-// Wheel ±5% up to 150%, left click mutes, right click opens pavucontrol (ticket 08a, user 2026-10-01).
+// Wheel ±5% up to 150%, left click mutes (ticket 08a, user 2026-10-01).
+// Right click opens the audio popup: device choice and app volumes in the Orbita's look (ticket 14, user 2026-10-07;
+// was pavucontrol).
 // With `microphone: true` the same island shows the default source, like Waybar "pulseaudio#microphone" (ticket 08b).
 // Own implementation; Pipewire binding like DankMaterialShell quickshell/Services/AudioService.qml
 // (PwObjectTracker, form factor from node properties), see audio.mjs:
@@ -9,8 +11,8 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
 import Quickshell.Services.Pipewire
+import qs.control
 import qs.singletons.theme
 import "audio.mjs" as Logic
 import "wheel.mjs" as Wheel
@@ -37,9 +39,7 @@ Island {
             audio.muted = !audio.muted;
     }
 
-    // for now; later a Quickshell popup (user, 2026-10-01)
-    // pavucontrol tabs: 3 = output devices, 4 = input devices (like Waybar)
-    onRightClicked: Quickshell.execDetached(["pavucontrol", "-t", microphone ? "4" : "3"])
+    onRightClicked: popup.toggle()
 
     onWheelMoved: delta => {
         const step = Wheel.wheel(wheelRest, delta);
@@ -69,6 +69,13 @@ Island {
 
     BarTooltip {
         target: root
+        hovered: root.hovered && !popup.visible
         text: root.node?.description ?? ""
+    }
+
+    AudioPopup {
+        id: popup
+        source: root
+        microphone: root.microphone
     }
 }

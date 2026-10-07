@@ -3,7 +3,8 @@
 // their picks in Theme.orbit.looks (`current`). A look with `opaque` also turns off Hyprland's blur under
 // the Orbita and the launcher (BlurOff.qml). The developer's
 // "prototype" look with the keys B, C, P and S was removed after code review 2 (user, 2026-10-06: "for now").
-// F2 in the Orbita or the launcher switches to the next look, or
+// Switched only in the Centrum sterowania (ticket 14, user 2026-10-07: one place, easier to keep): its look
+// buttons, F2 there for the next look, or
 // `qs -c ajmashell ipc call look cycle` / `qs -c ajmashell ipc call look set fancy`.
 // Decisions: ADR 0006 in ~/Projects/hyprland-lua-migration/docs/adr. How to change the default look or a
 // look's picks: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.

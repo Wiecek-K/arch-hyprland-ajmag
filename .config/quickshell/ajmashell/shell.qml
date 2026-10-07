@@ -10,12 +10,22 @@
 
 import Quickshell
 import qs.bar
+import qs.control
 import qs.launcher
 import qs.notifications
 import qs.wallpaper
 
 ShellRoot {
-    Bar {}
+    Bar {
+        id: bar
+        onControlRequested: screenName => control.toggle(screenName)
+    }
+
+    // Centrum sterowania (ticket 14): opened by the bell; its Wi-Fi / BT rows open the Orbita on the same screen
+    ControlCenter {
+        id: control
+        onOrbitRequested: (tab, screenName) => bar.orbitRequested(tab, screenName)
+    }
 
     NotificationPopups {}
 
