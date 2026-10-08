@@ -647,8 +647,14 @@ PopupWindow {
                     }
 
                     TapHandler {
-                        // one click selects, a double click also connects (ticket 26)
-                        onTapped: tapCount === 2 ? root.runDefault(nodeItem.modelData) : root.select(nodeItem.modelData)
+                        // one click selects, a double click also runs the node's main action (ticket 26);
+                        // a third click is ignored, so it does not close the password field the second one opened
+                        onTapped: {
+                            if (tapCount === 1)
+                                root.select(nodeItem.modelData);
+                            else if (tapCount === 2)
+                                root.runDefault(nodeItem.modelData);
+                        }
                     }
                 }
             }
