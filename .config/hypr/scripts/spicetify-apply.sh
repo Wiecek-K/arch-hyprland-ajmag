@@ -4,7 +4,8 @@
 # After a spicetify-cli upgrade `spicetify apply -n` only prints 'Please run "spicetify restore backup apply"', after
 # a Spotify upgrade 'Please run "spicetify backup apply"', and exits 0 without applying: the colours silently stopped
 # following the wallpaper (2026-10-06 → 2026-10-08, ticket 34). Run the suggested repair instead, and send a
-# notification when Spotify still is not themed. Output of the last run: ~/.cache/spicetify-apply.log.
+# notification when Spotify still is not themed. A running Spotify keeps the old colours until it reloads, so send it
+# Ctrl+Shift+R (its own reload shortcut) without focusing it (user's request 2026-10-08). Output of the last run: ~/.cache/spicetify-apply.log.
 set -uo pipefail
 
 LOG="${XDG_CACHE_HOME:-$HOME/.cache}/spicetify-apply.log"
@@ -29,4 +30,6 @@ fi
 
 if (( rc != 0 )) || grep -qiE '(^|\s)error\s|spicetify (restore )?backup apply' <<< "$out"; then
     notify-send -a Spicetify "Spotify colours not applied" "See $LOG"
+elif hyprctl -j clients | grep -q '"class": "Spotify"'; then
+    hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "CTRL SHIFT", key = "R", window = "class:^(Spotify)$" })' >> "$LOG"
 fi
