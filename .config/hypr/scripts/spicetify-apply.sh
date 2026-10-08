@@ -12,7 +12,7 @@ mkdir -p "$(dirname "$LOG")"
 
 # Quick wallpaper changes start several hooks; one spicetify at a time, each reads the newest color.ini.
 exec 9> "${XDG_RUNTIME_DIR:-/tmp}/spicetify-apply.lock"
-flock 9
+flock -w 120 9 || exit 1   # a hung spicetify must not queue every later hook forever
 
 out="$(spicetify apply -n 2>&1)"; rc=$?
 printf '%s\n' "\$ spicetify apply -n" "$out" > "$LOG"
