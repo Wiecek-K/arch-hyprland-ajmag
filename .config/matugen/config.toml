@@ -51,7 +51,9 @@ input_path = '~/.config/matugen/templates/spotify-colors.ini'
 output_path = '~/.config/spicetify/Themes/text/color.ini'
 # In the background: spicetify takes ~1–1.9 s and matugen waits for each hook before the next templates
 # (gtk4, vesktop were written ~1 s late; measured 2026-10-01, ticket 19)
-post_hook = "setsid -f spicetify apply -n >/dev/null 2>&1"
+# Script, not plain `spicetify apply -n`: after a spicetify-cli/Spotify upgrade that only prints a hint and applies
+# nothing (ticket 34); the script runs the repair and notifies on failure
+post_hook = "setsid -f ~/.config/hypr/scripts/spicetify-apply.sh >/dev/null 2>&1"
 
 [templates.vesktop]
 input_path = '~/.config/matugen/templates/midnight-discord.css'
