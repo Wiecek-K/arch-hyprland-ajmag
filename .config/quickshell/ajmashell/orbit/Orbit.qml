@@ -434,7 +434,7 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: root.look.opaque ? Theme.orbit.backgroundOpaque : Theme.orbit.background
+        color: Look.background(Theme.orbit)
 
         focus: true
         Keys.onEscapePressed: root.close()

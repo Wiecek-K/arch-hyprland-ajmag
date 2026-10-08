@@ -198,7 +198,7 @@ Scope {
                 width: parent.width
                 height: parent.height
                 radius: Theme.radius.lg
-                color: Look.current.opaque ? Theme.control.backgroundOpaque : Theme.control.background
+                color: Look.background(Theme.control)
 
                 focus: true
                 Keys.onEscapePressed: root.open = false

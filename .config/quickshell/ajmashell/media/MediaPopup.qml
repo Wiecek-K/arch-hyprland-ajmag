@@ -91,7 +91,7 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: Look.current.opaque ? Theme.control.backgroundOpaque : Theme.control.background
+        color: Look.background(Theme.control)
         clip: true // the flare reaches past the panel
 
         focus: true

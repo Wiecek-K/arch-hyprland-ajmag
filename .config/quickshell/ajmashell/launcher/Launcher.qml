@@ -321,7 +321,7 @@ Scope {
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius
-                color: Look.current.opaque ? Theme.launcher.backgroundOpaque : Theme.launcher.background
+                color: Look.background(Theme.launcher)
                 border.width: Theme.launcher.borderWidth
                 border.color: Theme.launcher.border
 

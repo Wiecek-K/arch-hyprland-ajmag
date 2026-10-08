@@ -100,6 +100,7 @@ Singleton {
     readonly property LauncherStyle launcher: LauncherStyle {
         background: Qt.alpha(root.colors.on_primary_fixed, 0.7) // rofi window; user, 2026-10-03: 0.7 (tried 0.8, 0.6); blur: rules.lua layerrule-6, needs alpha ≥ 0.5
         backgroundOpaque: root.colors.on_primary_fixed // a look with `opaque` (fancy2), no blur under it
+        backgroundTinted: root.launcher.background // a look with `tinted` (still); already the launcher's colour
         border: root.colors.secondary_container
         field: root.colors.on_primary // search field and mode buttons
         text: root.colors.on_surface
@@ -116,6 +117,7 @@ Singleton {
         id: orbitStyle
         background: Qt.alpha(root.colors.surface_container, 0.8) // user, 2026-10-03; blurred by Hyprland (blur_popups of the ajmashell-bar layer rule)
         backgroundOpaque: root.launcher.backgroundOpaque // fancy2; user, 2026-10-07: same as the launcher (surface_container too grey)
+        backgroundTinted: Qt.alpha(root.orbit.backgroundOpaque, 0.8) // still: fancy2's colour at `background`'s alpha, blurred (user, 2026-10-08)
         node: root.colors.surface_container_high // known network or device (saved / paired)
         // new node, only in range (user, 2026-10-05): outline only, dimmed text, outer ring
         unknown: root.transparent
@@ -163,6 +165,7 @@ Singleton {
     readonly property ControlStyle control: ControlStyle {
         background: root.orbit.background
         backgroundOpaque: root.orbit.backgroundOpaque
+        backgroundTinted: root.orbit.backgroundTinted
         text: root.orbit.text
         subtext: root.orbit.subtext
         track: Qt.alpha(root.orbit.text, root.orbit.softPill.idle) // empty part of a slider, idle row
@@ -358,6 +361,7 @@ Singleton {
         readonly property int calcKeyColumns: 5 // calculator keys per row (launcher.mjs CALC_KEYS: 15)
         property color background
         property color backgroundOpaque
+        property color backgroundTinted
         property color border
         property color field
         property color text
@@ -417,12 +421,14 @@ Singleton {
         // is no lightning (user, 2026-10-06: a moving Orbita costs ~80% of the iGPU; still strands look poor).
         // opaque: the Orbita and the launcher on `backgroundOpaque` with no blur under them (Look.qml switches
         // the rules in ~/.config/hypr/configs/rules.lua); cheaper while moving and easier to read (user, 2026-10-07).
-        // still: fancy without motion; fancy2: fancy on an opaque background.
+        // tinted: `backgroundTinted` instead of `background` — the opaque look's colour, still translucent and
+        // blurred (user, 2026-10-08: still's grey blur gets fancy2's colour). Look.background() picks the colour.
+        // still: fancy without motion, tinted; fancy2: fancy on an opaque background.
         readonly property var looks: ({
-            basic: { flare: false, glass: false, softPills: false, motion: false, opaque: false },
-            fancy: { flare: true, glass: true, softPills: true, motion: true, opaque: false },
-            fancy2: { flare: true, glass: true, softPills: true, motion: true, opaque: true },
-            still: { flare: true, glass: true, softPills: true, motion: false, opaque: false }
+            basic: { flare: false, glass: false, softPills: false, motion: false, opaque: false, tinted: false },
+            fancy: { flare: true, glass: true, softPills: true, motion: true, opaque: false, tinted: false },
+            fancy2: { flare: true, glass: true, softPills: true, motion: true, opaque: true, tinted: false },
+            still: { flare: true, glass: true, softPills: true, motion: false, opaque: false, tinted: true }
         })
         readonly property real glassAlpha: 0.45 // the glass core's fill
         // fade under the glass core, spread over fadeScale × coreSize: [position, alpha of `core`]
@@ -437,6 +443,7 @@ Singleton {
         readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
         property color background
         property color backgroundOpaque
+        property color backgroundTinted
         property color node
         property color unknown
         property color unknownBorder
@@ -478,6 +485,7 @@ Singleton {
         readonly property int poll: 1000 // ms; brightness re-read while open (sysfs has no change events)
         property color background
         property color backgroundOpaque
+        property color backgroundTinted
         property color text
         property color subtext
         property color track
