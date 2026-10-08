@@ -100,7 +100,7 @@ Singleton {
     readonly property LauncherStyle launcher: LauncherStyle {
         background: Qt.alpha(root.colors.on_primary_fixed, 0.7) // rofi window; user, 2026-10-03: 0.7 (tried 0.8, 0.6); blur: rules.lua layerrule-6, needs alpha ≥ 0.5
         backgroundOpaque: root.colors.on_primary_fixed // a look with `opaque` (fancy2), no blur under it
-        backgroundTinted: root.launcher.background // a look with `tinted` (still); already the launcher's colour
+        backgroundTinted: Qt.alpha(root.colors.on_primary_fixed, 0.8) // a look with `tinted` (still); user, 2026-10-08: 0.8 (was `background`, 0.7)
         border: root.colors.secondary_container
         field: root.colors.on_primary // search field and mode buttons
         text: root.colors.on_surface
@@ -117,7 +117,7 @@ Singleton {
         id: orbitStyle
         background: Qt.alpha(root.colors.surface_container, 0.8) // user, 2026-10-03; blurred by Hyprland (blur_popups of the ajmashell-bar layer rule)
         backgroundOpaque: root.launcher.backgroundOpaque // fancy2; user, 2026-10-07: same as the launcher (surface_container too grey)
-        backgroundTinted: Qt.alpha(root.orbit.backgroundOpaque, 0.8) // still: fancy2's colour at `background`'s alpha, blurred (user, 2026-10-08)
+        backgroundTinted: Qt.alpha(root.orbit.backgroundOpaque, 0.9) // still: fancy2's colour, translucent and blurred (user, 2026-10-08: 0.9; first 0.8)
         node: root.colors.surface_container_high // known network or device (saved / paired)
         // new node, only in range (user, 2026-10-05): outline only, dimmed text, outer ring
         unknown: root.transparent
