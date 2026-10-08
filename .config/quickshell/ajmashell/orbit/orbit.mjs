@@ -246,6 +246,18 @@ export function actionLabel(action, profile) {
     return ACTION_LABELS[action];
 }
 
+// Actions a double click on a node may run: the node's first button (ticket 26). A connected node
+// disconnects (user, 2026-10-08); a password or pairing-code prompt in the core is never answered.
+const DOUBLE_CLICK = ["connect", "disconnect", "password", "program", "pair"];
+
+// actions: the core's buttons once the node is selected (wifiActions / btActions, or a prompt's);
+// busy: the node is connecting, disconnecting or pairing. Returns the action, or null for nothing.
+export function doubleClickAction(actions, busy) {
+    if (busy || !DOUBLE_CLICK.includes(actions[0]))
+        return null;
+    return actions[0];
+}
+
 // The core's action buttons in rows of two; each row is centred, so a lone third button sits in the
 // middle, not under the left one (user, 2026-10-06).
 export function actionRows(actions) {

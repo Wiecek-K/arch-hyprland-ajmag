@@ -141,6 +141,15 @@ PopupWindow {
         failure = null;
     }
 
+    // Double click on a node (ticket 26): the first click selected it, the second runs its first
+    // button, through run() like a click on that button.
+    function runDefault(id: string): void {
+        select(id);
+        const action = Logic.doubleClickAction(actions, selected?.busy ?? false);
+        if (action && selected?.id === id)
+            run(action);
+    }
+
     function run(action: string): void {
         const id = selected?.id ?? "";
         failure = null;
@@ -638,7 +647,8 @@ PopupWindow {
                     }
 
                     TapHandler {
-                        onTapped: root.select(nodeItem.modelData)
+                        // one click selects, a double click also connects (ticket 26)
+                        onTapped: tapCount === 2 ? root.runDefault(nodeItem.modelData) : root.select(nodeItem.modelData)
                     }
                 }
             }
