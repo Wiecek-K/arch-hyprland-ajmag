@@ -100,10 +100,6 @@ export function chordWidth(list) {
     return width;
 }
 
-export function pad(text, width) {
-    return text.padEnd(width);
-}
-
 const words = text => text.toLowerCase().replace(/\+/g, " ").split(/\s+/).filter(w => w);
 
 // Every word of the query must match: one character = a whole word of the chord or description (so "k"
@@ -120,6 +116,6 @@ export function filter(list, query) {
 }
 
 // First shown row after scrolling by delta rows; the last page stays full
-export function step(top, count, visible, delta) {
+export function scrollTop(top, count, visible, delta) {
     return Math.max(0, Math.min(top + delta, count - visible));
 }

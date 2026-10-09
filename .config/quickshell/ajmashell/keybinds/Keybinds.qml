@@ -70,20 +70,21 @@ Scope {
             readonly property var shown: Logic.filter(root.rows, search.text)
             readonly property int chordWidth: Logic.chordWidth(root.rows) // over all rows: the column does not move while searching
 
-            // arrows, Page Up/Down, Home/End: scroll by rows
+            // arrows and Page Up/Down: scroll by rows
             function scroll(delta: int): void {
-                const top = Math.round(list.contentY / Theme.keybinds.rowHeight);
-                list.contentY = Logic.step(top, shown.length, Theme.keybinds.rows, delta) * Theme.keybinds.rowHeight;
+                // contentY counts from originY, which moves when the model is replaced
+                const top = Math.round((list.contentY - list.originY) / Theme.keybinds.rowHeight);
+                list.positionViewAtIndex(Logic.scrollTop(top, shown.length, Theme.keybinds.rows, delta), ListView.Beginning);
             }
 
-            onShownChanged: list.contentY = 0
+            onShownChanged: list.positionViewAtBeginning()
             onVisibleChanged: {
                 // the grab refuses a window that is not mapped yet, so arm it after the window shows
                 Qt.callLater(() => grab.active = win.visible);
                 if (!visible)
                     return;
                 search.text = "";
-                list.contentY = 0;
+                list.positionViewAtBeginning();
                 search.forceActiveFocus();
             }
 
@@ -208,7 +209,7 @@ Scope {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: Logic.pad(row.modelData.chord, win.chordWidth) + "  "
+                            text: row.modelData.chord.padEnd(win.chordWidth) + "  "
                             color: Theme.keybinds.chord
                             font: search.font
                         }
