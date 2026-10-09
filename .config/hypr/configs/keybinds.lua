@@ -38,6 +38,7 @@ bind(M .. " + SHIFT + L", "Power menu (wlogout, fallback)", exec(v.scripts .. "/
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
 bind(M .. " + CTRL + S", "Screenshot", exec(v.scripts .. "/screenshot.sh"))
 bind(M .. " + W", "Change wallpaper", exec(v.scripts .. "/wppicker.sh"))
+bind(M .. " + K", "Keybinds", exec("qs -c ajmashell ipc call keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
 bind(M .. " + SHIFT + Q", "Kill active window process", exec(v.scripts .. "/KillActiveProcess.sh"))
 bind(M .. " + C", "Color picker", exec("hyprpicker -a"))
 bind(M .. " + CTRL + B", "Waybar style", exec(v.scripts .. "/WaybarStyles.sh"))

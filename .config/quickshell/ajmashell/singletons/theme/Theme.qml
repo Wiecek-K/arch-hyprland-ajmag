@@ -199,6 +199,21 @@ Singleton {
         text: root.control.text
     }
 
+    // Keybinds (keybinds/Keybinds.qml, ticket 20): a plain text window like omarchy's list (B11 #07) in the
+    // launcher's colours; background follows the look (flare, opaque, tinted) like every big popup.
+    // Blur: rules.lua layerrule-11 (alpha ≥ 0.5), off in `opaque` (ajmashellBlurOffRules).
+    readonly property KeybindsStyle keybinds: KeybindsStyle {
+        background: root.launcher.background
+        backgroundOpaque: root.launcher.backgroundOpaque
+        backgroundTinted: root.launcher.backgroundTinted
+        border: root.launcher.border
+        field: root.launcher.field
+        text: root.launcher.text
+        subtext: root.launcher.subtext
+        placeholder: root.launcher.placeholder
+        chord: root.colors.primary // the key column, so it reads apart from the description
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkinsonHyperlegibleMono Nerd Font" // same as Waybar
@@ -529,6 +544,29 @@ Singleton {
         readonly property int radius: 28
         property color backdrop
         property color text
+    }
+
+    component KeybindsStyle: QtObject {
+        readonly property int width: 900
+        readonly property int rows: 16 // visible rows; the rest scrolls
+        readonly property int radius: 15 // as the launcher
+        readonly property int borderWidth: 2
+        readonly property int padding: 20
+        readonly property int fieldRadius: 10
+        readonly property int fieldPadding: 15
+        readonly property int fieldSpacing: 10 // search icon to text
+        readonly property int rowHeight: 30
+        readonly property int fontSize: 16 // px; the font is monospace, so the chords pad to one column
+        readonly property int fontWeight: Font.Medium
+        property color background
+        property color backgroundOpaque
+        property color backgroundTinted
+        property color border
+        property color field
+        property color text
+        property color subtext
+        property color placeholder
+        property color chord
     }
 
     component OsdStyle: QtObject {

@@ -80,10 +80,12 @@ hl.layer_rule({ name = "layerrule-8", match = { namespace = "ajmashell-control" 
 hl.layer_rule({ name = "layerrule-9", match = { namespace = "ajmashell-osd" }, blur = true, ignore_alpha = 0.5, no_anim = true })
 -- 2026-10-09 (ticket 18): blur pod Panelem zasilania (pełny ekran jak wlogout, tło alfa 0.7) we wszystkich wyglądach.
 hl.layer_rule({ name = "layerrule-10", match = { namespace = "ajmashell-power" }, blur = true, ignore_alpha = 0.5 })
+-- 2026-10-09 (ticket 20): blur pod oknem Keybinds (tło jak launcher, alfa 0.7); w wyglądzie „fancy2” zdejmuje go ajmashellBlurOff.
+hl.layer_rule({ name = "layerrule-11", match = { namespace = "ajmashell-keybinds" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-07 (ticket 13): wygląd Ajmashella „fancy2” — Orbita i launcher z nieprzezroczystym tłem, bez bluru
 -- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Reguły wyłączone; włącza je shell przez
 -- `hyprctl eval 'require("configs.functions").ajmashellBlurOff(true)'` (singletons/look/BlurOff.qml).
--- Muszą być po layerrule-6/7/8: późniejsza reguła nadpisuje te same pola.
+-- Muszą być po layerrule-6/7/8/11: późniejsza reguła nadpisuje te same pola.
 require("configs.functions").ajmashellBlurOffRules()
 
 -- === PŁYWAJĄCE I ROZMIARY ===

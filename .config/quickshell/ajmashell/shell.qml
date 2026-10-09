@@ -11,6 +11,7 @@
 import Quickshell
 import qs.bar
 import qs.control
+import qs.keybinds
 import qs.launcher
 import qs.notifications
 import qs.osd
@@ -43,4 +44,7 @@ ShellRoot {
     WallpaperPicker {}
 
     Launcher {}
+
+    // Keybinds (ticket 20): SUPER+K and "Keybinds" in the launcher's app list, both over IPC
+    Keybinds {}
 }
