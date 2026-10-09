@@ -1,5 +1,6 @@
-// Panel zasilania (ticket 18, D10): replaces wlogout. Like wlogout it covers the whole monitor with a translucent,
-// blurred backdrop (our colours) and a row of large buttons in the middle: Lock, Logout, Suspend, Reboot, Shutdown,
+// Panel zasilania (ticket 18, D10): replaces wlogout. Like wlogout it covers the screen with a translucent, blurred
+// backdrop (our colours) — every monitor (user, 2026-10-09), the buttons on the focused one — and a row of large
+// buttons in the middle: Lock, Logout, Suspend, Reboot, Shutdown,
 // with wlogout's commands and keys (l e u r s run at once, as in wlogout). No Hibernate: the kernel has it off here
 // (user, 2026-10-09: remove the button). Arrows / Tab move, Enter or Space runs the selected one; Esc or a click
 // on the backdrop closes.
@@ -10,7 +11,7 @@
 // moving the selection, Enter runs):
 // https://github.com/caelestia-dots/shell/blob/454f46da16ae75cc57f34adf48dea74db0fa5175/modules/session/Content.qml
 // (GPL-3.0). Ours: wlogout's actions and keys and its full-screen backdrop, no GIF, Theme.power colours, the
-// look's flare standing still behind the buttons.
+// look's flare behind the buttons (turning in a look with motion: fancy, fancy2).
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma ComponentBehavior: Bound
@@ -70,16 +71,28 @@ Scope {
         }
     }
 
-    // Created once at startup and only hidden (as the launcher: no stall on open).
-    LazyLoader {
-        active: true
+    // a click on another app's window (none is visible while open) or on any backdrop closes
+    HyprlandFocusGrab {
+        id: grab
+        windows: screens.instances
+        onCleared: root.open = false
+    }
+
+    // One window per monitor, created at startup and only hidden (as the launcher: no stall on open); Variants
+    // follows hotplug. Every window has the key handler: the grab gives the keyboard to one of them.
+    Variants {
+        id: screens
+        model: Quickshell.screens
 
         // qmltypes mark PanelWindow uncreatable; Quickshell substitutes the Wayland implementation at runtime
         PanelWindow { // qmllint disable uncreatable-type
             id: win
 
+            required property ShellScreen modelData
+            readonly property bool main: modelData.name === root.screenName // the buttons' monitor
+
+            screen: modelData
             visible: root.open
-            screen: Quickshell.screens.find(s => s.name === root.screenName) ?? null
             // the whole monitor, over the Bar, as wlogout (user, 2026-10-09)
             anchors {
                 top: true
@@ -91,20 +104,14 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "ajmashell-power"
-            // OnDemand + focus grab, as the launcher: the grab closes the panel on a click on another monitor
+            // OnDemand + focus grab, as the launcher
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
             onVisibleChanged: {
-                // the grab refuses a window that is not mapped yet, so arm it after the window shows
-                Qt.callLater(() => grab.active = win.visible);
-                if (visible)
+                // the grab refuses a window that is not mapped yet, so arm it after the windows show
+                Qt.callLater(() => grab.active = root.open);
+                if (visible && main)
                     backdrop.forceActiveFocus();
-            }
-
-            HyprlandFocusGrab {
-                id: grab
-                windows: [win]
-                onCleared: root.open = false
             }
 
             // translucent and blurred in every look (rules.lua layerrule-10): a full-screen opaque colour would
@@ -138,23 +145,32 @@ Scope {
                 TapHandler {
                     onTapped: point => {
                         const p = buttons.mapFromItem(backdrop, point.position.x, point.position.y);
-                        if (!buttons.contains(p))
+                        if (!buttons.visible || !buttons.contains(p))
                             root.open = false;
                     }
                 }
 
-                // looks with `flare`: the Orbita's lens flare over the whole monitor, standing still — turning it
-                // would redraw the whole monitor 30 times a second (ticket 13, B12)
+                // looks with `flare`: the Orbita's lens flare over the whole monitor; turns only in a look with
+                // motion (fancy, fancy2; user 2026-10-09) — then the whole monitor is redrawn 30 times a second
                 OrbitBackdrop {
+                    id: flare
                     anchors.fill: parent
                     radius: 0
                     visible: Look.current.flare
+
+                    Timer {
+                        interval: 1000 / Theme.orbit.fps
+                        repeat: true
+                        running: win.visible && flare.visible && Look.current.motion
+                        onTriggered: flare.angle = (flare.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
+                    }
                 }
 
                 Row {
                     id: buttons
                     anchors.centerIn: parent
                     spacing: Theme.power.spacing
+                    visible: win.main
 
                     Repeater {
                         model: Logic.ACTIONS
