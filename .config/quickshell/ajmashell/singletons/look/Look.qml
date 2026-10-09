@@ -41,10 +41,11 @@ Singleton {
     // same frame as the flare.
     property int clockUsers: 0 // orbit/ClockUser.qml
     property real flareAngle: 0 // rad, Logic.flareAngle(); OrbitBackdrop stands at 0 without motion
+    readonly property real tickMs: 1000 / Theme.orbit.fps // one step of the clock
     signal tick
 
     Timer {
-        interval: 1000 / Theme.orbit.fps
+        interval: root.tickMs
         repeat: true
         running: root.clockUsers > 0 && root.current.motion
         triggeredOnStart: true // a popup opens with the flare already in place

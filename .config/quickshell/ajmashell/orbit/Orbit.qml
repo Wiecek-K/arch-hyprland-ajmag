@@ -391,10 +391,9 @@ PopupWindow {
         enabled: motion.active
 
         function onTick(): void {
-            const step = 1000 / Theme.orbit.fps;
             if (root.hoverId === "") {
-                root.angle = (root.angle + 2 * Math.PI * step / Theme.orbit.period) % (2 * Math.PI);
-                root.clock += step / 1000;
+                root.angle = (root.angle + 2 * Math.PI * Look.tickMs / Theme.orbit.period) % (2 * Math.PI);
+                root.clock += Look.tickMs / 1000;
             }
             if (lightning.visible)
                 lightning.requestPaint();

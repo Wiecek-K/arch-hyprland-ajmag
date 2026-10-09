@@ -6,10 +6,21 @@ import QtQuick
 import qs.singletons.look
 
 QtObject {
-    property bool active: false
+    id: user
 
-    onActiveChanged: Look.clockUsers += active ? 1 : -1
-    // a binding's first value emits no change signal
-    Component.onCompleted: if (active) Look.clockUsers += 1
-    Component.onDestruction: if (active) Look.clockUsers -= 1
+    property bool active: false
+    // whether this user is in Look.clockUsers now: each change adds or removes exactly once, whether or
+    // not the binding's first value emits activeChanged (code review, ticket 28)
+    property bool counted: false
+
+    function sync(): void {
+        if (active === counted)
+            return;
+        Look.clockUsers += active ? 1 : -1;
+        counted = active;
+    }
+
+    onActiveChanged: sync()
+    Component.onCompleted: sync()
+    Component.onDestruction: if (user.counted) Look.clockUsers -= 1
 }
