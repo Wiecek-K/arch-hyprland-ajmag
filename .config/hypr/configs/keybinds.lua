@@ -33,7 +33,8 @@ bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
 bind(M .. " + R", "Restart bar (active shell set)", exec(v.scripts .. "/shellset.sh restart"))
 bind(M .. " + SHIFT + R", "Switch Waybar + swaync / Ajmashell", exec(v.scripts .. "/shellset.sh toggle"))
 bind(M .. " + B", "Web browser", exec('xdg-open "https://"')) -- domyślna przeglądarka
-bind(M .. " + L", "Power menu", exec(v.scripts .. "/Wlogout.sh"))
+bind(M .. " + L", "Power menu", exec(v.scripts .. "/power.sh")) -- Ajmashell: Panel zasilania, Waybar: wlogout
+bind(M .. " + SHIFT + L", "Power menu (wlogout, fallback)", exec(v.scripts .. "/Wlogout.sh"))
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
 bind(M .. " + CTRL + S", "Screenshot", exec(v.scripts .. "/screenshot.sh"))
 bind(M .. " + W", "Change wallpaper", exec(v.scripts .. "/wppicker.sh"))

@@ -78,6 +78,8 @@ hl.layer_rule({ name = "layerrule-7", match = { namespace = "ajmashell-bar" }, b
 hl.layer_rule({ name = "layerrule-8", match = { namespace = "ajmashell-control" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-07 (ticket 15): blur pod OSD (wyspa jak na Barze, alfa 0.75); no_anim — OSD sam się wygasza (150 ms).
 hl.layer_rule({ name = "layerrule-9", match = { namespace = "ajmashell-osd" }, blur = true, ignore_alpha = 0.5, no_anim = true })
+-- 2026-10-09 (ticket 18): blur pod Panelem zasilania (pełny ekran jak wlogout, tło alfa 0.7) we wszystkich wyglądach.
+hl.layer_rule({ name = "layerrule-10", match = { namespace = "ajmashell-power" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-07 (ticket 13): wygląd Ajmashella „fancy2” — Orbita i launcher z nieprzezroczystym tłem, bez bluru
 -- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Reguły wyłączone; włącza je shell przez
 -- `hyprctl eval 'require("configs.functions").ajmashellBlurOff(true)'` (singletons/look/BlurOff.qml).
