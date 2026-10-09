@@ -1,6 +1,6 @@
 // Panel zasilania (ticket 18, D10): replaces wlogout. Like wlogout it covers the screen with a translucent, blurred
-// backdrop (our colours) — every monitor (user, 2026-10-09), the buttons on the focused one — and a row of large
-// buttons in the middle: Lock, Logout, Suspend, Reboot, Shutdown,
+// backdrop (our colours) and a row of large buttons in the middle of every monitor (user, 2026-10-09; one selection
+// shared by all): Lock, Logout, Suspend, Reboot, Shutdown,
 // with wlogout's commands and keys (l e u r s run at once, as in wlogout). No Hibernate: the kernel has it off here
 // (user, 2026-10-09: remove the button). Arrows / Tab move, Enter or Space runs the selected one; Esc or a click
 // on the backdrop closes.
@@ -89,7 +89,7 @@ Scope {
             id: win
 
             required property ShellScreen modelData
-            readonly property bool main: modelData.name === root.screenName // the buttons' monitor
+            readonly property bool main: modelData.name === root.screenName // takes the keyboard focus first
 
             screen: modelData
             visible: root.open
@@ -145,7 +145,7 @@ Scope {
                 TapHandler {
                     onTapped: point => {
                         const p = buttons.mapFromItem(backdrop, point.position.x, point.position.y);
-                        if (!buttons.visible || !buttons.contains(p))
+                        if (!buttons.contains(p))
                             root.open = false;
                     }
                 }
@@ -170,7 +170,6 @@ Scope {
                     id: buttons
                     anchors.centerIn: parent
                     spacing: Theme.power.spacing
-                    visible: win.main
 
                     Repeater {
                         model: Logic.ACTIONS
