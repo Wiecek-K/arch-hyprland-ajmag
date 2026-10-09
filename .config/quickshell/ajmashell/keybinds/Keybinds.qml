@@ -178,13 +178,13 @@ Scope {
                         }
                     }
 
-                    // shown / all, so an empty search result is not mistaken for a broken list
+                    // all rows, or the matches while searching (user, 2026-10-09: "77 / 77" suggested some could be missing)
                     Text {
                         id: count
                         anchors.right: parent.right
                         anchors.rightMargin: Theme.keybinds.fieldPadding
                         anchors.verticalCenter: parent.verticalCenter
-                        text: win.shown.length + " / " + root.rows.length
+                        text: search.text.trim() ? "Found: " + win.shown.length : "Total: " + root.rows.length
                         color: Theme.keybinds.subtext
                         font: search.font
                     }
