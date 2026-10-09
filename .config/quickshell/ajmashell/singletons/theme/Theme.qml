@@ -191,12 +191,11 @@ Singleton {
         coverIcon: root.colors.on_surface_variant
     }
 
-    // Panel zasilania (power/PowerPanel.qml, ticket 18): a big popup like the launcher — the look's background and
-    // flare (Theme.control colours), buttons coloured like the Orbita's pills (Pill.qml) so the selected one reads at once.
+    // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent
+    // backdrop in the launcher / fancy2 colour, blurred (rules.lua layerrule-10, needs alpha ≥ 0.5); buttons coloured
+    // like the Orbita's pills (Pill.qml) so the selected one reads at once.
     readonly property PowerStyle power: PowerStyle {
-        background: root.control.background
-        backgroundOpaque: root.control.backgroundOpaque
-        backgroundTinted: root.control.backgroundTinted
+        backdrop: Qt.alpha(root.launcher.backgroundOpaque, 0.7) // wlogout: rgba(17, 17, 17, 0.45)
         text: root.control.text
     }
 
@@ -524,13 +523,11 @@ Singleton {
     }
 
     component PowerStyle: QtObject {
-        readonly property int button: 120 // px, square button (wlogout: a third of the screen; ours a compact row)
-        readonly property int iconSize: 44
-        readonly property int padding: 24 // round the row of buttons
-        readonly property int spacing: 16 // between the buttons
-        property color background
-        property color backgroundOpaque
-        property color backgroundTinted
+        readonly property int button: 220 // px, square button; user, 2026-10-09: bigger (was 120)
+        readonly property int iconSize: 88
+        readonly property int spacing: 32 // between the buttons
+        readonly property int radius: 28
+        property color backdrop
         property color text
     }
 
