@@ -319,8 +319,8 @@ Singleton {
         readonly property real slide: 0.35 // of the popup width
         // Centrum: a card removed by a click slides out like a popup, a bit slower; the cards below move up
         // (ticket 32, user 2026-10-09: "przedłuż minimalnie", the next card of a group visibly takes its place)
-        readonly property int centrumDisappear: 1000 // ms; user test 2026-10-09: 1000 (was 300, then 2000)
-        readonly property int centrumReflow: 1000 // ms; user test 2026-10-09: 1000 (was 300, then 2000)
+        readonly property int centrumDisappear: 600 // ms; user test 2026-10-09: 600 (tried 300, 2000, 1000)
+        readonly property int centrumReflow: 600 // ms; user test 2026-10-09: 600 (tried 300, 2000, 1000)
         readonly property int actionHeight: 28 // action button under the body (ticket 16)
         readonly property int progressHeight: 6 // progress bar (hint `value`, ticket 16)
         readonly property int closeSize: 22 // X on a card in the Centrum, a circle on hover (ticket 32)
