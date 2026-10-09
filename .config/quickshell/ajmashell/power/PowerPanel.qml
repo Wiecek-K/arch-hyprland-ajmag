@@ -134,10 +134,12 @@ Scope {
                         root.current = Logic.step(root.current, Logic.ACTIONS.length, 1, root.allowed);
                     else if (key === Qt.Key_Return || key === Qt.Key_Enter || key === Qt.Key_Space)
                         root.run(root.current);
-                    else if (Logic.actionForKey(event.text) && !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)))
-                        root.run(Logic.ACTIONS.indexOf(Logic.actionForKey(event.text)));
-                    else
-                        return;
+                    else {
+                        const action = Logic.actionForKey(event.text);
+                        if (!action || (event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)))
+                            return;
+                        root.run(Logic.ACTIONS.indexOf(action));
+                    }
                     event.accepted = true;
                 }
 

@@ -198,7 +198,6 @@ Singleton {
         backgroundOpaque: root.control.backgroundOpaque
         backgroundTinted: root.control.backgroundTinted
         text: root.control.text
-        subtext: root.control.subtext
     }
 
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
@@ -533,7 +532,6 @@ Singleton {
         property color backgroundOpaque
         property color backgroundTinted
         property color text
-        property color subtext
     }
 
     component OsdStyle: QtObject {
