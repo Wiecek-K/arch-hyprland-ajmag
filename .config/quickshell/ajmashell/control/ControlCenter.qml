@@ -426,59 +426,32 @@ Scope {
                     }
 
                     // the history is kept as runs per app (Notifications.qml), so every run is one section
+                    // the history is kept as runs per app; a run is a section, but its header is drawn by the run's
+                    // newest row (groupHeader), so it moves with the cards when one is removed (ticket 32)
                     section.property: "appKey"
-                    section.delegate: Item {
-                        id: groupHeader
-
-                        required property string section
-                        readonly property int count: Notifications.groupCounts[section] ?? 0
-                        readonly property bool open: root.expanded[section] === true
-
-                        width: list.width
-                        height: groupClear.height + Theme.spacing.md
-
-                        OrbitText {
-                            anchors.left: parent.left
-                            anchors.right: groupClear.left
-                            anchors.rightMargin: Theme.spacing.md
-                            anchors.verticalCenter: groupClear.verticalCenter
-                            elide: Text.ElideRight
-                            text: (groupHeader.count > 1 ? (groupHeader.open ? NotifLogic.GROUP_OPEN_ICON : NotifLogic.GROUP_CLOSED_ICON) + "  " : "")
-                                  + groupHeader.section + (groupHeader.count > 1 ? " (" + groupHeader.count + ")" : "")
-                            font.pixelSize: Theme.font.sizeSmall
-                            color: Theme.control.subtext
-                        }
-
-                        Pill {
-                            id: groupClear
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            anchors.bottomMargin: Theme.spacing.sm
-                            text: "Clear"
-                            onClicked: Notifications.clearGroup(groupHeader.section)
-                        }
-
-                        // Clear has its own TapHandler, but this one fires too: a tap on Clear does not expand
-                        TapHandler {
-                            enabled: groupHeader.count > 1
-                            onTapped: eventPoint => {
-                                const p = groupHeader.mapToItem(groupClear, eventPoint.position);
-                                if (!groupClear.contains(p))
-                                    root.toggleGroup(groupHeader.section);
-                            }
-                        }
-                    }
 
                     delegate: Item {
                         id: row
 
                         required property var model
+                        required property int index
                         // the newest entry of a group always shows; the rest while the group is expanded
                         readonly property bool newest: ListView.previousSection !== ListView.section
-                        readonly property bool open: root.expanded[model.appKey] === true
+                        // removed, sliding out (index -1); when its group goes on, the next row shows the header and edges
+                        readonly property bool leaving: index < 0
+                        // a removed row has no model data any more: it keeps its group's key for the slide out
+                        property string groupKey
+                        Binding on groupKey {
+                            when: !row.leaving
+                            value: row.model.appKey
+                            restoreMode: Binding.RestoreNone
+                        }
+                        readonly property bool open: root.expanded[groupKey] === true
                         readonly property bool shown: newest || open
+                        readonly property int count: Notifications.groupCounts[groupKey] ?? 0
+                        readonly property bool leavesGroup: leaving && count > 0
                         // ticket 32: edges of the next cards under the newest one, inside the spacing below it
-                        readonly property int edgeCount: newest ? NotifLogic.stackEdges(Notifications.groupCounts[model.appKey] ?? 0, open) : 0
+                        readonly property int edgeCount: newest && !leavesGroup ? NotifLogic.stackEdges(count, open) : 0
                         // the last card shown in a group gets room for the edges, whether they show or not (no jumps)
                         readonly property bool lastShown: !open || ListView.nextSection !== ListView.section
 
@@ -486,7 +459,7 @@ Scope {
                         readonly property bool rising: rise.running
 
                         width: list.width
-                        height: shown ? card.height + (lastShown ? Theme.notifications.stackSpacing : Theme.notifications.spacing) : 0
+                        height: shown ? body.y + card.height + (lastShown ? Theme.notifications.stackSpacing : Theme.notifications.spacing) : 0
                         visible: shown
 
                         // the view sets the sections after creating a row: that first change is not a removal
@@ -528,70 +501,118 @@ Scope {
                             }
                         }
 
-                        // the card as an edge while it grows (row.rise); under the card, same place and size
-                        Rectangle {
-                            x: card.x
-                            y: card.y
-                            width: card.width
-                            height: card.height
-                            scale: card.scale
-                            transformOrigin: Item.Bottom
-                            radius: card.radius
-                            color: Theme.notifications.stack
-                            visible: row.rising
-                        }
+                        // group header: app name, count, arrow (click expands), Clear (ticket 16)
+                        Item {
+                            id: groupHeader
 
-                        // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
-                        Repeater {
-                            model: NotifLogic.STACK_MAX_EDGES
+                            width: parent.width
+                            height: row.newest ? groupClear.height + Theme.spacing.md : 0
+                            visible: row.newest && !row.leavesGroup
 
-                            Item {
-                                id: edge
+                            OrbitText {
+                                anchors.left: parent.left
+                                anchors.right: groupClear.left
+                                anchors.rightMargin: Theme.spacing.md
+                                anchors.verticalCenter: groupClear.verticalCenter
+                                elide: Text.ElideRight
+                                text: (row.count > 1 ? (row.open ? NotifLogic.GROUP_OPEN_ICON : NotifLogic.GROUP_CLOSED_ICON) + "  " : "")
+                                      + row.groupKey + (row.count > 1 ? " (" + row.count + ")" : "")
+                                font.pixelSize: Theme.font.sizeSmall
+                                color: Theme.control.subtext
+                            }
 
-                                required property int index
-                                readonly property int inset: Theme.notifications.stackInset * (index + 1)
+                            Pill {
+                                id: groupClear
+                                anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                anchors.bottomMargin: Theme.spacing.sm
+                                text: "Clear"
+                                onClicked: Notifications.clearGroup(row.groupKey)
+                            }
 
-                                x: inset
-                                y: card.height + Theme.notifications.stackGap + (Theme.notifications.stackPeek + Theme.notifications.stackGap) * index
-                                width: row.width - 2 * inset
-                                height: Theme.notifications.stackPeek
-                                clip: true
-                                opacity: index >= row.edgeCount ? 0 : index === 0 ? 1 : Theme.notifications.stackFade
-
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: Theme.motion.fast
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: parent.width
-                                    height: card.height
-                                    y: parent.height - height
-                                    radius: card.radius
-                                    color: Theme.notifications.stack
+                            // Clear has its own TapHandler, but this one fires too: a tap on Clear does not expand
+                            TapHandler {
+                                enabled: row.count > 1
+                                onTapped: eventPoint => {
+                                    const p = groupHeader.mapToItem(groupClear, eventPoint.position);
+                                    if (!groupClear.contains(p))
+                                        root.toggleGroup(row.groupKey);
                                 }
                             }
                         }
 
-                        NotificationCard {
-                            id: card
+                        Item {
+                            id: body
+
+                            y: groupHeader.height
                             width: parent.width
-                            transformOrigin: Item.Bottom // row.rise grows it from the edge
-                            showAppName: false
-                            time: row.model.time
-                            now: clock.date.getTime()
-                            appName: row.model.appName
-                            summary: row.model.summary
-                            body: row.model.body
-                            icon: row.model.icon
-                            urgency: row.model.urgency
-                            progress: row.model.progress
-                            actions: row.model.actions
-                            closable: true
-                            onClicked: Notifications.activate(row.model.uid, "")
-                            onCloseRequested: Notifications.dismiss(row.model.uid)
-                            onActionInvoked: identifier => Notifications.activate(row.model.uid, identifier)
+                            height: card.height
+
+                            // the card as an edge while it grows (row.rise); under the card, same place and size
+                            Rectangle {
+                                x: card.x
+                                y: card.y
+                                width: card.width
+                                height: card.height
+                                scale: card.scale
+                                transformOrigin: Item.Bottom
+                                radius: card.radius
+                                color: Theme.notifications.stack
+                                visible: row.rising
+                            }
+
+                            // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
+                            Repeater {
+                                model: NotifLogic.STACK_MAX_EDGES
+
+                                Item {
+                                    id: edge
+
+                                    required property int index
+                                    readonly property int inset: Theme.notifications.stackInset * (index + 1)
+
+                                    x: inset
+                                    y: card.height + Theme.notifications.stackGap + (Theme.notifications.stackPeek + Theme.notifications.stackGap) * index
+                                    width: body.width - 2 * inset
+                                    height: Theme.notifications.stackPeek
+                                    clip: true
+                                    opacity: index >= row.edgeCount ? 0 : index === 0 ? 1 : Theme.notifications.stackFade
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: Theme.motion.fast
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        width: parent.width
+                                        height: card.height
+                                        y: parent.height - height
+                                        radius: card.radius
+                                        color: Theme.notifications.stack
+                                    }
+                                }
+                            }
+
+                            NotificationCard {
+                                id: card
+                                width: parent.width
+                                transformOrigin: Item.Bottom // row.rise grows it from the edge
+                                showAppName: false
+                                time: row.model.time
+                                now: clock.date.getTime()
+                                appName: row.model.appName
+                                summary: row.model.summary
+                                body: row.model.body
+                                icon: row.model.icon
+                                urgency: row.model.urgency
+                                progress: row.model.progress
+                                actions: row.model.actions
+                                closable: true
+                                onClicked: Notifications.activate(row.model.uid, "")
+                                onCloseRequested: Notifications.dismiss(row.model.uid)
+                                onActionInvoked: identifier => Notifications.activate(row.model.uid, identifier)
+                            }
                         }
                     }
 
