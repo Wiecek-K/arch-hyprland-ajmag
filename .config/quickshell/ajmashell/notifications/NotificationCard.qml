@@ -106,7 +106,7 @@ Rectangle {
         readonly property bool shown: root.closable && hover.hovered
 
         anchors.right: parent.right
-        anchors.rightMargin: Theme.notifications.padding - (width - closeLabel.implicitWidth) / 2
+        anchors.rightMargin: Math.round(Theme.notifications.padding - (width - closeLabel.implicitWidth) / 2)
         anchors.verticalCenter: timeLabel.verticalCenter
         width: Theme.notifications.closeSize
         height: Theme.notifications.closeSize

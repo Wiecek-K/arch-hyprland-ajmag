@@ -156,9 +156,10 @@ export function formatState({ silent }) {
     return JSON.stringify({ silent: silent === true }) + "\n";
 }
 
-// group header in the Centrum: chevron of a group with more than one entry (Nerd Font md-chevron-down / -up)
 // close button on a card in the Centrum (ticket 32): nf-fa-xmark
 export const CLOSE_ICON = "\u{f00d}";
+
+// group header in the Centrum: chevron of a group with more than one entry (Nerd Font md-chevron-down / -up)
 export const GROUP_CLOSED_ICON = "\u{f0140}";
 export const GROUP_OPEN_ICON = "\u{f0143}";
 

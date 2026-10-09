@@ -425,7 +425,6 @@ Scope {
                         }
                     }
 
-                    // the history is kept as runs per app (Notifications.qml), so every run is one section
                     // the history is kept as runs per app; a run is a section, but its header is drawn by the run's
                     // newest row (groupHeader), so it moves with the cards when one is removed (ticket 32)
                     section.property: "appKey"
@@ -467,7 +466,7 @@ Scope {
                         Component.onCompleted: Qt.callLater(() => row.created = true)
 
                         onNewestChanged: {
-                            if (created && newest && !open)
+                            if (created && newest && !open && !leaving)
                                 rise.restart();
                         }
 
@@ -609,6 +608,7 @@ Scope {
                                 progress: row.model.progress
                                 actions: row.model.actions
                                 closable: true
+                                enabled: !row.leaving // sliding out: its model data is gone
                                 onClicked: Notifications.activate(row.model.uid, "")
                                 onCloseRequested: Notifications.dismiss(row.model.uid)
                                 onActionInvoked: identifier => Notifications.activate(row.model.uid, identifier)
