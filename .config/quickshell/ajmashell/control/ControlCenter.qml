@@ -489,8 +489,12 @@ Scope {
                         height: shown ? card.height + (lastShown ? Theme.notifications.stackSpacing : Theme.notifications.spacing) : 0
                         visible: shown
 
+                        // the view sets the sections after creating a row: that first change is not a removal
+                        property bool created: false
+                        Component.onCompleted: Qt.callLater(() => row.created = true)
+
                         onNewestChanged: {
-                            if (newest && !open)
+                            if (created && newest && !open)
                                 rise.restart();
                         }
 
@@ -513,6 +517,28 @@ Scope {
                                 duration: Theme.notifications.centrumReflow
                                 easing.type: Easing.OutCubic
                             }
+                            // the edge's colour turns into the card: the card fades in over its edge-coloured copy
+                            NumberAnimation {
+                                target: card
+                                property: "opacity"
+                                from: 0
+                                to: 1
+                                duration: Theme.notifications.centrumReflow
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+
+                        // the card as an edge while it grows (row.rise); under the card, same place and size
+                        Rectangle {
+                            x: card.x
+                            y: card.y
+                            width: card.width
+                            height: card.height
+                            scale: card.scale
+                            transformOrigin: Item.Bottom
+                            radius: card.radius
+                            color: Theme.notifications.stack
+                            visible: row.rising
                         }
 
                         // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
