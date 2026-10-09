@@ -34,11 +34,12 @@ function M.ajmashellBlurOffRules()
         hl.layer_rule({ name = "ajmashell-opaque-launcher", match = { namespace = "ajmashell-launcher" }, blur = false }),
         hl.layer_rule({ name = "ajmashell-opaque-popups", match = { namespace = "ajmashell-bar" }, blur_popups = false }),
         hl.layer_rule({ name = "ajmashell-opaque-control", match = { namespace = "ajmashell-control" }, blur = false }),
+        hl.layer_rule({ name = "ajmashell-opaque-power", match = { namespace = "ajmashell-power" }, blur = false }),
     }
     M.ajmashellBlurOff(false)
 end
 
--- true: bez bluru pod launcherem, Orbitą i Centrum sterowania. Woła shell (singletons/look/BlurOff.qml) przy zmianie wyglądu,
+-- true: bez bluru pod launcherem, Orbitą, Centrum sterowania i Panelem zasilania. Woła shell (singletons/look/BlurOff.qml) przy zmianie wyglądu,
 -- przy starcie i po przeładowaniu configu (przeładowanie tworzy reguły od nowa, wyłączone).
 function M.ajmashellBlurOff(on)
     for _, rule in ipairs(blurOffRules) do

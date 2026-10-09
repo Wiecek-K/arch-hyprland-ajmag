@@ -27,7 +27,6 @@ import qs.singletons.notifications
 import qs.singletons.theme
 import "control.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
-import "../launcher/launcher.mjs" as Launch
 import "../orbit/orbit.mjs" as OrbitLogic
 import "../singletons/notifications/notifications.mjs" as NotifLogic
 
@@ -52,7 +51,6 @@ Scope {
     signal orbitRequested(string tab, string screenName)
 
     readonly property string backlight: "intel_backlight" // eDP-1 (B10 §2.1)
-    readonly property string home: Quickshell.env("HOME")
 
     function toggle(name: string): void {
         if (open) {
@@ -62,6 +60,15 @@ Scope {
         // empty name (IPC, keyboard): the monitor with the focus
         screenName = name || (Hyprland.focusedMonitor?.name ?? "");
         open = true;
+    }
+
+    // the power button asks for the Panel zasilania on the same screen; shell.qml opens it
+    signal powerRequested(string screenName)
+
+    function openPower(): void {
+        open = false; // its focus grab would close the panel at once (as the Orbita below)
+        const name = screenName;
+        Qt.callLater(() => root.powerRequested(name));
     }
 
     function openOrbit(tab: string): void {
@@ -250,11 +257,7 @@ Scope {
                             anchors.right: parent.right
                             text: OrbitLogic.POWER_ICON
                             fontSize: Theme.font.sizeLarge // a lone glyph, read at a glance (user, 2026-10-07)
-                            // wlogout until the Panel zasilania (ticket 18)
-                            onClicked: {
-                                root.open = false;
-                                Hyprland.dispatch(Launch.execRequest([root.home + "/.config/hypr/scripts/Wlogout.sh"], ""));
-                            }
+                            onClicked: root.openPower() // Panel zasilania (ticket 18; was wlogout)
                         }
                     }
 

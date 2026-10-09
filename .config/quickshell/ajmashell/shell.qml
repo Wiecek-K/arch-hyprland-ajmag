@@ -14,6 +14,7 @@ import qs.control
 import qs.launcher
 import qs.notifications
 import qs.osd
+import qs.power
 import qs.wallpaper
 
 ShellRoot {
@@ -26,6 +27,12 @@ ShellRoot {
     ControlCenter {
         id: control
         onOrbitRequested: (tab, screenName) => bar.orbitRequested(tab, screenName)
+        onPowerRequested: screenName => power.toggle(screenName)
+    }
+
+    // Panel zasilania (ticket 18): SUPER+L (power.sh over IPC) and the Centrum's power button
+    PowerPanel {
+        id: power
     }
 
     NotificationPopups {}

@@ -191,6 +191,16 @@ Singleton {
         coverIcon: root.colors.on_surface_variant
     }
 
+    // Panel zasilania (power/PowerPanel.qml, ticket 18): a big popup like the launcher — the look's background and
+    // flare (Theme.control colours), buttons coloured like the Orbita's pills (Pill.qml) so the selected one reads at once.
+    readonly property PowerStyle power: PowerStyle {
+        background: root.control.background
+        backgroundOpaque: root.control.backgroundOpaque
+        backgroundTinted: root.control.backgroundTinted
+        text: root.control.text
+        subtext: root.control.subtext
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkinsonHyperlegibleMono Nerd Font" // same as Waybar
@@ -512,6 +522,18 @@ Singleton {
         property color buttonHover
         property color cover
         property color coverIcon
+    }
+
+    component PowerStyle: QtObject {
+        readonly property int button: 120 // px, square button (wlogout: a third of the screen; ours a compact row)
+        readonly property int iconSize: 44
+        readonly property int padding: 24 // round the row of buttons
+        readonly property int spacing: 16 // between the buttons
+        property color background
+        property color backgroundOpaque
+        property color backgroundTinted
+        property color text
+        property color subtext
     }
 
     component OsdStyle: QtObject {
