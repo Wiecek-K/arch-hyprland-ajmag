@@ -440,9 +440,10 @@ Scope {
                         required property var model
                         // the newest entry of a group always shows; the rest while the group is expanded
                         readonly property bool newest: ListView.previousSection !== ListView.section
-                        readonly property bool shown: newest || root.expanded[model.appKey] === true
+                        readonly property bool open: root.expanded[model.appKey] === true
+                        readonly property bool shown: newest || open
                         // ticket 32: edges of the next cards under the newest one, inside the spacing below it
-                        readonly property int edges: newest ? NotifLogic.stackEdges(Notifications.groupCounts[model.appKey] ?? 0, root.expanded[model.appKey] === true) : 0
+                        readonly property int edgeCount: newest ? NotifLogic.stackEdges(Notifications.groupCounts[model.appKey] ?? 0, open) : 0
 
                         width: list.width
                         height: shown ? card.height + Theme.notifications.spacing : 0
@@ -450,7 +451,7 @@ Scope {
 
                         // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
                         Repeater {
-                            model: 2
+                            model: NotifLogic.STACK_MAX_EDGES
 
                             Item {
                                 id: edge
@@ -463,7 +464,7 @@ Scope {
                                 width: row.width - 2 * inset
                                 height: Theme.notifications.stackPeek
                                 clip: true
-                                opacity: index >= row.edges ? 0 : index === 0 ? 1 : Theme.notifications.stackFade
+                                opacity: index >= row.edgeCount ? 0 : index === 0 ? 1 : Theme.notifications.stackFade
 
                                 Behavior on opacity {
                                     NumberAnimation {
