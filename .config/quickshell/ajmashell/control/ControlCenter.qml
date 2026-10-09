@@ -390,6 +390,40 @@ Scope {
                     clip: true
                     model: Notifications.history
 
+                    // a removed card slides out to the right and fades; the next card of its group moves up into its place
+                    remove: Transition {
+                        // above the next card of its group, which comes out from under it
+                        PropertyAction {
+                            property: "z"
+                            value: 1
+                        }
+                        ParallelAnimation {
+                            NumberAnimation {
+                                property: "opacity"
+                                to: 0
+                                duration: Theme.notifications.centrumDisappear
+                                easing.type: Easing.OutCubic
+                            }
+                            NumberAnimation {
+                                property: "x"
+                                to: list.width * Theme.notifications.slide
+                                duration: Theme.notifications.centrumDisappear
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                    }
+
+                    removeDisplaced: Transition {
+                        id: reflow
+                        // the next card of a collapsed group (hidden one row lower until now) does not move from
+                        // there: it rises from under the removed card by itself (row.rise)
+                        NumberAnimation {
+                            property: "y"
+                            duration: reflow.ViewTransition.item?.rising === true ? 0 : Theme.notifications.centrumReflow // qmllint disable missing-property
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
                     // the history is kept as runs per app (Notifications.qml), so every run is one section
                     section.property: "appKey"
                     section.delegate: Item {
@@ -447,9 +481,27 @@ Scope {
                         // the last card shown in a group gets room for the edges, whether they show or not (no jumps)
                         readonly property bool lastShown: !open || ListView.nextSection !== ListView.section
 
+                        // the card above it was removed and it comes out from the stack (ticket 32)
+                        readonly property bool rising: rise.running
+
                         width: list.width
                         height: shown ? card.height + (lastShown ? Theme.notifications.stackSpacing : Theme.notifications.spacing) : 0
                         visible: shown
+
+                        onNewestChanged: {
+                            if (newest && !open)
+                                rise.restart();
+                        }
+
+                        NumberAnimation {
+                            id: rise
+                            target: card
+                            property: "y"
+                            from: Theme.notifications.stackGap + Theme.notifications.stackPeek
+                            to: 0
+                            duration: Theme.notifications.centrumReflow
+                            easing.type: Easing.OutCubic
+                        }
 
                         // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
                         Repeater {
