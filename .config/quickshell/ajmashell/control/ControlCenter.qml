@@ -403,7 +403,7 @@ Scope {
                                 property: "opacity"
                                 to: 0
                                 duration: Theme.notifications.centrumDisappear
-                                easing.type: Easing.InQuad // stays visible while it slides, fades at the end
+                                easing.type: Easing.InQuart // stays visible while it slides, the rest goes fast at the end (user, 2026-10-09; was InQuad)
                             }
                             NumberAnimation {
                                 property: "x"
