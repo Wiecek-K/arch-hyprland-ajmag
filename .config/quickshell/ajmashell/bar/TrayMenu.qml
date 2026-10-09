@@ -12,6 +12,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Widgets
+import qs.singletons.barpopups
 import qs.singletons.theme
 import "tray.mjs" as Logic
 
@@ -77,8 +78,18 @@ PopupWindow {
 
     HyprlandFocusGrab {
         id: grab
-        windows: [root]
+        windows: [root, ...BarPopups.bars]
         onCleared: root.close()
+    }
+
+    // ticket 27: a press elsewhere on the Bar closes it; the grab lets Bar clicks through, so that island opens its own
+    Connections {
+        target: BarPopups
+
+        function onPressed(hit: var): void {
+            if (root.visible && BarPopups.closes(hit, root.source))
+                root.close();
+        }
     }
 
     // One opener per level, all open at once: when a menu loses its last opener, Quickshell drops

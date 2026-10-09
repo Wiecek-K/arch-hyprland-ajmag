@@ -16,6 +16,7 @@ import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import qs.control
 import qs.orbit
+import qs.singletons.barpopups
 import qs.singletons.look
 import qs.singletons.media
 import qs.singletons.theme
@@ -58,8 +59,18 @@ PopupWindow {
 
     HyprlandFocusGrab {
         id: grab
-        windows: [root]
+        windows: [root, ...BarPopups.bars]
         onCleared: root.visible = false
+    }
+
+    // ticket 27: a press elsewhere on the Bar closes it; the grab lets Bar clicks through, so that island opens its own
+    Connections {
+        target: BarPopups
+
+        function onPressed(hit: var): void {
+            if (root.visible && BarPopups.closes(hit, root.source))
+                root.visible = false;
+        }
     }
 
     // MPRIS sends no position updates while playing: re-read it only while the popup is open

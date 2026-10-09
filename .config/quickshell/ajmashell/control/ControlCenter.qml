@@ -22,6 +22,7 @@ import Quickshell.Networking
 import Quickshell.Wayland
 import qs.notifications
 import qs.orbit
+import qs.singletons.barpopups
 import qs.singletons.look
 import qs.singletons.notifications
 import qs.singletons.theme
@@ -148,6 +149,16 @@ Scope {
         onRunningChanged: if (!running) root.sendBrightness()
     }
 
+    // ticket 27: a press elsewhere on the Bar closes it; the grab lets Bar clicks through, so that island opens its own
+    Connections {
+        target: BarPopups
+
+        function onPressed(hit: var): void {
+            if (root.open && !BarPopups.onBell(hit))
+                root.open = false;
+        }
+    }
+
     SystemClock {
         id: clock
         precision: SystemClock.Minutes
@@ -194,7 +205,7 @@ Scope {
 
             HyprlandFocusGrab {
                 id: grab
-                windows: [win]
+                windows: [win, ...BarPopups.bars]
                 onCleared: root.open = false
             }
 

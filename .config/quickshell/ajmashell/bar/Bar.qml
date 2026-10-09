@@ -12,6 +12,7 @@
 // Ticket 12: one Orbita per screen under the Wi-Fi / BT island; IpcHandler "orbit" opens it on the focused screen.
 // Ticket 14: the bell asks for the Centrum sterowania (controlRequested, handled in shell.qml); its rows open the Orbita.
 // Ticket 17: media island left of the clock; IpcHandler "media" opens its popup on the focused screen.
+// Ticket 27: every press on the Bar goes to BarPopups, so one click on another island switches the open element.
 // Tray and volume islands swapped (user, 2026-10-07): tray on the left edge, volume · microphone · separator before the pill.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -23,6 +24,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.orbit
+import qs.singletons.barpopups
 import qs.singletons.theme
 
 Scope {
@@ -61,7 +63,15 @@ Scope {
         }
     }
 
+    // the Bar windows go into every Bar element's focus grab (ticket 27)
+    Binding {
+        target: BarPopups
+        property: "bars"
+        value: bars.instances
+    }
+
     Variants {
+        id: bars
         model: Quickshell.screens
 
         // qmltypes mark PanelWindow uncreatable; Quickshell substitutes the Wayland implementation at runtime
@@ -105,72 +115,90 @@ Scope {
                 }
             }
 
-            // Left edge (ADR 0002 §3, changed 2026-10-07): tray. It hides while empty.
-            Row {
-                anchors.left: parent.left
-                anchors.leftMargin: Theme.bar.edgePadding + Theme.bar.islandGap
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: Theme.bar.islandGap
+            // Every island; the press catcher below stays out of it, so deepestAt finds the island under the pointer.
+            Item {
+                id: content
+                anchors.fill: parent
 
-                Tray {}
-            }
+                // Left edge (ADR 0002 §3, changed 2026-10-07): tray. It hides while empty.
+                Row {
+                    anchors.left: parent.left
+                    anchors.leftMargin: Theme.bar.edgePadding + Theme.bar.islandGap
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Theme.bar.islandGap
 
-            // Centre (ADR 0002 §3–4, changed 2026-09-29): media (ticket 17) · clock · workspaces.
-            // The clock sits on the monitor's axis; neighbours hang off its sides, so their width never moves it.
-            MediaIsland {
-                id: mediaIsland
-                anchors.right: clock.left
-                anchors.rightMargin: Math.round(clock.width * Theme.media.clockGap) // user, 2026-10-07: further from the clock
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Clock {
-                id: clock
-                anchors.centerIn: parent
-            }
-
-            Workspaces {
-                anchors.left: clock.right
-                anchors.leftMargin: Theme.bar.islandGap
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            // Right edge (ADR 0002 §3, changed 2026-10-07): output volume · microphone · separator (Waybar dot-line)
-            // · one pill with BT · Wi-Fi · bell (user, 2026-10-05).
-            // The tray hides while empty.
-            Row {
-                anchors.right: parent.right
-                anchors.rightMargin: Theme.bar.edgePadding + Theme.bar.islandGap
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: Theme.bar.islandGap
-
-                Volume {}
-
-                Volume {
-                    microphone: true
+                    Tray {}
                 }
 
-                Separator {}
+                // Centre (ADR 0002 §3–4, changed 2026-09-29): media (ticket 17) · clock · workspaces.
+                // The clock sits on the monitor's axis; neighbours hang off its sides, so their width never moves it.
+                MediaIsland {
+                    id: mediaIsland
+                    anchors.right: clock.left
+                    anchors.rightMargin: Math.round(clock.width * Theme.media.clockGap) // user, 2026-10-07: further from the clock
+                    anchors.verticalCenter: parent.verticalCenter
+                }
 
-                IslandGroup {
-                    Bluetooth {
-                        id: btIsland
-                        grouped: true
-                        orbitOpen: orbit.visible && orbit.source === btIsland
-                        onClicked: orbit.toggle(btIsland, "bt")
+                Clock {
+                    id: clock
+                    anchors.centerIn: parent
+                }
+
+                Workspaces {
+                    anchors.left: clock.right
+                    anchors.leftMargin: Theme.bar.islandGap
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                // Right edge (ADR 0002 §3, changed 2026-10-07): output volume · microphone · separator (Waybar dot-line)
+                // · one pill with BT · Wi-Fi · bell (user, 2026-10-05).
+                // The tray hides while empty.
+                Row {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.bar.edgePadding + Theme.bar.islandGap
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Theme.bar.islandGap
+
+                    Volume {}
+
+                    Volume {
+                        microphone: true
                     }
 
-                    Wifi {
-                        id: wifiIsland
-                        grouped: true
-                        orbitOpen: orbit.visible && orbit.source === wifiIsland
-                        onClicked: orbit.toggle(wifiIsland, "wifi")
-                    }
+                    Separator {}
 
-                    Bell {
-                        grouped: true
-                        onClicked: root.controlRequested(barWindow.modelData.name)
+                    IslandGroup {
+                        Bluetooth {
+                            id: btIsland
+                            grouped: true
+                            orbitOpen: orbit.visible && orbit.source === btIsland
+                            onClicked: orbit.toggle(btIsland, "bt")
+                        }
+
+                        Wifi {
+                            id: wifiIsland
+                            grouped: true
+                            orbitOpen: orbit.visible && orbit.source === wifiIsland
+                            onClicked: orbit.toggle(wifiIsland, "wifi")
+                        }
+
+                        Bell {
+                            grouped: true
+                            onClicked: root.controlRequested(barWindow.modelData.name)
+                        }
                     }
+                }
+            }
+
+            // Ticket 27: reports every press on the Bar to the open elements (BarPopups) and lets it through to the
+            // islands; an element closes unless the press is on its own island, so another island opens the next
+            // element in one click. Wheel and hover pass: no wheel handler, no hover.
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.AllButtons
+                onPressed: mouse => {
+                    BarPopups.press(BarPopups.deepestAt(content, mouse.x, mouse.y));
+                    mouse.accepted = false;
                 }
             }
         }
