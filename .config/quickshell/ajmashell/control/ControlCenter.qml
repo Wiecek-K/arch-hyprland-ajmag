@@ -392,17 +392,18 @@ Scope {
 
                     // a removed card slides out to the right and fades; the next card of its group moves up into its place
                     remove: Transition {
-                        // above the next card of its group, which comes out from under it
+                        // above the next card of its group, which comes out from under it (ListView gives every
+                        // delegate z 1)
                         PropertyAction {
                             property: "z"
-                            value: 1
+                            value: 2
                         }
                         ParallelAnimation {
                             NumberAnimation {
                                 property: "opacity"
                                 to: 0
                                 duration: Theme.notifications.centrumDisappear
-                                easing.type: Easing.OutCubic
+                                easing.type: Easing.InQuad // stays visible while it slides, fades at the end
                             }
                             NumberAnimation {
                                 property: "x"
@@ -493,14 +494,25 @@ Scope {
                                 rise.restart();
                         }
 
-                        NumberAnimation {
+                        // starts as the first edge (narrower, bottom on the edge's bottom) and grows to a full card
+                        ParallelAnimation {
                             id: rise
-                            target: card
-                            property: "y"
-                            from: Theme.notifications.stackGap + Theme.notifications.stackPeek
-                            to: 0
-                            duration: Theme.notifications.centrumReflow
-                            easing.type: Easing.OutCubic
+                            NumberAnimation {
+                                target: card
+                                property: "y"
+                                from: Theme.notifications.stackGap + Theme.notifications.stackPeek
+                                to: 0
+                                duration: Theme.notifications.centrumReflow
+                                easing.type: Easing.OutCubic
+                            }
+                            NumberAnimation {
+                                target: card
+                                property: "scale"
+                                from: 1 - 2 * Theme.notifications.stackInset / Math.max(card.width, 1)
+                                to: 1
+                                duration: Theme.notifications.centrumReflow
+                                easing.type: Easing.OutCubic
+                            }
                         }
 
                         // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
@@ -539,6 +551,7 @@ Scope {
                         NotificationCard {
                             id: card
                             width: parent.width
+                            transformOrigin: Item.Bottom // row.rise grows it from the edge
                             showAppName: false
                             time: row.model.time
                             now: clock.date.getTime()
