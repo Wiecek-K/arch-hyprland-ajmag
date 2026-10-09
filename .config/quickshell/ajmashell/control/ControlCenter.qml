@@ -454,8 +454,12 @@ Scope {
                         // the last card shown in a group gets room for the edges, whether they show or not (no jumps)
                         readonly property bool lastShown: !open || ListView.nextSection !== ListView.section
 
-                        // the card above it was removed and it comes out from the stack (ticket 32)
-                        readonly property bool rising: rise.running
+                        // the card above it was removed: in a collapsed group it comes out from the stack (rise), in an
+                        // expanded one the row takes the removed row's place at once (the header stays) and only the
+                        // card slides up (slide); either way the view does not move the row (removeDisplaced)
+                        readonly property bool rising: rise.running || slide.running || slidePending
+                        property bool slidePending: false
+                        property real slideStartY: 0 // the row's y before the removal
 
                         width: list.width
                         height: shown ? body.y + card.height + (lastShown ? Theme.notifications.stackSpacing : Theme.notifications.spacing) : 0
@@ -466,8 +470,32 @@ Scope {
                         Component.onCompleted: Qt.callLater(() => row.created = true)
 
                         onNewestChanged: {
-                            if (created && newest && !open && !leaving)
+                            if (!created || !newest || leaving)
+                                return;
+                            if (!open) {
                                 rise.restart();
+                            } else {
+                                slideStartY = y;
+                                slidePending = true;
+                            }
+                        }
+
+                        // the row has jumped into the removed row's place: the card starts where it was drawn before
+                        onYChanged: {
+                            if (!slidePending)
+                                return;
+                            slidePending = false;
+                            slide.from = slideStartY - y - groupHeader.height;
+                            slide.restart();
+                        }
+
+                        NumberAnimation {
+                            id: slide
+                            target: card
+                            property: "y"
+                            to: 0
+                            duration: Theme.notifications.centrumReflow
+                            easing.type: Easing.OutCubic // as removeDisplaced: the rows below move with it
                         }
 
                         // starts as the first edge (narrower, bottom on the edge's bottom) and grows to a full card
