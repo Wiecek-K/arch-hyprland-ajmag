@@ -460,9 +460,11 @@ Singleton {
         readonly property var fadeStops: [[0, 0.75], [0.45, 0.6], [1, 0]]
         // alpha of the soft buttons: current tab (tab colour), hovered and idle (text colour)
         readonly property var softPill: ({ active: 0.25, hover: 0.14, idle: 0.07 })
-        // the flare's source circles the centre at orbit × the panel's size, one lap per two orbit laps,
-        // starting at `phase` rad; its glow reaches `reach` px
-        readonly property var flare: ({ orbit: 0.42, phase: -2.3, reach: 140 })
+        // the flare's source circles the centre at orbit × the panel's size, one lap per `lap` ms (two
+        // orbit periods), from `phase` rad; its glow reaches `reach` px. The angle comes from the wall
+        // clock, one for every popup (ticket 28; was half the orbit's own turn, which jumped half a lap
+        // each time the turn wrapped at 2π)
+        readonly property var flare: ({ orbit: 0.42, phase: -2.3, reach: 140, lap: 480000 })
         readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
         property color background
         property color backgroundOpaque

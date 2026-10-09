@@ -435,19 +435,12 @@ Scope {
                 // fancy and still looks (ticket 13, user 2026-10-06): the Orbita's lens flare behind the
                 // list; turns like the orbit while open, only in a look with motion
                 OrbitBackdrop {
-                    id: listBackdrop
                     visible: Look.current.flare
                     x: pane.width
                     width: box.width - pane.width
                     height: box.height
                     radius: 0 // the box clips its own corners
-
-                    Timer {
-                        interval: 1000 / Theme.orbit.fps
-                        repeat: true
-                        running: win.visible && listBackdrop.visible && Look.current.motion
-                        onTriggered: listBackdrop.angle = (listBackdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
-                    }
+                    open: win.visible
                 }
 
                 // --- list pane ---

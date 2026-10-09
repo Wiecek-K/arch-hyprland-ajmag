@@ -289,6 +289,15 @@ export function nearestAngle(from, to) {
     return to + Math.round((from - to) / turn) * turn;
 }
 
+// --- flare (ticket 28, own code) ------------------------------------------------------------
+
+// Angle (rad, 0 … 2π) of the lens flare's source at wall-clock time `now` (ms), one lap per `lap` ms.
+// From the time, not from steps of a timer: every popup shows the flare in the same place, and a closed
+// popup needs no clock — it opens where the flare would be had it kept turning (user, 2026-10-07).
+export function flareAngle(now, lap) {
+    return 2 * Math.PI * (now % lap) / lap;
+}
+
 // --- wobble (user, 2026-10-06): each node drifts slightly towards and away from the core ------
 
 // FNV-1a hash of a node id with murmur3's final mix (FNV alone gave similar names similar phases),

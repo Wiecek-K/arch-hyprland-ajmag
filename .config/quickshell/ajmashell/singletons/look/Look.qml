@@ -15,6 +15,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.singletons.theme
+import "../../orbit/orbit.mjs" as Logic
 
 Singleton {
     id: root
@@ -31,6 +32,26 @@ Singleton {
 
     BlurOff {
         off: root.current.opaque
+    }
+
+    // One motion clock for the whole shell (ticket 28), Theme.orbit.fps steps a second, running only
+    // while a ClockUser is active in a look with motion. Each step sets the flare's angle from the wall
+    // clock — the same in every popup, and where it would be had it kept turning while all were closed
+    // (user, 2026-10-07) — and emits `tick` for the Orbita's nodes and lightning, so they draw in the
+    // same frame as the flare.
+    property int clockUsers: 0 // orbit/ClockUser.qml
+    property real flareAngle: 0 // rad, Logic.flareAngle(); OrbitBackdrop stands at 0 without motion
+    signal tick
+
+    Timer {
+        interval: 1000 / Theme.orbit.fps
+        repeat: true
+        running: root.clockUsers > 0 && root.current.motion
+        triggeredOnStart: true // a popup opens with the flare already in place
+        onTriggered: {
+            root.flareAngle = Logic.flareAngle(Date.now(), Theme.orbit.flare.lap);
+            root.tick();
+        }
     }
 
     function cycle(): void {

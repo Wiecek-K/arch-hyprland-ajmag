@@ -2,28 +2,37 @@
 // "the background is boring"; picked from 15 variants: "flare, no streak"). A bright source drifts
 // round the edge with a row of ghosts on the far side of the centre, like a camera lens looking at a
 // light. Drawn over the flat background, under the content. Values in Theme.orbit (flare…).
+// Ticket 28: one angle for every flare in the shell (Look.flareAngle, from the wall clock), so the
+// Orbita, the launcher, the Centrum sterowania, the shortcuts, the player and the power panel all show
+// it in the same place (user, 2026-10-07: "gives an impression of carelessness"). A popup sets `open`;
+// the flare then holds Look's clock running in a look with motion. Without motion it stands at `phase`.
 // Own code, no donor.
 
 pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Shapes
+import qs.singletons.look
 import qs.singletons.theme
 
 Item {
     id: backdrop
 
-    property real angle: 0 // the orbit's turn, rad
+    property bool open: false // its popup is shown
     property real radius: Theme.radius.lg // corners of the panel it fills
     // the orbit's centre: the field above the tab row
     readonly property real cx: width / 2
     readonly property real cy: height / 2 - Theme.orbit.tabHeight / 2
-    // the source, one lap per two orbit laps
-    readonly property real theta: angle / 2 + Theme.orbit.flare.phase
+    // the source, one lap per Theme.orbit.flare.lap
+    readonly property real theta: (Look.current.motion ? Look.flareAngle : 0) + Theme.orbit.flare.phase
     readonly property real sx: cx + Math.cos(theta) * width * Theme.orbit.flare.orbit
     readonly property real sy: cy + Math.sin(theta) * height * Theme.orbit.flare.orbit
 
     clip: true
+
+    ClockUser {
+        active: backdrop.open && backdrop.visible
+    }
 
     // glow of the source
     Wash {

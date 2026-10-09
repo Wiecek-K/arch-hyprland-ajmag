@@ -153,17 +153,10 @@ Scope {
                 // looks with `flare`: the Orbita's lens flare over the whole monitor; turns only in a look with
                 // motion (fancy, fancy2; user 2026-10-09) — then the whole monitor is redrawn 30 times a second
                 OrbitBackdrop {
-                    id: flare
                     anchors.fill: parent
                     radius: 0
                     visible: Look.current.flare
-
-                    Timer {
-                        interval: 1000 / Theme.orbit.fps
-                        repeat: true
-                        running: win.visible && flare.visible && Look.current.motion
-                        onTriggered: flare.angle = (flare.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
-                    }
+                    open: win.visible
                 }
 
                 Row {

@@ -377,17 +377,24 @@ PopupWindow {
         onTriggered: root.refreshCards()
     }
 
-    // One clock for all motion, Theme.orbit.fps steps a second: the turn and the lightning in the same
-    // step, so the shell draws one frame per tick (two separate clocks drew up to both rates together).
-    // The orbit pauses under the pointer, the lightning keeps flickering.
-    Timer {
-        interval: 1000 / Theme.orbit.fps
-        repeat: true
-        running: root.animate && root.nodes.length > 0
-        onTriggered: {
+    // One clock for all motion, Look's (ticket 28; Theme.orbit.fps steps a second): the turn, the lightning
+    // and the flare in the same step, so the shell draws one frame per tick (two separate clocks drew up to
+    // both rates together). The orbit pauses under the pointer, the lightning keeps flickering. The nodes
+    // keep their own angle, which pauses (user, 2026-10-09); the flare takes the shell's shared one.
+    ClockUser {
+        id: motion
+        active: root.animate && root.nodes.length > 0
+    }
+
+    Connections {
+        target: Look
+        enabled: motion.active
+
+        function onTick(): void {
+            const step = 1000 / Theme.orbit.fps;
             if (root.hoverId === "") {
-                root.angle = (root.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI);
-                root.clock += interval / 1000;
+                root.angle = (root.angle + 2 * Math.PI * step / Theme.orbit.period) % (2 * Math.PI);
+                root.clock += step / 1000;
             }
             if (lightning.visible)
                 lightning.requestPaint();
@@ -443,7 +450,7 @@ PopupWindow {
         OrbitBackdrop {
             anchors.fill: parent
             visible: root.look.flare
-            angle: root.turn
+            open: root.visible
         }
 
         Item {

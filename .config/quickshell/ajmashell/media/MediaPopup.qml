@@ -98,16 +98,9 @@ PopupWindow {
         Keys.onEscapePressed: root.visible = false
 
         OrbitBackdrop {
-            id: backdrop
             anchors.fill: parent
             visible: Look.current.flare
-
-            Timer {
-                interval: 1000 / Theme.orbit.fps
-                repeat: true
-                running: root.visible && backdrop.visible && Look.current.motion
-                onTriggered: backdrop.angle = (backdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
-            }
+            open: root.visible
         }
 
         Column {

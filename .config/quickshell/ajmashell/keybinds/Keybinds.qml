@@ -105,18 +105,11 @@ Scope {
 
                 // the look's lens flare behind the list; turns only in a look with motion
                 OrbitBackdrop {
-                    id: backdrop
                     visible: Look.current.flare
                     width: box.width
                     height: box.height
                     radius: 0 // the box clips its own corners
-
-                    Timer {
-                        interval: 1000 / Theme.orbit.fps
-                        repeat: true
-                        running: win.visible && backdrop.visible && Look.current.motion
-                        onTriggered: backdrop.angle = (backdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
-                    }
+                    open: win.visible
                 }
 
                 Rectangle {

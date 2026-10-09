@@ -220,16 +220,9 @@ Scope {
                 // looks with `flare` (fancy, fancy2, still; user 2026-10-07): the Orbita's lens flare behind the
                 // content, as in the launcher; turns only in a look with motion
                 OrbitBackdrop {
-                    id: backdrop
                     anchors.fill: parent
                     visible: Look.current.flare
-
-                    Timer {
-                        interval: 1000 / Theme.orbit.fps
-                        repeat: true
-                        running: win.visible && backdrop.visible && Look.current.motion
-                        onTriggered: backdrop.angle = (backdrop.angle + 2 * Math.PI * interval / Theme.orbit.period) % (2 * Math.PI)
-                    }
+                    open: win.visible
                 }
 
                 Column {
