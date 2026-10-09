@@ -24,10 +24,12 @@ Rectangle {
     property bool showAppName: true // the Centrum shows it once, on the group header
     required property real time // ms, when it came (or was last updated)
     property real now: Date.now() // the Centrum passes its clock; a popup is always "now"
+    property bool closable: false // the Centrum: an X in place of the time while hovered (ticket 32)
     readonly property alias hovered: hover.hovered
 
     signal clicked
     signal actionInvoked(string identifier)
+    signal closeRequested
 
     implicitHeight: Math.max(iconBox.height, texts.implicitHeight) + 2 * Theme.notifications.padding
     radius: Theme.radius.lg // like the Bar islands
@@ -43,7 +45,8 @@ Rectangle {
     TapHandler {
         onTapped: eventPoint => {
             const p = root.mapToItem(actionRow, eventPoint.position);
-            if (!actionRow.visible || !actionRow.contains(p))
+            const c = root.mapToItem(closeButton, eventPoint.position);
+            if ((!actionRow.visible || !actionRow.contains(p)) && (!closeButton.visible || !closeButton.contains(c)))
                 root.clicked();
         }
     }
@@ -87,6 +90,53 @@ Rectangle {
         font.family: Theme.font.family
         font.pixelSize: Theme.font.sizeSmall
         color: Theme.notifications.subtext
+        opacity: closeButton.shown ? 0 : 1
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.motion.fast
+            }
+        }
+    }
+
+    // X: dismiss without the app's action and without a focus change; over the time, right-aligned with it
+    Rectangle {
+        id: closeButton
+
+        readonly property bool shown: root.closable && hover.hovered
+
+        anchors.right: parent.right
+        anchors.rightMargin: Theme.notifications.padding - (width - closeLabel.implicitWidth) / 2
+        anchors.verticalCenter: timeLabel.verticalCenter
+        width: Theme.notifications.closeSize
+        height: Theme.notifications.closeSize
+        radius: height / 2
+        visible: opacity > 0
+        opacity: shown ? 1 : 0
+        color: closeHover.hovered ? Theme.notifications.actionHover : Theme.transparent
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.motion.fast
+            }
+        }
+
+        Text {
+            id: closeLabel
+            anchors.centerIn: parent
+            text: Logic.CLOSE_ICON
+            font.family: Theme.font.family
+            font.pixelSize: Theme.font.sizeSmall
+            color: Theme.notifications.subtext
+        }
+
+        HoverHandler {
+            id: closeHover
+        }
+
+        TapHandler {
+            onTapped: root.closeRequested()
+        }
     }
 
     Column {

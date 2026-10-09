@@ -319,10 +319,11 @@ Singleton {
         readonly property real slide: 0.35 // of the popup width
         // Centrum: a card removed by a click slides out like a popup, a bit slower; the cards below move up
         // (ticket 32, user 2026-10-09: "przedłuż minimalnie", the next card of a group visibly takes its place)
-        readonly property int centrumDisappear: 300 // ms
-        readonly property int centrumReflow: 300 // ms
+        readonly property int centrumDisappear: 1000 // ms; user test 2026-10-09: 1000 (was 300, then 2000)
+        readonly property int centrumReflow: 1000 // ms; user test 2026-10-09: 1000 (was 300, then 2000)
         readonly property int actionHeight: 28 // action button under the body (ticket 16)
         readonly property int progressHeight: 6 // progress bar (hint `value`, ticket 16)
+        readonly property int closeSize: 22 // X on a card in the Centrum, a circle on hover (ticket 32)
         // edges of the next cards under a collapsed group in the Centrum (ticket 32); two edges sit inside
         // `stackSpacing` below the last card of every group (2 × (stackGap + stackPeek) ≤ stackSpacing),
         // so a row keeps its height when a group grows

@@ -549,7 +549,9 @@ Scope {
                             urgency: row.model.urgency
                             progress: row.model.progress
                             actions: row.model.actions
+                            closable: true
                             onClicked: Notifications.activate(row.model.uid, "")
+                            onCloseRequested: Notifications.dismiss(row.model.uid)
                             onActionInvoked: identifier => Notifications.activate(row.model.uid, identifier)
                         }
                     }

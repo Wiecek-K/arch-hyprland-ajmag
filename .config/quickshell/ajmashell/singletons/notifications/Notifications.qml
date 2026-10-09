@@ -248,12 +248,16 @@ Singleton {
         for (let i = 0; i < historyModel.count; i++)
             if (historyModel.get(i).appKey === appKey)
                 uids.push(historyModel.get(i).uid);
-        for (const uid of uids) {
-            if (root.live[uid])
-                root.live[uid].dismiss(); // closed → forget
-            else
-                forget(uid);
-        }
+        for (const uid of uids)
+            dismiss(uid);
+    }
+
+    // gone from the history without its action and without a focus change (the X on a card, ticket 32)
+    function dismiss(uid: int): void {
+        if (root.live[uid])
+            root.live[uid].dismiss(); // closed → forget
+        else
+            forget(uid);
     }
 
     // qs -c ajmashell ipc call notifications toggleSilent | clear  (pattern from caelestia services/Notifs.qml, research B08)
