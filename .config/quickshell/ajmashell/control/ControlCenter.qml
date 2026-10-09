@@ -439,11 +439,47 @@ Scope {
 
                         required property var model
                         // the newest entry of a group always shows; the rest while the group is expanded
-                        readonly property bool shown: ListView.previousSection !== ListView.section || root.expanded[model.appKey] === true
+                        readonly property bool newest: ListView.previousSection !== ListView.section
+                        readonly property bool shown: newest || root.expanded[model.appKey] === true
+                        // ticket 32: edges of the next cards under the newest one, inside the spacing below it
+                        readonly property int edges: newest ? NotifLogic.stackEdges(Notifications.groupCounts[model.appKey] ?? 0, root.expanded[model.appKey] === true) : 0
 
                         width: list.width
                         height: shown ? card.height + Theme.notifications.spacing : 0
                         visible: shown
+
+                        // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
+                        Repeater {
+                            model: 2
+
+                            Item {
+                                id: edge
+
+                                required property int index
+                                readonly property int inset: Theme.notifications.stackInset * (index + 1)
+
+                                x: inset
+                                y: card.height + Theme.notifications.stackGap + (Theme.notifications.stackPeek + Theme.notifications.stackGap) * index
+                                width: row.width - 2 * inset
+                                height: Theme.notifications.stackPeek
+                                clip: true
+                                opacity: index >= row.edges ? 0 : index === 0 ? 1 : Theme.notifications.stackFade
+
+                                Behavior on opacity {
+                                    NumberAnimation {
+                                        duration: Theme.motion.fast
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: parent.width
+                                    height: card.height
+                                    y: parent.height - height
+                                    radius: card.radius
+                                    color: Theme.notifications.stack
+                                }
+                            }
+                        }
 
                         NotificationCard {
                             id: card

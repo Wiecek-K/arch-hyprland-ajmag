@@ -108,6 +108,12 @@ export function groupCounts(keys) {
     return counts;
 }
 
+// Edges of the next cards under a collapsed group in the Centrum, like a stack (ticket 32; user, 2026-10-09:
+// one edge for 2 entries, two for 3 or more). An expanded group shows every card, so no edges.
+export function stackEdges(count, open) {
+    return open ? 0 : Math.min(Math.max(count - 1, 0), 2);
+}
+
 // Index of the oldest entry by arrival number (the last entry belongs to the quietest group, not the oldest one).
 export function oldestIndex(arrivals) {
     let index = -1;

@@ -83,6 +83,8 @@ Singleton {
         actionHover: Qt.alpha(root.colors.on_surface, 0.16)
         progress: root.colors.primary
         progressTrack: Qt.alpha(root.colors.on_surface, 0.12)
+        // ticket 32: edges of a collapsed group; a tint, not the card colour, so they show in every look
+        stack: Qt.alpha(root.colors.on_surface, 0.12)
     }
 
     // Wallpaper carousel (wallpaper/WallpaperPicker.qml, ticket 19)
@@ -317,6 +319,12 @@ Singleton {
         readonly property real slide: 0.35 // of the popup width
         readonly property int actionHeight: 28 // action button under the body (ticket 16)
         readonly property int progressHeight: 6 // progress bar (hint `value`, ticket 16)
+        // edges of the next cards under a collapsed group in the Centrum (ticket 32); two edges sit inside
+        // `spacing` (2 × (stackGap + stackPeek) ≤ spacing), so a row keeps its height when a group grows
+        readonly property int stackGap: 2 // px of background between a card and its edge, so they do not merge
+        readonly property int stackPeek: 4 // px each edge shows below the one above
+        readonly property int stackInset: 10 // px each edge is narrower on every side than the one above
+        readonly property real stackFade: 0.6 // opacity of the second edge
         property color background
         property color text
         property color subtext
@@ -327,6 +335,7 @@ Singleton {
         property color actionHover
         property color progress
         property color progressTrack
+        property color stack
     }
 
     component WallpaperStyle: QtObject {
