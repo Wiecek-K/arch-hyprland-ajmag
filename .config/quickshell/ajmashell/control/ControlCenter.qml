@@ -444,9 +444,11 @@ Scope {
                         readonly property bool shown: newest || open
                         // ticket 32: edges of the next cards under the newest one, inside the spacing below it
                         readonly property int edgeCount: newest ? NotifLogic.stackEdges(Notifications.groupCounts[model.appKey] ?? 0, open) : 0
+                        // the last card shown in a group gets room for the edges, whether they show or not (no jumps)
+                        readonly property bool lastShown: !open || ListView.nextSection !== ListView.section
 
                         width: list.width
-                        height: shown ? card.height + Theme.notifications.spacing : 0
+                        height: shown ? card.height + (lastShown ? Theme.notifications.stackSpacing : Theme.notifications.spacing) : 0
                         visible: shown
 
                         // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px

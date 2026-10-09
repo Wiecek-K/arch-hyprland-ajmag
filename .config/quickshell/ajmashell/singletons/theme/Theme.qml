@@ -320,9 +320,11 @@ Singleton {
         readonly property int actionHeight: 28 // action button under the body (ticket 16)
         readonly property int progressHeight: 6 // progress bar (hint `value`, ticket 16)
         // edges of the next cards under a collapsed group in the Centrum (ticket 32); two edges sit inside
-        // `spacing` (2 × (stackGap + stackPeek) ≤ spacing), so a row keeps its height when a group grows
+        // `stackSpacing` below the last card of every group (2 × (stackGap + stackPeek) ≤ stackSpacing),
+        // so a row keeps its height when a group grows
         readonly property int stackGap: 2 // px of background between a card and its edge, so they do not merge
-        readonly property int stackPeek: 4 // px each edge shows below the one above
+        readonly property int stackPeek: 7 // px each edge shows below the one above; user, 2026-10-09: 7 (was 4)
+        readonly property int stackSpacing: 18 // px below the last card of a group (between cards: `spacing`)
         readonly property int stackInset: 10 // px each edge is narrower on every side than the one above
         readonly property real stackFade: 0.6 // opacity of the second edge
         property color background
