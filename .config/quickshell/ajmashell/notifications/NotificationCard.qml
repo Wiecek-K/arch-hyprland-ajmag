@@ -27,7 +27,7 @@ Rectangle {
     property real now: 0 // the Centrum's clock, read only with showTime
     property bool closable: false // the Centrum: an X in place of the time while hovered (ticket 32)
     readonly property alias hovered: hover.hovered
-    readonly property real cornerRoom: showTime ? timeLabel.width + Theme.spacing.md : 0 // first line keeps clear of the time
+    readonly property real timeReserve: showTime ? timeLabel.width + Theme.spacing.md : 0 // first line keeps clear of the time
 
     signal clicked
     signal actionInvoked(string identifier)
@@ -156,7 +156,7 @@ Rectangle {
             width: parent.width
             visible: root.showAppName && text !== ""
             text: root.appName
-            rightPadding: root.cornerRoom
+            rightPadding: root.timeReserve
             elide: Text.ElideRight
             textFormat: Text.PlainText
             font.family: Theme.font.family
@@ -167,7 +167,7 @@ Rectangle {
         Text {
             width: parent.width
             text: root.summary
-            rightPadding: root.showAppName ? 0 : root.cornerRoom
+            rightPadding: root.showAppName ? 0 : root.timeReserve
             elide: Text.ElideRight
             textFormat: Text.PlainText
             font.family: Theme.font.family
