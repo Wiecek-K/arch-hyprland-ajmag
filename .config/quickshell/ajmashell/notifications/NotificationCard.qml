@@ -23,9 +23,11 @@ Rectangle {
     required property var actions // ListModel: identifier, text (notifications.mjs actionButtons)
     property bool showAppName: true // the Centrum shows it once, on the group header
     required property real time // ms, when it came (or was last updated)
-    property real now: Date.now() // the Centrum passes its clock; a popup is always "now"
+    property bool showTime: false // the Centrum only: a popup on screen has just come, "now" says nothing (ticket 33)
+    property real now: 0 // the Centrum's clock, read only with showTime
     property bool closable: false // the Centrum: an X in place of the time while hovered (ticket 32)
     readonly property alias hovered: hover.hovered
+    readonly property real cornerRoom: showTime ? timeLabel.width + Theme.spacing.md : 0 // first line keeps clear of the time
 
     signal clicked
     signal actionInvoked(string identifier)
@@ -79,13 +81,14 @@ Rectangle {
         }
     }
 
-    // time in the top-right corner (user, 2026-10-07); the first line of text leaves room for it
+    // time in the top-right corner (user, 2026-10-07), Centrum only (ticket 33); the first line leaves room for it
     Text {
         id: timeLabel
         anchors.right: parent.right
         anchors.rightMargin: Theme.notifications.padding
         y: Theme.notifications.padding
-        text: Logic.timeText(root.time, root.now)
+        visible: root.showTime
+        text: root.showTime ? Logic.timeText(root.time, root.now) : ""
         textFormat: Text.PlainText
         font.family: Theme.font.family
         font.pixelSize: Theme.font.sizeSmall
@@ -153,7 +156,7 @@ Rectangle {
             width: parent.width
             visible: root.showAppName && text !== ""
             text: root.appName
-            rightPadding: timeLabel.width + Theme.spacing.md
+            rightPadding: root.cornerRoom
             elide: Text.ElideRight
             textFormat: Text.PlainText
             font.family: Theme.font.family
@@ -164,7 +167,7 @@ Rectangle {
         Text {
             width: parent.width
             text: root.summary
-            rightPadding: root.showAppName ? 0 : timeLabel.width + Theme.spacing.md
+            rightPadding: root.showAppName ? 0 : root.cornerRoom
             elide: Text.ElideRight
             textFormat: Text.PlainText
             font.family: Theme.font.family

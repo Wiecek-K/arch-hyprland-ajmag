@@ -651,6 +651,7 @@ Scope {
                                 transformOrigin: Item.Bottom // row.rise grows it from the edge
                                 showAppName: false
                                 time: row.model.time
+                                showTime: true
                                 now: clock.date.getTime()
                                 appName: row.model.appName
                                 summary: row.model.summary
