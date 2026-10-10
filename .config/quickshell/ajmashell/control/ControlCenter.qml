@@ -55,7 +55,8 @@ Scope {
     readonly property string backlight: "intel_backlight" // eDP-1 (B10 §2.1)
 
     function toggle(name: string): void {
-        if (open) {
+        // a bell on another screen moves it there in one click (ticket 27, user 2026-10-10)
+        if (open && (name === "" || name === screenName)) {
             open = false;
             return;
         }
