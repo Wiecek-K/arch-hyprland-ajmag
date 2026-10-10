@@ -408,11 +408,18 @@ PopupWindow {
         onCleared: root.close()
     }
 
-    // ticket 27: a press on the Bar outside its own islands closes it; that island opens its own element
-    BarPressCloser {
+    // ticket 27: closes on a press on the Bar outside its own islands; follows the focused monitor
+    BarElement {
         open: root.visible
         owners: root.islands
+        screenName: root.screen?.name ?? ""
+        stays: root.pairing !== null || root.passwordMode || root.promptMode // closing would cancel them
         onClose: root.close()
+        onFollow: name => {
+            const tab = root.tab;
+            root.close();
+            BarPopups.reopen("orbit", tab, name);
+        }
     }
 
     visible: false

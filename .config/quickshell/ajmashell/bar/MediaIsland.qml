@@ -23,6 +23,12 @@ Island {
             popup.toggle();
     }
 
+    // the popup followed the focus to this monitor (ticket 27)
+    function openPopup(): void {
+        if (!popup.visible)
+            togglePopup();
+    }
+
     spacing: Theme.spacing.lg
     opacity: player ? 1 : 0
     visible: opacity > 0

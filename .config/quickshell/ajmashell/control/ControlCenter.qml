@@ -37,6 +37,7 @@ Scope {
 
     property bool open: false
     property string screenName: ""
+    property bool moving: false // following the focus to another monitor (ticket 27)
     // 0 = hidden, 1 = fully in; the window shows while above 0, so the panel can slide out before it hides
     property real shown: open ? 1 : 0
 
@@ -151,11 +152,16 @@ Scope {
         onRunningChanged: if (!running) root.sendBrightness()
     }
 
-    // ticket 27: a press on the Bar outside every bell closes it; that island opens its own element
-    BarPressCloser {
+    // ticket 27: closes on a press on the Bar outside every bell; moves to the focused monitor
+    BarElement {
         open: root.open
         owners: BarLogic.onBell
+        screenName: root.screenName
         onClose: root.open = false
+        onFollow: name => {
+            root.moving = true;
+            root.screenName = name;
+        }
     }
 
     SystemClock {
@@ -205,7 +211,15 @@ Scope {
             HyprlandFocusGrab {
                 id: grab
                 windows: [win, ...BarPopups.bars]
-                onCleared: root.open = false
+                // a move to another monitor makes a new surface, which clears the grab: not a click beside it
+                onCleared: {
+                    if (!root.moving) {
+                        root.open = false;
+                        return;
+                    }
+                    root.moving = false;
+                    Qt.callLater(() => grab.active = win.visible); // the grab again, on the new monitor's surface
+                }
             }
 
             Rectangle {

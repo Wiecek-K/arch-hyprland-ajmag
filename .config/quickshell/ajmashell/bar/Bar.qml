@@ -12,7 +12,8 @@
 // Ticket 12: one Orbita per screen under the Wi-Fi / BT island; IpcHandler "orbit" opens it on the focused screen.
 // Ticket 14: the bell asks for the Centrum sterowania (controlRequested, handled in shell.qml); its rows open the Orbita.
 // Ticket 17: media island left of the clock; IpcHandler "media" opens its popup on the focused screen.
-// Ticket 27: every press on the Bar goes to BarPopups, so one click on another island switches the open element.
+// Ticket 27: every press on the Bar goes to BarPopups, so one click on another island switches the open element;
+// an open element follows the focused monitor (onReopen opens it on this Bar).
 // Tray and volume islands swapped (user, 2026-10-07): tray on the left edge, volume · microphone · separator before the pill.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -116,6 +117,24 @@ Scope {
                 }
             }
 
+            // ticket 27: an element open on another monitor followed the focus here
+            Connections {
+                target: BarPopups
+
+                function onReopen(kind: string, key: var, screenName: string): void {
+                    if (screenName !== barWindow.modelData.name)
+                        return;
+                    if (kind === "orbit")
+                        orbit.toggle(key === "bt" ? btIsland : wifiIsland, key);
+                    else if (kind === "audio")
+                        (key ? micIsland : volumeIsland).openPopup();
+                    else if (kind === "media")
+                        mediaIsland.openPopup();
+                    else if (kind === "tray")
+                        tray.openMenu(key);
+                }
+            }
+
             // Every island; the press catcher below stays out of it, so deepestAt finds the island under the pointer.
             Item {
                 id: content
@@ -128,7 +147,9 @@ Scope {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Theme.bar.islandGap
 
-                    Tray {}
+                    Tray {
+                        id: tray
+                    }
                 }
 
                 // Centre (ADR 0002 §3–4, changed 2026-09-29): media (ticket 17) · clock · workspaces.
@@ -160,9 +181,12 @@ Scope {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: Theme.bar.islandGap
 
-                    Volume {}
+                    Volume {
+                        id: volumeIsland
+                    }
 
                     Volume {
+                        id: micIsland
                         microphone: true
                     }
 

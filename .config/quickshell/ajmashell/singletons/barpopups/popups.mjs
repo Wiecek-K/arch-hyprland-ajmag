@@ -2,7 +2,8 @@
 // media popup, Centrum sterowania. Their focus grabs let clicks through to the Bar, so one click on another
 // island closes the open element and opens the next; a press on one of the element's own islands leaves it to
 // that island's toggle (a second click still closes it, the Orbita switches its tab without closing).
-// Used by BarPopups.qml and BarPressCloser.qml next to it.
+// An open element also follows the focused monitor (user, 2026-10-10).
+// Used by BarPopups.qml and BarElement.qml next to it.
 // A JS module (not QML) so tools/test-bar-popups.mjs can test it with node.
 // Own implementation.
 
@@ -29,6 +30,12 @@ export function onBell(hit) {
 // a list of islands, or a test on the hit item (the Centrum: onBell).
 export function closesOn(hit, owners) {
     return typeof owners === "function" ? !owners(hit) : !owners.some(owner => within(hit, owner));
+}
+
+// Where an open element moves when the focused monitor changes: the focused screen, or "" to stay
+// (closed, held — e.g. the Orbita while pairing or asking for a password —, already there, or a screen unknown).
+export function followTarget(open, stays, here, focused) {
+    return open && !stays && here !== "" && focused !== "" && focused !== here ? focused : "";
 }
 
 // The deepest item under (x, y) in `root`'s coordinates; `childAt(item, x, y)` as Item.childAt.

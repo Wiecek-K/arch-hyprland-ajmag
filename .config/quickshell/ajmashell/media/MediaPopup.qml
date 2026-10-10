@@ -63,11 +63,16 @@ PopupWindow {
         onCleared: root.visible = false
     }
 
-    // ticket 27: a press on the Bar outside its own islands closes it; that island opens its own element
-    BarPressCloser {
+    // ticket 27: closes on a press on the Bar outside its own islands; follows the focused monitor
+    BarElement {
         open: root.visible
         owners: [root.source]
+        screenName: root.screen?.name ?? ""
         onClose: root.visible = false
+        onFollow: name => {
+            root.visible = false;
+            BarPopups.reopen("media", null, name);
+        }
     }
 
     // MPRIS sends no position updates while playing: re-read it only while the popup is open

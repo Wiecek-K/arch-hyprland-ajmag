@@ -21,17 +21,19 @@ PopupWindow {
 
     property Item source: null // tray icon the menu hangs under
     property var menu: null // QsMenuHandle of the app's root menu
+    property string itemId: "" // the tray item's id, to open the same menu on another monitor (ticket 27)
     property list<QtObject> path: [] // submenu entries opened so far, at most maxDepth
     readonly property int maxDepth: 2
     readonly property var current: path.length > 0 ? path[path.length - 1] : menu
 
-    function toggle(item: Item, handle: var): void {
+    function toggle(item: Item, handle: var, id: string): void {
         if (visible && source === item) {
             close();
             return;
         }
         source = item;
         menu = handle;
+        itemId = id;
         path = [];
         visible = true;
     }
@@ -82,11 +84,17 @@ PopupWindow {
         onCleared: root.close()
     }
 
-    // ticket 27: a press on the Bar outside its own islands closes it; that island opens its own element
-    BarPressCloser {
+    // ticket 27: closes on a press on the Bar outside its own islands; follows the focused monitor
+    BarElement {
         open: root.visible
         owners: [root.source]
+        screenName: root.screen?.name ?? ""
         onClose: root.close()
+        onFollow: name => {
+            const id = root.itemId;
+            root.close();
+            BarPopups.reopen("tray", id, name);
+        }
     }
 
     // One opener per level, all open at once: when a menu loses its last opener, Quickshell drops

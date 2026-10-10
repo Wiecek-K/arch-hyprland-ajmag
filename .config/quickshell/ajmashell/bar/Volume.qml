@@ -41,6 +41,12 @@ Island {
 
     onRightClicked: popup.toggle()
 
+    // the popup followed the focus to this monitor (ticket 27)
+    function openPopup(): void {
+        if (!popup.visible)
+            popup.toggle();
+    }
+
     onWheelMoved: delta => {
         const step = Wheel.wheel(wheelRest, delta);
         wheelRest = step.rest;

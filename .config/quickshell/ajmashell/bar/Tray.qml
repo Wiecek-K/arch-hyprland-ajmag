@@ -21,11 +21,20 @@ Island {
     visible: SystemTray.items.values.some(item => Logic.shownInTray(item.id))
     spacing: Theme.bar.traySpacing
 
+    // the menu of tray item `id`, unless open already: the menu followed the focus here (ticket 27)
+    function openMenu(id: string): void {
+        const index = SystemTray.items.values.findIndex(item => item.id === id);
+        const item = SystemTray.items.values[index];
+        if (index >= 0 && item.hasMenu && !trayMenu.visible)
+            trayMenu.toggle(entries.itemAt(index), item.menu, id); // qmllint disable unresolved-type
+    }
+
     TrayMenu {
         id: trayMenu
     }
 
     Repeater {
+        id: entries
         model: SystemTray.items
 
         // Full island height, so the tooltip sits under the island like on the other islands.
@@ -60,7 +69,7 @@ Island {
                     if (event.button === Qt.MiddleButton)
                         item.secondaryActivate();
                     else if (event.button === Qt.RightButton || item.onlyMenu)
-                        item.hasMenu ? trayMenu.toggle(entry, item.menu) : item.activate(); // qmllint disable unresolved-type
+                        item.hasMenu ? trayMenu.toggle(entry, item.menu, item.id) : item.activate(); // qmllint disable unresolved-type
                     else
                         item.activate();
                 }
