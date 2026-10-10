@@ -99,6 +99,7 @@ Scope {
 
             Orbit {
                 id: orbit
+                islands: [wifiIsland, btIsland]
             }
 
             Connections {
@@ -197,7 +198,7 @@ Scope {
                 anchors.fill: parent
                 acceptedButtons: Qt.AllButtons
                 onPressed: mouse => {
-                    BarPopups.press(BarPopups.deepestAt(content, mouse.x, mouse.y));
+                    BarPopups.press(content, mouse.x, mouse.y);
                     mouse.accepted = false;
                 }
             }

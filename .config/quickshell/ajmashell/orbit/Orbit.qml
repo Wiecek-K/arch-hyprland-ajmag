@@ -39,6 +39,7 @@ PopupWindow {
     id: root
 
     property Item source: null // island the Orbita hangs under
+    property list<Item> islands: [] // its islands on the Bar (Wi-Fi, BT): a press on either switches, not closes (ticket 27)
     property string tab: "wifi" // "wifi" | "bt"
     readonly property bool wifiTab: tab === "wifi"
 
@@ -407,14 +408,11 @@ PopupWindow {
         onCleared: root.close()
     }
 
-    // ticket 27: a press elsewhere on the Bar closes it; the grab lets Bar clicks through, so that island opens its own
-    Connections {
-        target: BarPopups
-
-        function onPressed(hit: var): void {
-            if (root.visible && BarPopups.closes(hit, root.source))
-                root.close();
-        }
+    // ticket 27: a press on the Bar outside its own islands closes it; that island opens its own element
+    BarPressCloser {
+        open: root.visible
+        owners: root.islands
+        onClose: root.close()
     }
 
     visible: false

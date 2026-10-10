@@ -43,14 +43,11 @@ PopupWindow {
         onCleared: root.visible = false
     }
 
-    // ticket 27: a press elsewhere on the Bar closes it; the grab lets Bar clicks through, so that island opens its own
-    Connections {
-        target: BarPopups
-
-        function onPressed(hit: var): void {
-            if (root.visible && BarPopups.closes(hit, root.source))
-                root.visible = false;
-        }
+    // ticket 27: a press on the Bar outside its own islands closes it; that island opens its own element
+    BarPressCloser {
+        open: root.visible
+        owners: [root.source]
+        onClose: root.visible = false
     }
 
     visible: false

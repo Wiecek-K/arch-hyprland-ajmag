@@ -82,14 +82,11 @@ PopupWindow {
         onCleared: root.close()
     }
 
-    // ticket 27: a press elsewhere on the Bar closes it; the grab lets Bar clicks through, so that island opens its own
-    Connections {
-        target: BarPopups
-
-        function onPressed(hit: var): void {
-            if (root.visible && BarPopups.closes(hit, root.source))
-                root.close();
-        }
+    // ticket 27: a press on the Bar outside its own islands closes it; that island opens its own element
+    BarPressCloser {
+        open: root.visible
+        owners: [root.source]
+        onClose: root.close()
     }
 
     // One opener per level, all open at once: when a menu loses its last opener, Quickshell drops

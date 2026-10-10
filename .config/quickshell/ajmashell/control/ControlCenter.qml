@@ -29,6 +29,7 @@ import qs.singletons.theme
 import "control.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
 import "../orbit/orbit.mjs" as OrbitLogic
+import "../singletons/barpopups/popups.mjs" as BarLogic
 import "../singletons/notifications/notifications.mjs" as NotifLogic
 
 Scope {
@@ -149,14 +150,11 @@ Scope {
         onRunningChanged: if (!running) root.sendBrightness()
     }
 
-    // ticket 27: a press elsewhere on the Bar closes it; the grab lets Bar clicks through, so that island opens its own
-    Connections {
-        target: BarPopups
-
-        function onPressed(hit: var): void {
-            if (root.open && !BarPopups.onBell(hit))
-                root.open = false;
-        }
+    // ticket 27: a press on the Bar outside every bell closes it; that island opens its own element
+    BarPressCloser {
+        open: root.open
+        owners: BarLogic.onBell
+        onClose: root.open = false
     }
 
     SystemClock {

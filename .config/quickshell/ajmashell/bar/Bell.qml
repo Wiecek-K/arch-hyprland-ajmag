@@ -16,7 +16,7 @@ Island {
     id: root
 
     circle: true
-    readonly property bool opensControl: true // its press leaves the Centrum to the toggle (BarPopups, ticket 27)
+    readonly property bool isBell: true // a press on it leaves the Centrum to the bell's toggle (BarPopups, ticket 27)
 
     onRightClicked: Notifications.toggleSilent()
 
