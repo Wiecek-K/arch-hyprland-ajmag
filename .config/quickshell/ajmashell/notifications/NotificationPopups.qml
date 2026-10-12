@@ -122,8 +122,11 @@ PanelWindow { // qmllint disable uncreatable-type
             required property int generation
 
             width: ListView.view.width
+            closable: true // ticket 37: hides the popup only, the notification stays in the Centrum
+            closeOnIcon: true
 
             onClicked: Notifications.activate(uid, "")
+            onCloseRequested: Notifications.removePopup(uid)
             onActionInvoked: identifier => Notifications.activate(uid, identifier)
             onGenerationChanged: dismissTimer.restart()
 

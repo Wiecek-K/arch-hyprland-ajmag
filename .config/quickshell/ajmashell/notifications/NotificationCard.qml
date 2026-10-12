@@ -25,7 +25,10 @@ Rectangle {
     required property real time // ms, when it came (or was last updated)
     property bool showTime: false // the Centrum only: a popup on screen has just come, "now" says nothing (ticket 33)
     property real now: 0 // the Centrum's clock, read only with showTime
-    property bool closable: false // the Centrum: an X in place of the time while hovered (ticket 32)
+    property bool closable: false // an X while hovered: the Centrum (ticket 32) and the popups (ticket 37)
+    // the popups: the X in place of the app icon, so the text needs no room for it (ticket 37, user 2026-10-12);
+    // else in place of the time (Centrum)
+    property bool closeOnIcon: false
     readonly property alias hovered: hover.hovered
     readonly property real timeReserve: showTime ? timeLabel.width + Theme.spacing.md : 0 // first line keeps clear of the time
 
@@ -60,6 +63,15 @@ Rectangle {
         y: Theme.notifications.padding
         width: Theme.notifications.iconSize
         height: Theme.notifications.iconSize
+
+        // the icon fades out while the X takes its place (closeOnIcon); its size stays, nothing moves
+        opacity: closeButton.shown && root.closeOnIcon ? 0 : 1
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.motion.fast
+            }
+        }
 
         Image {
             id: image
@@ -102,17 +114,18 @@ Rectangle {
         }
     }
 
-    // X: dismiss without the app's action and without a focus change; over the time, right-aligned with it
+    // X: close without the app's action and without a focus change; over the time, right-aligned with it,
+    // or over the app icon (closeOnIcon), same size as the icon
     Rectangle {
         id: closeButton
 
         readonly property bool shown: root.closable && hover.hovered
+        readonly property bool onIcon: root.closeOnIcon
 
-        anchors.right: parent.right
-        anchors.rightMargin: Math.round(Theme.notifications.padding - (width - closeLabel.implicitWidth) / 2)
-        anchors.verticalCenter: timeLabel.verticalCenter
-        width: Theme.notifications.closeSize
-        height: Theme.notifications.closeSize
+        x: onIcon ? iconBox.x : root.width - width - Math.round(Theme.notifications.padding - (width - closeLabel.implicitWidth) / 2)
+        y: onIcon ? iconBox.y : timeLabel.y + (timeLabel.height - height) / 2
+        width: onIcon ? iconBox.width : Theme.notifications.closeSize
+        height: width
         radius: height / 2
         visible: opacity > 0
         opacity: shown ? 1 : 0
@@ -129,7 +142,7 @@ Rectangle {
             anchors.centerIn: parent
             text: Logic.CLOSE_ICON
             font.family: Theme.font.family
-            font.pixelSize: Theme.font.sizeSmall
+            font.pixelSize: closeButton.onIcon ? Theme.font.sizeLarge : Theme.font.sizeSmall
             color: Theme.notifications.subtext
         }
 
