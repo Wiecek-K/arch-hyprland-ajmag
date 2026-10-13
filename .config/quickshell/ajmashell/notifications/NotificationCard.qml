@@ -46,12 +46,16 @@ Rectangle {
         id: hover
     }
 
-    // the buttons have their own TapHandler, but this one fires too: a tap on a button is not a click on the card
+    // the buttons have their own TapHandler, but this one fires too: a tap on a button is not a click on the card.
+    // Not `visible`: a button's tap may remove the last popup, the popup window hides, and every item in it reads
+    // `visible` false before this handler runs (ticket 37: the X then also focused the app)
     TapHandler {
         onTapped: eventPoint => {
             const p = root.mapToItem(actionRow, eventPoint.position);
             const c = root.mapToItem(closeButton, eventPoint.position);
-            if ((!actionRow.visible || !actionRow.contains(p)) && (!closeButton.visible || !closeButton.contains(c)))
+            const onActions = actionRepeater.count > 0 && actionRow.contains(p);
+            const onClose = closeButton.opacity > 0 && closeButton.contains(c);
+            if (!onActions && !onClose)
                 root.clicked();
         }
     }
