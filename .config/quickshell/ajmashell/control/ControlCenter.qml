@@ -40,6 +40,8 @@ Scope {
     property bool moving: false // following the focus to another monitor (ticket 27)
     // 0 = hidden, 1 = fully in; the window shows while above 0, so the panel can slide out before it hides
     property real shown: open ? 1 : 0
+    // true for one close only: the window hides at once instead of sliding out (ticket 35)
+    property bool instant: false
 
     // appKey → true: groups of the Centrum powiadomień shown in full (collapsed = newest entry only)
     property var expanded: ({})
@@ -70,7 +72,10 @@ Scope {
     signal powerRequested(string screenName)
 
     function openPower(): void {
+        // hide at once: the slide would leave the Centrum over the panel's backdrop, both on Overlay (ticket 35)
+        instant = true;
         open = false; // its focus grab would close the panel at once (as the Orbita below)
+        instant = false;
         const name = screenName;
         Qt.callLater(() => root.powerRequested(name));
     }
@@ -82,6 +87,8 @@ Scope {
     }
 
     Behavior on shown {
+        enabled: !root.instant
+
         NumberAnimation {
             duration: Theme.control.slide
             easing.type: Easing.OutCubic
