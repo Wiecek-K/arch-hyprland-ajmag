@@ -71,11 +71,16 @@ Scope {
     // the power button asks for the Panel zasilania on the same screen; shell.qml opens it
     signal powerRequested(string screenName)
 
-    function openPower(): void {
-        // hide at once: the slide would leave the Centrum over the panel's backdrop, both on Overlay (ticket 35)
+    // hide without the slide: a sliding Centrum would lie over the Panel zasilania's backdrop, both on Overlay
+    // (ticket 35); shell.qml calls it on every opening of the panel, also SUPER+L over IPC
+    function closeAtOnce(): void {
         instant = true;
-        open = false; // its focus grab would close the panel at once (as the Orbita below)
+        open = false;
         instant = false;
+    }
+
+    function openPower(): void {
+        closeAtOnce(); // its focus grab would close the panel at once (as the Orbita below)
         const name = screenName;
         Qt.callLater(() => root.powerRequested(name));
     }

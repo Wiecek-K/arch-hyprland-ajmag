@@ -34,6 +34,8 @@ ShellRoot {
     // Panel zasilania (ticket 18): SUPER+L (power.sh over IPC) and the Centrum's power button
     PowerPanel {
         id: power
+        onOpenChanged: if (open)
+            control.closeAtOnce() // SUPER+L with the Centrum open: no slide over the backdrop (ticket 35)
     }
 
     NotificationPopups {}
