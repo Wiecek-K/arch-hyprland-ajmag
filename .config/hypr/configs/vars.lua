@@ -7,6 +7,6 @@ return {
     menuFallback = "rofi -show drun",
     -- Zestaw shella startowany po zalogowaniu: "waybar" (Waybar + swaync) albo "ajmashell" (Ajmashell, Quickshell).
     -- Jedyne miejsce zmiany domyślnego zestawu. Przełączanie w trakcie sesji: SUPER+SHIFT+R (scripts/shellset.sh).
-    shell       = "waybar",
+    shell       = "ajmashell",
     scripts     = "~/.config/hypr/scripts",
 }
