@@ -66,7 +66,7 @@ chmod +x install.sh
 ### 3. Post-Install
 1.  **Reboot** your system.
 2.  **First Run:** Press `Super + W` to select a wallpaper and generate the initial color scheme.
-3.  **Zen Browser:** Restart the browser to apply the generated theme.
+3.  **Zen Browser:** Restart the browser once after the install (it loads the autoconfig script); later wallpaper changes apply live.
 
 ---
 
@@ -109,8 +109,8 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
     *   **Occupied Indicator:** Workspaces with windows have a distinct color (Secondary) vs Empty (Gray) vs Active (Primary).
 
 ### Zen Browser
-*   Uses `userChrome.css` to import `matugen-colors.css`.
-*   **Limitation:** Due to Firefox/Zen architecture, the browser **must be restarted** to pick up new colors after changing the wallpaper.
+*   Uses `userChrome.css` (`home_files/zen/chrome/`) to import `matugen-colors.css` at startup.
+*   **Live colours:** Firefox reads `userChrome.css` only at startup, so the AutoConfig script `system/zen/config.js` (installed by `install.sh` into `/opt/zen-browser-bin/` with `sudo`) watches `matugen-colors.css` and re-registers it as a user style sheet after each wallpaper change — no browser restart. Roll back: delete `/opt/zen-browser-bin/config.js` and `/opt/zen-browser-bin/defaults/pref/autoconfig.js`, restart Zen.
 
 ### Terminal (Kitty)
 *   **Style:** Powerline tab bar (hidden if only 1 tab), Beam cursor.
