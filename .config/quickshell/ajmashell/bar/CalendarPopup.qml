@@ -1,11 +1,14 @@
-// CalendarPopup — a click on the Bar's clock (ticket 42): the month from Monday with ISO week numbers, today
-// marked, Sundays and Polish statutory holidays in Theme.calendar.dayOff; the holiday's name shows in the line
-// under the grid while the pointer is on its day (user, 2026-10-14).
+// CalendarPopup — a click on the Bar's clock (ticket 42). Variant B of the UI prototype (user, 2026-10-14):
+// left a panel with today — big day number, weekday, date with the ISO week, today's holiday or the next one with
+// its distance; right the month from Monday, today marked, Sundays and Polish statutory holidays in
+// Theme.calendar.dayOff. A left click on a day shows that day in the panel (its holiday name, distance from today),
+// a right click goes back to today (user, 2026-10-14).
 // Months: wheel (up = next, like Waybar's "shift_up" and our workspaces), ← →, the ‹ › buttons; the title and
-// Home go back to today. Opens on the current month.
-// A small popup like the audio popup (user, 2026-10-14): Theme.control colours, the look's background, no flare.
+// Home go back to today's month. Opens on today.
+// The look's background and lens flare like the big popups (user, 2026-10-14), Theme.control colours.
 // Hangs under the clock; closes on a click outside (HyprlandFocusGrab), on Esc and on a second click on the clock.
-// Pure logic: calendar.mjs (tests tools/test-calendar.mjs).
+// Pure logic: calendar.mjs (tests tools/test-calendar.mjs). The prototype with all four variants:
+// branch prototype/ticket-42-calendar-ui in the dotfiles repo.
 // Own implementation; popup placement and focus grab as in control/AudioPopup.qml. Title click back to today and
 // wheel over the month after caelestia-dots/shell modules/dashboard/dash/Calendar.qml (GPL-3.0), idea only:
 // https://github.com/caelestia-dots/shell/blob/a3a8fe59aba2c0048ab02dc817748678f96076ff/modules/dashboard/dash/Calendar.qml
@@ -28,20 +31,15 @@ PopupWindow {
     required property Item source // the clock island
     required property date now // the clock's SystemClock: today moves on at midnight while open
 
-    readonly property int todayYear: now.getFullYear()
-    readonly property int todayMonth: now.getMonth() + 1
-    readonly property int todayDay: now.getDate()
+    readonly property var today: ({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() })
 
-    property int year: todayYear // month shown
-    property int month: todayMonth
-    property string hoveredName: "" // holiday under the pointer
+    property int year: today.year // month shown
+    property int month: today.month
+    property var selected: null // clicked day { year, month, day }; null = today
     property real wheelRest: 0
 
     readonly property var grid: Logic.monthGrid(year, month)
-
-    // the day delegates are rebuilt on a month change, so their HoverHandler never reports leaving
-    onYearChanged: hoveredName = ""
-    onMonthChanged: hoveredName = ""
+    readonly property var info: Logic.describe(selected ?? today, today) // the left panel
 
     function toggle(): void {
         if (!visible)
@@ -56,8 +54,9 @@ PopupWindow {
     }
 
     function showToday(): void {
-        year = todayYear;
-        month = todayMonth;
+        year = today.year;
+        month = today.month;
+        selected = null;
     }
 
     function shift(delta: int): void {
@@ -66,9 +65,12 @@ PopupWindow {
         month = to.month;
     }
 
+    function same(a: var, b: var): bool {
+        return !!a && !!b && a.year === b.year && a.month === b.month && a.day === b.day;
+    }
+
     // the grab refuses a window that is not mapped yet, so arm it after the popup shows (as the Orbita)
     onVisibleChanged: Qt.callLater(() => {
-        root.hoveredName = "";
         grab.active = root.visible;
         if (root.visible)
             panel.forceActiveFocus();
@@ -103,8 +105,8 @@ PopupWindow {
     anchor.edges: Edges.Bottom | Edges.Left // qmllint disable missing-type
     anchor.gravity: Edges.Bottom | Edges.Right // qmllint disable missing-type
 
-    implicitWidth: column.implicitWidth + 2 * Theme.control.padding
-    implicitHeight: column.implicitHeight + 2 * Theme.control.padding
+    implicitWidth: content.implicitWidth + 2 * Theme.control.padding
+    implicitHeight: content.implicitHeight + 2 * Theme.control.padding
     color: Theme.transparent // only the rounded box below is drawn
 
     Rectangle {
@@ -134,123 +136,181 @@ PopupWindow {
             }
         }
 
-        Column {
-            id: column
+        // right click anywhere: back to today in the left panel
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: root.selected = null
+        }
+
+        OrbitBackdrop {
+            anchors.fill: parent
+            visible: Look.current.flare
+            open: root.visible
+        }
+
+        Row {
+            id: content
             x: Theme.control.padding
             y: Theme.control.padding
-            spacing: Theme.spacing.sm
+            spacing: Theme.control.spacing
 
-            // ‹ Październik 2026 ›
-            Item {
-                width: parent.width
-                height: Theme.calendar.cell
+            // left: today or the clicked day. Shorter than the grid, so its text never changes the popup's size.
+            Column {
+                width: Theme.calendar.panelWidth
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: Theme.spacing.sm
 
-                CalendarButton {
-                    anchors.left: parent.left
-                    text: "\uf053" // nf-fa-chevron_left
-                    onClicked: root.shift(-1)
+                OrbitText {
+                    font.pixelSize: Theme.calendar.bigDay
+                    color: root.info.off ? Theme.calendar.dayOff : Theme.calendar.text
+                    text: root.info.day
                 }
 
-                CalendarButton {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: Logic.title(root.year, root.month)
-                    onClicked: root.showToday()
+                OrbitText {
+                    width: parent.width
+                    font.pixelSize: Theme.font.sizeLarge
+                    color: Theme.calendar.text
+                    text: root.info.weekday
                 }
 
-                CalendarButton {
-                    anchors.right: parent.right
-                    text: "\uf054" // nf-fa-chevron_right
-                    onClicked: root.shift(1)
+                PanelText {
+                    text: root.info.date
+                }
+
+                PanelText {
+                    visible: text !== ""
+                    text: root.info.when
+                }
+
+                Item {
+                    width: 1
+                    height: Theme.spacing.lg
+                }
+
+                // the day's own holiday, a plain Sunday, or the next holiday from today
+                PanelText {
+                    text: root.info.holiday !== "" ? "Święto" : root.info.off ? "Dzień wolny" : root.info.next ? "Najbliższe święto — " + root.info.next.when : ""
+                }
+
+                PanelText {
+                    font.pixelSize: Theme.font.size
+                    color: Theme.calendar.dayOff
+                    text: root.info.holiday !== "" ? root.info.holiday : root.info.off ? "" : root.info.next?.name ?? ""
+                }
+
+                PanelText {
+                    visible: text !== ""
+                    text: root.info.holiday === "" && !root.info.off ? root.info.next?.date ?? "" : ""
                 }
             }
 
-            // weekday header, empty corner over the week numbers
-            Row {
+            Rectangle {
+                width: 1
+                height: monthView.height
+                color: Theme.control.separator
+            }
+
+            // right: ‹ Październik 2026 ›, weekdays, 6 weeks
+            Column {
+                id: monthView
+                spacing: Theme.spacing.xs
+
                 Item {
-                    width: Theme.calendar.weekWidth
-                    height: 1
+                    width: 7 * Theme.calendar.cell
+                    height: Theme.calendar.cell
+
+                    CalendarButton {
+                        anchors.left: parent.left
+                        text: "" // nf-fa-chevron_left
+                        onClicked: root.shift(-1)
+                    }
+
+                    CalendarButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        small: true
+                        text: Logic.title(root.year, root.month)
+                        onClicked: root.showToday()
+                    }
+
+                    CalendarButton {
+                        anchors.right: parent.right
+                        text: "" // nf-fa-chevron_right
+                        onClicked: root.shift(1)
+                    }
+                }
+
+                Row {
+                    Repeater {
+                        model: Logic.WEEKDAYS
+
+                        OrbitText {
+                            required property string modelData
+                            required property int index
+
+                            width: Theme.calendar.cell
+                            horizontalAlignment: Text.AlignHCenter
+                            font.pixelSize: Theme.font.sizeSmall
+                            color: index === 6 ? Theme.calendar.dayOff : Theme.calendar.subtext
+                            text: modelData
+                        }
+                    }
                 }
 
                 Repeater {
-                    model: Logic.WEEKDAYS
+                    model: root.grid
 
-                    OrbitText {
-                        required property string modelData
-                        required property int index
+                    Row {
+                        id: week
+                        required property var modelData
 
-                        width: Theme.calendar.cell
-                        horizontalAlignment: Text.AlignHCenter
-                        font.pixelSize: Theme.font.sizeSmall
-                        color: index === 6 ? Theme.calendar.dayOff : Theme.calendar.subtext
-                        text: modelData
-                    }
-                }
-            }
+                        Repeater {
+                            model: week.modelData.days
 
-            Repeater {
-                model: root.grid
+                            Rectangle {
+                                id: day
 
-                Row {
-                    id: week
-                    required property var modelData
+                                required property var modelData
+                                readonly property bool off: Logic.dayOff(modelData.year, modelData.month, modelData.day).off
+                                readonly property bool today: root.same(modelData, root.today)
 
-                    OrbitText {
-                        width: Theme.calendar.weekWidth
-                        height: Theme.calendar.cell
-                        verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: Theme.font.sizeSmall
-                        color: Theme.calendar.subtext
-                        text: week.modelData.week
-                    }
+                                width: Theme.calendar.cell
+                                height: Theme.calendar.cell
+                                radius: height / 2
+                                color: today ? Theme.calendar.today : dayHover.hovered ? Theme.calendar.hover : Theme.transparent
+                                // the clicked day: a ring in today's colour
+                                border.width: root.same(modelData, root.selected) && !today ? Theme.bar.ringWidth : 0
+                                border.color: Theme.calendar.today
+                                opacity: modelData.inMonth ? 1 : Theme.calendar.outside
 
-                    Repeater {
-                        model: week.modelData.days
+                                OrbitText {
+                                    anchors.centerIn: parent
+                                    font.pixelSize: Theme.font.sizeSmall
+                                    color: day.today ? Theme.calendar.todayText : day.off ? Theme.calendar.dayOff : Theme.calendar.text
+                                    text: day.modelData.day
+                                }
 
-                        Rectangle {
-                            id: day
+                                HoverHandler {
+                                    id: dayHover
+                                }
 
-                            required property var modelData
-                            readonly property var info: Logic.dayOff(modelData.year, modelData.month, modelData.day)
-                            readonly property bool today: modelData.year === root.todayYear && modelData.month === root.todayMonth && modelData.day === root.todayDay
-
-                            width: Theme.calendar.cell
-                            height: Theme.calendar.cell
-                            radius: height / 2
-                            color: today ? Theme.calendar.today : dayHover.hovered ? Theme.calendar.hover : Theme.transparent
-                            opacity: modelData.inMonth ? 1 : Theme.calendar.outside
-
-                            OrbitText {
-                                anchors.centerIn: parent
-                                font.pixelSize: Theme.font.sizeSmall
-                                color: day.today ? Theme.calendar.todayText : day.info.off ? Theme.calendar.dayOff : Theme.calendar.text
-                                text: day.modelData.day
-                            }
-
-                            HoverHandler {
-                                id: dayHover
-                                onHoveredChanged: {
-                                    if (hovered)
-                                        root.hoveredName = day.info.name;
-                                    else if (root.hoveredName === day.info.name)
-                                        root.hoveredName = "";
+                                TapHandler {
+                                    onTapped: root.selected = day.modelData
                                 }
                             }
                         }
                     }
                 }
             }
-
-            // holiday under the pointer; the line keeps its height, so the popup never jumps
-            OrbitText {
-                width: parent.width
-                height: Theme.calendar.cell
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: Theme.font.sizeSmall
-                color: Theme.calendar.dayOff
-                text: root.hoveredName
-            }
         }
+    }
+
+    // wrapped small text of the left panel
+    component PanelText: OrbitText {
+        width: Theme.calendar.panelWidth
+        wrapMode: Text.WordWrap
+        elide: Text.ElideNone
+        font.pixelSize: Theme.font.sizeSmall
+        color: Theme.calendar.subtext
     }
 
     // round button with a hover fill, like the Orbita's soft pills
@@ -258,6 +318,7 @@ PopupWindow {
         id: button
 
         property alias text: label.text
+        property bool small: false
         signal clicked
 
         width: Math.max(Theme.calendar.cell, label.implicitWidth + 2 * Theme.spacing.lg)
@@ -268,6 +329,7 @@ PopupWindow {
         OrbitText {
             id: label
             anchors.centerIn: parent
+            font.pixelSize: button.small ? Theme.font.sizeSmall : Theme.font.size
             color: Theme.calendar.text
         }
 

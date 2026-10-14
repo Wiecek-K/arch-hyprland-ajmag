@@ -121,3 +121,61 @@ export function shiftMonth(year, month, delta) {
     const n = year * 12 + month - 1 + delta;
     return { year: Math.floor(n / 12), month: (n % 12 + 12) % 12 + 1 };
 }
+
+// --- Left panel: today or the clicked day (user, 2026-10-14) ---
+
+const WEEKDAY_NAMES = ["Niedziela", "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota"];
+const MONTHS_GENITIVE = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca",
+    "lipca", "sierpnia", "września", "października", "listopada", "grudnia"];
+
+function utc(d) {
+    return Date.UTC(d.year, d.month - 1, d.day);
+}
+
+function weekday(d) {
+    return new Date(utc(d)).getUTCDay();
+}
+
+// first named holiday on or after d (the day itself counts): { year, month, day, name, days }
+export function nextHoliday(year, month, day) {
+    for (let i = 0; i < 400; i++) {
+        const d = new Date(Date.UTC(year, month - 1, day + i));
+        const date = { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
+        const name = dayOff(date.year, date.month, date.day).name;
+        if (name !== "")
+            return { year: date.year, month: date.month, day: date.day, name: name, days: i }; // no object spread in V4
+    }
+    return null;
+}
+
+// "dziś", "jutro", "wczoraj", "za N dni", "N dni temu"; today and d: { year, month, day }
+export function relative(today, d) {
+    const n = Math.round((utc(d) - utc(today)) / DAY);
+    if (n === 0)
+        return "dziś";
+    if (n === 1)
+        return "jutro";
+    if (n === -1)
+        return "wczoraj";
+    return n > 0 ? `za ${n} dni` : `${-n} dni temu`;
+}
+
+// Texts of the left panel for the day d. when: distance from today ("" for today). holiday: its name, "" if none.
+// next: the next holiday from today, only while d is not a holiday itself; null otherwise.
+export function describe(d, today) {
+    const info = dayOff(d.year, d.month, d.day);
+    const h = info.name === "" ? nextHoliday(today.year, today.month, today.day) : null;
+    return {
+        day: d.day,
+        weekday: WEEKDAY_NAMES[weekday(d)],
+        date: `${d.day} ${MONTHS_GENITIVE[d.month - 1]} ${d.year} · tydzień ${isoWeek(d.year, d.month, d.day)}`,
+        when: utc(d) === utc(today) ? "" : relative(today, d),
+        off: info.off,
+        holiday: info.name,
+        next: h && {
+            name: h.name,
+            date: `${WEEKDAY_NAMES[weekday(h)].toLowerCase()}, ${h.day} ${MONTHS_GENITIVE[h.month - 1]}`,
+            when: relative(today, h),
+        },
+    };
+}

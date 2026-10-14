@@ -184,9 +184,9 @@ Singleton {
         background: root.bar.island // blurred by Hyprland (rules.lua layerrule-9) while alpha ≥ 0.5
     }
 
-    // Calendar under the Bar's clock (bar/CalendarPopup.qml, ticket 42): a small popup like the audio popup —
-    // Theme.control colours, the look's background, no lens flare (user, 2026-10-14). Sundays and Polish statutory
-    // holidays in `dayOff`, like the red days of a paper calendar.
+    // Calendar under the Bar's clock (bar/CalendarPopup.qml, ticket 42): Theme.control colours, the look's background
+    // and lens flare like the big popups (user, 2026-10-14, variant B of the UI prototype). Sundays and Polish
+    // statutory holidays in `dayOff`, like the red days of a paper calendar.
     readonly property CalendarStyle calendar: CalendarStyle {
         text: root.control.text
         subtext: root.control.subtext // weekday header, ISO week numbers, holiday name
@@ -553,6 +553,8 @@ Singleton {
         readonly property int cell: 36 // px, one day (square)
         readonly property int weekWidth: 32 // ISO week number column
         readonly property real outside: 0.35 // opacity of days from the neighbouring months
+        readonly property int panelWidth: 216 // left panel: the day, its date and holiday
+        readonly property int bigDay: 60 // px, the day number in the left panel
         property color text
         property color subtext
         property color hover
