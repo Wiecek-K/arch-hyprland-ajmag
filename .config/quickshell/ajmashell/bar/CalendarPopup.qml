@@ -1,6 +1,6 @@
 // CalendarPopup — a click on the Bar's clock (ticket 42). Variant B of the UI prototype (user, 2026-10-14):
 // left a panel with today — big day number, weekday, date with the ISO week, today's holiday or the next one with
-// its distance; right the month from Monday, today marked, Sundays and Polish statutory holidays in
+// its distance (from the shown day on, distances from today); right the month from Monday, today marked, Sundays and Polish statutory holidays in
 // Theme.calendar.dayOff. A left click on a day shows that day in the panel (its holiday name, distance from today),
 // a right click goes back to today (user, 2026-10-14).
 // Months: wheel (up = next, like Waybar's "shift_up" and our workspaces), ← →, the ‹ › buttons; the title and
@@ -187,20 +187,20 @@ PopupWindow {
                     height: Theme.spacing.lg
                 }
 
-                // the day's own holiday, a plain Sunday, or the next holiday from today
+                // the day's own holiday; else "Dzień wolny" on a plain Sunday and the next holiday after the day
                 PanelText {
-                    text: root.info.holiday !== "" ? "Święto" : root.info.off ? "Dzień wolny" : root.info.next ? "Najbliższe święto — " + root.info.next.when : ""
+                    text: root.info.holiday !== "" ? "Święto" : root.info.off ? "Dzień wolny · najbliższe święto" : "Najbliższe święto"
                 }
 
                 PanelText {
                     font.pixelSize: Theme.font.size
                     color: Theme.calendar.dayOff
-                    text: root.info.holiday !== "" ? root.info.holiday : root.info.off ? "" : root.info.next?.name ?? ""
+                    text: root.info.holiday !== "" ? root.info.holiday : root.info.next?.name ?? ""
                 }
 
                 PanelText {
                     visible: text !== ""
-                    text: root.info.holiday === "" && !root.info.off ? root.info.next?.date ?? "" : ""
+                    text: root.info.next ? root.info.next.date + " · " + root.info.next.when : ""
                 }
             }
 

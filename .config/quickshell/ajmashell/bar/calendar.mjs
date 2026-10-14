@@ -161,10 +161,11 @@ export function relative(today, d) {
 }
 
 // Texts of the left panel for the day d. when: distance from today ("" for today). holiday: its name, "" if none.
-// next: the next holiday from today, only while d is not a holiday itself; null otherwise.
+// next: the next holiday after d (user, 2026-10-14: counted from the clicked day, not from today), only while d is
+// not a holiday itself; null otherwise. Every distance (when, next.when) is counted from today.
 export function describe(d, today) {
     const info = dayOff(d.year, d.month, d.day);
-    const h = info.name === "" ? nextHoliday(today.year, today.month, today.day) : null;
+    const h = info.name === "" ? nextHoliday(d.year, d.month, d.day) : null;
     return {
         day: d.day,
         weekday: WEEKDAY_NAMES[weekday(d)],
