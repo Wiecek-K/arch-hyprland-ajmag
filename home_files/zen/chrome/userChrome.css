@@ -19,13 +19,11 @@
     background-color: var(--zen-surface) !important;
 }
 
-/* Active Tab styling */
-.tab-background[selected="true"] {
-    background-color: var(--zen-primary) !important;
-}
-
-.tab-label[selected="true"] {
-    color: var(--zen-on-primary) !important;
+/* Active tab: Zen paints it with --tab-background-color-selected, set on zen-workspace (zen-workspaces.css,
+ * !important); a user !important wins over it. Not [selected="true"]: the attribute is boolean (selected=""). */
+zen-workspace {
+    --tab-background-color-selected: color-mix(in srgb, var(--zen-primary) 50%, var(--zen-surface)) !important;
+    --tab-text-color-selected: var(--zen-on-surface) !important;
 }
 
 /* URL Bar */
