@@ -15,6 +15,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 
 PARENT = "/usr/share/icons/Colloid-Teal-Dark"
 ACCENT = "#4DB6AC"
@@ -25,9 +26,13 @@ PLACES = "places/scalable"
 SMALL = ("16", "22", "24")  # Colloid's line icons for small sizes: same names, no accent
 
 
-def recolor(svg, color):
+def check_color(color):
     if not re.fullmatch(r"#[0-9a-fA-F]{6}", color):
         raise ValueError(f"not a #rrggbb colour: {color!r}")
+
+
+def recolor(svg, color):
+    check_color(color)
     return re.sub(re.escape(ACCENT), color, svg, flags=re.IGNORECASE)
 
 
@@ -76,12 +81,13 @@ def index_theme(name, parent_name, parent_index):
            f"Inherits={parent_name}", "Example=folder", f"Directories={','.join(dirs)}",
            f"ScaledDirectories={','.join(scaled)}", ""]
     for d in dirs + scaled:
-        out += [f"[{d}]", *sections[d], ""]
+        out += [f"[{d}]", *sections.get(d, []), ""]
     return "\n".join(out)
 
 
 def build(parent, out, color):
     """Write the overlay theme to out (replacing it)."""
+    check_color(color)  # before rmtree: a bad accent file must not leave half a theme
     files, links = accent_icons(parent)
     shutil.rmtree(out, ignore_errors=True)
     scalable = os.path.join(out, PLACES)
@@ -111,18 +117,30 @@ def next_slot(current):
     return f"{NAME}-b" if current == f"{NAME}-a" else f"{NAME}-a"
 
 
+def lock(timeout=120):
+    """Quick wallpaper changes start several hooks: one at a time; a hung run must not queue the rest forever."""
+    f = open(os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "icon-overlay.lock"), "w")
+    for _ in range(timeout * 10):
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return f
+        except BlockingIOError:
+            time.sleep(0.1)
+    raise TimeoutError("another icon-overlay.py run holds the lock")
+
+
 def main():
+    held = lock()  # kept open until exit
     if len(sys.argv) > 1:
         color = sys.argv[1]
-    else:
+    else:  # read under the lock, so the last run uses the newest colour
         with open(ACCENT_FILE) as f:
             color = f.read().strip()
     os.makedirs(ICONS, exist_ok=True)
-    # quick wallpaper changes start several hooks: one at a time, the last one wins
-    lock = open(os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "icon-overlay.lock"), "w")
-    fcntl.flock(lock, fcntl.LOCK_EX)
     key = ["org.gnome.desktop.interface", "icon-theme"]
-    current = subprocess.run(["gsettings", "get", *key], capture_output=True, text=True).stdout.strip().strip("'")
+    # check=True: a failed read would pick slot -a even when -a is in use
+    current = subprocess.run(["gsettings", "get", *key], capture_output=True, text=True,
+                             check=True).stdout.strip().strip("'")
     slot = next_slot(current)
     build(PARENT, os.path.join(ICONS, slot), color)
     tmp = os.path.join(ICONS, f".{NAME}.new")
@@ -134,4 +152,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:  # the hook runs in the background with no output: tell the user
+        subprocess.run(["notify-send", "-a", "Ajmashell", "Folder icon colours not applied", str(e)])
+        raise
