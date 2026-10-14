@@ -104,6 +104,14 @@ hl.window_rule({
     match    = { class = "^$", title = "^$", xwayland = true, float = true, fullscreen = false, pin = false },
     no_focus = true,
 })
+-- Menu XWayland bez klasy (np. „•••” w Spotify): blur obejmował cały prostokąt popupu razem z przezroczystym
+-- marginesem cienia Chromium — wokół menu widać było rozmytą poświatę (2026-10-14). ignore_alpha jest tylko dla warstw.
+hl.window_rule({
+    name      = "xwayland-popup-noblur",
+    match     = { class = "^$", title = "^$", xwayland = true, float = true, fullscreen = false, pin = false },
+    no_blur   = true,
+    no_shadow = true,
+})
 
 -- Okna dialogowe
 hl.window_rule({
