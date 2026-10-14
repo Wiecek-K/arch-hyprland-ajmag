@@ -23,6 +23,7 @@ NAME = "Ajmashell-Dark"
 ICONS = os.path.expanduser("~/.local/share/icons")
 ACCENT_FILE = os.path.expanduser("~/.cache/ajmashell/icon-accent.txt")
 PLACES = "places/scalable"
+EMBLEM_OPACITY = ".4"  # Colloid: .15, pale on the light primary (user, 2026-10-14)
 SMALL = ("16", "22", "24")  # Colloid's line icons for small sizes: same names, no accent
 
 
@@ -34,6 +35,15 @@ def check_color(color):
 def recolor(svg, color):
     check_color(color)
     return re.sub(re.escape(ACCENT), color, svg, flags=re.IGNORECASE)
+
+
+def stronger_emblem(svg):
+    """Colloid draws the emblem (note, arrow, house) after the folder's gradient rect as black at opacity .15."""
+    i = svg.find('fill="url(#')
+    if i < 0:
+        return svg
+    j = svg.find(">", i) + 1
+    return svg[:j] + svg[j:].replace('opacity=".15"', f'opacity="{EMBLEM_OPACITY}"')
 
 
 def accent_icons(parent):
@@ -94,7 +104,7 @@ def build(parent, out, color):
     os.makedirs(scalable)
     for name in files:
         with open(os.path.join(parent, PLACES, name), errors="replace") as f:
-            svg = recolor(f.read(), color)
+            svg = recolor(stronger_emblem(f.read()), color)
         with open(os.path.join(scalable, name), "w") as f:
             f.write(svg)
     for name, target in links.items():
