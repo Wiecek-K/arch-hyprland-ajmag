@@ -66,3 +66,11 @@ output_path = '/home/ajmag/.zen/okor3zze.Default (release)/chrome/matugen-colors
 [templates.obsidian]
 input_path = '~/.config/matugen/templates/obsidian.css'
 output_path = '~/Storage/ajmag/Documents/Obsidian Vault/.obsidian/snippets/matugen-colors.css'
+
+# Folder icons in the wallpaper colour (ticket 46): the script builds the icon theme overlay Ajmashell-Dark-a/-b
+# from Colloid-Teal-Dark and switches gsettings to it (a running GTK app reloads icons only on a theme name change).
+# In the background like spicetify: it takes ~0.35 s and matugen waits for each hook.
+[templates.icon_accent]
+input_path = '~/.config/matugen/templates/icon-accent.txt'
+output_path = '~/.cache/ajmashell/icon-accent.txt'
+post_hook = "setsid -f ~/.config/hypr/scripts/icon-overlay.py >/dev/null 2>&1"

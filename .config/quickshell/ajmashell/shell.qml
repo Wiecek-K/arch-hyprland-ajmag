@@ -1,6 +1,6 @@
 // Icons of tray apps from the same theme as GTK (gtk-icon-theme-name in ~/.config/gtk-3.0/settings.ini);
 // without it Qt 6 has no icon theme and udiskie's icon is missing (ticket 09). Needs a full restart, not a reload.
-//@ pragma IconTheme Colloid-Teal-Dark
+//@ pragma IconTheme Ajmashell-Dark
 // Ajmashell — root of the shell. Run: qs -c ajmashell
 // Layout modelled on serpantinum (src/quickshell/Shell.qml):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
