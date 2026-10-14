@@ -16,6 +16,19 @@ application/x-extension-xhtml=zen.desktop
 application/x-extension-xht=zen.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/slack=slack.desktop
+x-scheme-handler/bruno=bruno.desktop
+x-scheme-handler/ror2mm=r2modman.desktop
+x-scheme-handler/bitwarden=bitwarden.desktop
+image/png=swayimg.desktop
+image/jpeg=swayimg.desktop
+image/webp=swayimg.desktop
+image/gif=swayimg.desktop
+image/bmp=swayimg.desktop
+image/avif=swayimg.desktop
+image/heif=swayimg.desktop
+image/heic=swayimg.desktop
+image/tiff=swayimg.desktop
+image/jxl=swayimg.desktop
 
 [Added Associations]
 x-scheme-handler/http=zen.desktop;
