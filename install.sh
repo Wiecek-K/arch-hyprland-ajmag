@@ -116,7 +116,7 @@ echo -e "${BLUE}Configuring Zen Browser...${NC}"
 ZEN_PROFILE=$(find "$HOME/.zen" -maxdepth 1 -type d -name "*.Default (release)" | head -n 1)
 if [ -n "$ZEN_PROFILE" ]; then
     mkdir -p "$ZEN_PROFILE/chrome"
-    echo '@import "matugen-colors.css";' > "$ZEN_PROFILE/chrome/userChrome.css"
+    cp "home_files/zen/chrome/userChrome.css" "$ZEN_PROFILE/chrome/userChrome.css"
     sed -i "s|output_path = .*|output_path = \"$ZEN_PROFILE/chrome/matugen-colors.css\"|" "$HOME/.config/matugen/config.toml"
 fi
 

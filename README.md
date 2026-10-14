@@ -128,7 +128,7 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 ```text
 .
 ├── .config/                # Dotfiles (Hypr, Waybar, Kitty, etc.)
-├── home_files/             # Files for home dir (.zshrc)
+├── home_files/             # Files for home dir (.zshrc, zen/chrome/userChrome.css)
 ├── system/                 # System-level configs (udev rules)
 ├── install.sh              # Automated installer
 ├── pkglist_native.txt      # Official Arch packages
