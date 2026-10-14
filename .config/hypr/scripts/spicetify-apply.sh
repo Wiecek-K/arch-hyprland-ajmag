@@ -6,6 +6,8 @@
 # following the wallpaper (2026-10-06 → 2026-10-08, ticket 34). Run the suggested repair instead, and send a
 # notification when Spotify still is not themed. A running Spotify keeps the old colours until it reloads, so send it
 # Ctrl+Shift+R (its own reload shortcut) without focusing it (user's request 2026-10-08). Output of the last run: ~/.cache/spicetify-apply.log.
+# When Spotify is upgraded while spiced up and the backup is older, both commands only print 're-install Spotify …'
+# (2026-10-14, ticket 49): no repair possible here, so that text also counts as a failure and sends the notification.
 set -uo pipefail
 
 LOG="${XDG_CACHE_HOME:-$HOME/.cache}/spicetify-apply.log"
@@ -28,7 +30,7 @@ if (( ${#repair[@]} )); then
     printf '%s\n' "\$ spicetify ${repair[*]}" "$out" >> "$LOG"
 fi
 
-if (( rc != 0 )) || grep -qiE '(^|\s)error\s|spicetify (restore )?backup apply' <<< "$out"; then
+if (( rc != 0 )) || grep -qiE '(^|\s)error\s|spicetify (restore )?backup apply|re-install Spotify' <<< "$out"; then
     notify-send -a Spicetify "Spotify colours not applied" "See $LOG"
 elif hyprctl -j clients | grep -q '"class": "Spotify"'; then
     hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "CTRL SHIFT", key = "R", window = "class:^(Spotify)$" })' >> "$LOG"
