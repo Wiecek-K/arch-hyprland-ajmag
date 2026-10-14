@@ -39,6 +39,10 @@ PopupWindow {
 
     readonly property var grid: Logic.monthGrid(year, month)
 
+    // the day delegates are rebuilt on a month change, so their HoverHandler never reports leaving
+    onYearChanged: hoveredName = ""
+    onMonthChanged: hoveredName = ""
+
     function toggle(): void {
         if (!visible)
             showToday();
@@ -64,6 +68,7 @@ PopupWindow {
 
     // the grab refuses a window that is not mapped yet, so arm it after the popup shows (as the Orbita)
     onVisibleChanged: Qt.callLater(() => {
+        root.hoveredName = "";
         grab.active = root.visible;
         if (root.visible)
             panel.forceActiveFocus();
@@ -205,7 +210,7 @@ PopupWindow {
                             id: day
 
                             required property var modelData
-                            readonly property var off: Logic.dayOff(modelData.year, modelData.month, modelData.day)
+                            readonly property var info: Logic.dayOff(modelData.year, modelData.month, modelData.day)
                             readonly property bool today: modelData.year === root.todayYear && modelData.month === root.todayMonth && modelData.day === root.todayDay
 
                             width: Theme.calendar.cell
@@ -217,7 +222,7 @@ PopupWindow {
                             OrbitText {
                                 anchors.centerIn: parent
                                 font.pixelSize: Theme.font.sizeSmall
-                                color: day.today ? Theme.calendar.todayText : day.off.off ? Theme.calendar.dayOff : Theme.calendar.text
+                                color: day.today ? Theme.calendar.todayText : day.info.off ? Theme.calendar.dayOff : Theme.calendar.text
                                 text: day.modelData.day
                             }
 
@@ -225,8 +230,8 @@ PopupWindow {
                                 id: dayHover
                                 onHoveredChanged: {
                                     if (hovered)
-                                        root.hoveredName = day.off.name;
-                                    else if (root.hoveredName === day.off.name)
+                                        root.hoveredName = day.info.name;
+                                    else if (root.hoveredName === day.info.name)
                                         root.hoveredName = "";
                                 }
                             }
