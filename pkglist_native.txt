@@ -104,6 +104,7 @@ s-tui
 sudo
 swappy
 swaync
+swayimg
 texinfo
 tree
 ttf-atkinson-hyperlegible
