@@ -14,6 +14,7 @@
 // Ticket 17: media island left of the clock; IpcHandler "media" opens its popup on the focused screen.
 // Ticket 27: every press on the Bar goes to BarPopups, so one click on another island switches the open element;
 // an open element follows the focused monitor (onReopen opens it on this Bar).
+// Ticket 42: a click on the clock opens the calendar popup; IpcHandler "calendar" opens it on the focused screen.
 // Tray and volume islands swapped (user, 2026-10-07): tray on the left edge, volume · microphone · separator before the pill.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -36,6 +37,7 @@ Scope {
     signal orbitRequested(string tab, string screenName)
     signal controlRequested(string screenName)
     signal mediaRequested(string screenName)
+    signal calendarRequested(string screenName)
 
     // SUPER+H: qs -c ajmashell ipc call bar toggle (via ~/.config/hypr/scripts/shellset.sh hide)
     IpcHandler {
@@ -61,6 +63,15 @@ Scope {
 
         function toggle(): void {
             root.mediaRequested(Hyprland.focusedMonitor?.name ?? "");
+        }
+    }
+
+    // qs -c ajmashell ipc call calendar toggle — the calendar popup on the focused screen (tests; the Bar opens it by a click)
+    IpcHandler {
+        target: "calendar"
+
+        function toggle(): void {
+            root.calendarRequested(Hyprland.focusedMonitor?.name ?? "");
         }
     }
 
@@ -115,6 +126,11 @@ Scope {
                     if (screenName === barWindow.modelData.name)
                         mediaIsland.togglePopup();
                 }
+
+                function onCalendarRequested(screenName: string): void {
+                    if (screenName === barWindow.modelData.name)
+                        clock.togglePopup();
+                }
             }
 
             // ticket 27: an element open on another monitor followed the focus here
@@ -132,6 +148,8 @@ Scope {
                         mediaIsland.openPopup();
                     else if (kind === "tray")
                         tray.openMenu(key);
+                    else if (kind === "calendar")
+                        clock.openPopup();
                 }
             }
 

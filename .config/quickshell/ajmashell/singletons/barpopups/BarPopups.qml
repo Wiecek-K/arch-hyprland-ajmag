@@ -23,7 +23,7 @@ Singleton {
     readonly property string focusedScreen: Hyprland.focusedMonitor?.name ?? ""
 
     signal pressed(var hit) // a press on a Bar; hit = the deepest item under the pointer, null = none
-    // open element `kind` ("orbit", "audio", "media", "tray") with `key` (tab, microphone, -, tray item id) on the Bar
+    // open element `kind` ("orbit", "audio", "media", "tray", "calendar") with `key` (tab, microphone, -, tray item id, -) on the Bar
     // of `screenName`: an element that followed the focus there
     signal reopen(string kind, var key, string screenName)
 
