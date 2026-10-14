@@ -62,6 +62,9 @@ output_path = '~/.config/vesktop/themes/matugen.css'
 [templates.zen]
 input_path = '~/.config/matugen/templates/zen-colors.css'
 output_path = '/home/ajmag/.zen/okor3zze.Default (release)/chrome/matugen-colors.css'
+# Tells a running Zen to reload the file: /opt/zen-browser-bin/config.js listens on this socket (ticket 48).
+# A connection is enough; no Zen = no socket, socat fails quietly and the next start reads the file anyway.
+post_hook = "socat -u /dev/null UNIX-CONNECT:$XDG_RUNTIME_DIR/ajmashell-zen.sock 2>/dev/null || true"
 
 [templates.obsidian]
 input_path = '~/.config/matugen/templates/obsidian.css'

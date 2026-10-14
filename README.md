@@ -110,7 +110,7 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 
 ### Zen Browser
 *   Uses `userChrome.css` (`home_files/zen/chrome/`) to import `matugen-colors.css` at startup.
-*   **Live colours:** Firefox reads `userChrome.css` only at startup, so the AutoConfig script `system/zen/config.js` (installed by `install.sh` into `/opt/zen-browser-bin/` with `sudo`) watches `matugen-colors.css` and re-registers it as a user style sheet after each wallpaper change — no browser restart. Roll back: delete `/opt/zen-browser-bin/config.js` and `/opt/zen-browser-bin/defaults/pref/autoconfig.js`, restart Zen.
+*   **Live colours:** Firefox reads `userChrome.css` only at startup, so the AutoConfig script `system/zen/config.js` (installed by `install.sh` into `/opt/zen-browser-bin/` with `sudo`) re-registers `matugen-colors.css` as a user style sheet when matugen's post_hook connects to its Unix socket (`$XDG_RUNTIME_DIR/ajmashell-zen.sock`, via `socat`) after each wallpaper change — no browser restart, no polling. Roll back: delete `/opt/zen-browser-bin/config.js` and `/opt/zen-browser-bin/defaults/pref/autoconfig.js`, restart Zen.
 
 ### Terminal (Kitty)
 *   **Style:** Powerline tab bar (hidden if only 1 tab), Beam cursor.
