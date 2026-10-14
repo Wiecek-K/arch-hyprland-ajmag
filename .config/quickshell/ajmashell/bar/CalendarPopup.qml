@@ -1,6 +1,6 @@
 // CalendarPopup — a click on the Bar's clock (ticket 42). Variant B of the UI prototype (user, 2026-10-14):
 // left a panel with today — big day number, weekday, date with the ISO week, today's holiday or the next one with
-// its distance (from the shown day on, distances from today); right the month from Monday, today marked, Sundays and Polish statutory holidays in
+// its distance (both from the shown day); right the month from Monday, today marked, Sundays and Polish statutory holidays in
 // Theme.calendar.dayOff. A left click on a day shows that day in the panel (its holiday name, distance from today),
 // a right click goes back to today (user, 2026-10-14).
 // Months: wheel (up = next, like Waybar's "shift_up" and our workspaces), ← →, the ‹ › buttons; the title and
