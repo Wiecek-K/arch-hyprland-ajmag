@@ -332,7 +332,7 @@ div[class*="minBlockSize_56px-padding_8px"] {
 .main-nowPlayingBar-container:hover,
 .Root__right-sidebar:has(aside:not(:empty)):hover {
     border-color: var(--spice-border-active);
-    border-radius: 8px !important;
+    /* ajmag 2026-10-14: no smaller border-radius on hover (was 8px) — corners jumped (user's request) */
 }
 
 /* ================================
