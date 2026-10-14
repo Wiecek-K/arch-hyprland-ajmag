@@ -117,7 +117,13 @@ ZEN_PROFILE=$(find "$HOME/.zen" -maxdepth 1 -type d -name "*.Default (release)" 
 if [ -n "$ZEN_PROFILE" ]; then
     mkdir -p "$ZEN_PROFILE/chrome"
     cp "home_files/zen/chrome/userChrome.css" "$ZEN_PROFILE/chrome/userChrome.css"
-    sed -i "s|output_path = .*|output_path = \"$ZEN_PROFILE/chrome/matugen-colors.css\"|" "$HOME/.config/matugen/config.toml"
+    # Only the [templates.zen] block: a bare s|output_path = .*| would point every matugen template at Zen.
+    sed -i "/^\[templates\.zen\]/,/^\[/ s|^output_path = .*|output_path = '$ZEN_PROFILE/chrome/matugen-colors.css'|" "$HOME/.config/matugen/config.toml"
+fi
+# Live colours after a wallpaper change, without a Zen restart (config.js header: how it works, roll back)
+if [ -d /opt/zen-browser-bin ]; then
+    sudo install -m 644 system/zen/config.js /opt/zen-browser-bin/config.js
+    sudo install -m 644 system/zen/autoconfig.js /opt/zen-browser-bin/defaults/pref/autoconfig.js
 fi
 
 echo -e "${GREEN}=== INSTALLATION COMPLETE ===${NC}"
