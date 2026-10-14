@@ -9,6 +9,8 @@
 // every POLL_MS and applied when its mtime is the same on two checks in a row (matugen has finished writing).
 // The variables get !important so they win over the startup copy from userChrome.css (same user origin).
 // Kept here, in root-owned /opt, not in a profile script: any user process can write the profile.
+// Own implementation on the documented AutoConfig / nsIStyleSheetService API (provenance: pochodzenie-komponentow.md
+// in the hyprland-lua-migration project, ADR 0015).
 // Roll back: sudo rm /opt/zen-browser-bin/config.js /opt/zen-browser-bin/defaults/pref/autoconfig.js, restart Zen
 // (colours then change only after a restart, as before). Log: Browser Console (Ctrl+Shift+J), filter "ajmashell-zen".
 try {
