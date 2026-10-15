@@ -128,11 +128,9 @@ html, body, #main, .Root, .Root__top-container {
 }
 
 .under-main-view,
-.main-topBar-background,
 .main-home-filterChipsSection,
 .main-home-filterChipsSection::after,
 .main-trackList-trackListHeader,
-.main-trackList-trackListHeaderStuck.main-trackList-trackListHeader,
 .main-entityHeader-container + div,
 .main-entityHeader-container + div > div,
 .os-viewport,
@@ -149,6 +147,66 @@ div[data-testid="dark-mode-bg"],
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
+}
+
+/* ajmag 2026-10-14 (Spotify 1.3.4): sticky bars get the theme background, otherwise rows scroll under
+   readable text. Spotify fades .main-topBar-background in with an inline opacity. Since 1.3 the stuck
+   track list header gets a hashed class instead of main-trackList-trackListHeaderStuck, so any extra class
+   on the header means "stuck". */
+.main-topBar-container .main-topBar-background,
+.main-trackList-trackListHeader.main-trackList-trackListHeaderStuck,
+.main-trackList-trackListHeader:not([class="main-trackList-trackListHeader"]) {
+    background-color: var(--spice-main) !important;
+}
+
+/* ajmag 2026-10-14 (Spotify 1.3.4): header background layers (cover/radio image and a noise gradient,
+   hashed classes) sit in .before-scroll-node behind the scroll area. With the transparent theme they
+   showed under the track list and ended in a hard strip. Keep them only under the entity header (mask
+   fades out by its bottom edge) and fade them out once Spotify shows the sticky top bar. --scroll on
+   the wrapper is not updated on scroll in 1.3.4, so the top bar opacity is the signal. */
+.main-view-container .before-scroll-node {
+    transition: opacity 150ms ease;
+}
+
+/* ajmag 2026-10-15 (Spotify 1.3.4): a collapsed Now Playing panel keeps a 51px peek strip, and the panel
+   content (cover, title) showed through it; the strip has no hover peek, so hide the content until the
+   panel is expanded again. */
+.Root__right-sidebar-peek:not(.Root__right-sidebar-expanded) .Root__right-sidebar-peekContent {
+    visibility: hidden !important;
+}
+
+/* ajmag 2026-10-14 (Spotify 1.3.4): sticky home filter chips row (dwp-home-chips-row.css) fades in a
+   background of var(--background-base) — the cover colour — plus a #0009 overlay when scrolled. Same
+   theme background as the other sticky bars instead. Hashed classes only, re-check after updates. */
+.yKCAvGVbd6TgspV2YaTf {
+    background-color: var(--spice-main) !important;
+}
+
+.yKCAvGVbd6TgspV2YaTf::after {
+    display: none !important;
+}
+
+/* ajmag 2026-10-14 (Spotify 1.3.4): home page header (dwp-home-header.css, and its copy in
+   home-ads-container.css) is a 256px gradient to var(--background-base) with an inline background-color
+   that follows the hovered card. Replaced with the fixed card gradient (same as the Recents cards below),
+   fading out at the bottom. It has only hashed classes and is mounted through a lazy slot, so there is
+   no stable selector; re-check these class names after a Spotify update. */
+.dqwQhIudKoD98eWJzj5E,
+.Ycqn19PQZncajMn_Igur {
+    background-color: transparent !important;
+    background-image: linear-gradient(135deg, rgba(var(--spice-rgb-main), 0.8) 0%, rgba(var(--spice-rgb-highlight), 0.8) 100%) !important;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0, transparent 100%);
+    transition: none !important;
+}
+
+.main-view-container .before-scroll-node > div > div {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 25%, transparent 46%) !important;
+    mask-image: linear-gradient(to bottom, #000 0, #000 25%, transparent 46%) !important;
+}
+
+.Root__main-view:has(.main-topBar-background:not([style*="opacity: 0;"])) .before-scroll-node {
+    opacity: 0;
 }
 
 .main-topBar-overlay,
@@ -203,13 +261,15 @@ div:has(> .main-entityHeader-container) {
     padding: var(--content-spacing) 0;
 }
 
+/* ajmag 2026-10-14: was a radial gradient 0.7 → 1, which hid the header image restored above;
+   now dark under the text on the left, lighter to the right */
 .main-entityHeader-container.main-entityHeader-withBackgroundImage {
-    background-image: radial-gradient(
-        circle,
-        rgba(var(--spice-rgb-main), 0.7) 0%,
-        rgba(var(--spice-rgb-main), 0.9) 50%,
-        rgba(var(--spice-rgb-main), 1) 100%
-    );
+    background-image: linear-gradient(
+        to right,
+        rgba(var(--spice-rgb-main), 0.85) 0%,
+        rgba(var(--spice-rgb-main), 0.55) 55%,
+        rgba(var(--spice-rgb-main), 0.2) 100%
+    ) !important;
 }
 
 .main-entityHeader-imageContainerNew {
@@ -290,7 +350,7 @@ div[class*="minBlockSize_56px-padding_8px"] {
 .main-nowPlayingBar-container:hover,
 .Root__right-sidebar:has(aside:not(:empty)):hover {
     border-color: var(--spice-border-active);
-    border-radius: 8px !important;
+    /* ajmag 2026-10-14: no smaller border-radius on hover (was 8px) — corners jumped (user's request) */
 }
 
 /* ================================
@@ -405,10 +465,13 @@ div[class*="minBlockSize_56px-padding_8px"] {
     background-color: var(--spice-border-inactive) !important;
 }
 
+/* ajmag 2026-10-14: #search-suggestions-loading-dropdown is the loading state (Spotify 1.3.4) */
 #recent-searches-dropdown,
 #search-dropdown,
+#search-suggestions-loading-dropdown,
 #recent-searches-dropdown > div,
-#search-dropdown > div {
+#search-dropdown > div,
+#search-suggestions-loading-dropdown > div {
     background-color: var(--spice-main) !important;
     background-image: none !important;
 }
@@ -576,7 +639,7 @@ select:focus {
     outline: 14px solid var(--spice-main);
 }
 
-.main-globalNav-searchContainer form :is(#recent-searches-dropdown, #search-dropdown) > div {
+.main-globalNav-searchContainer form :is(#recent-searches-dropdown, #search-dropdown, #search-suggestions-loading-dropdown) > div {
     border-radius: var(--border-radius);
     box-shadow: none;
     margin: 24.5px 0;
