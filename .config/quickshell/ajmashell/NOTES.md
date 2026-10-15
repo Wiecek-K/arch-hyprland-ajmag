@@ -50,6 +50,8 @@ Read when a change behaves oddly or touches the named API.
 
 All automated checks: `~/Projects/hyprland-lua-migration/tools/check.sh`. Below: manual and live techniques.
 
+Live input without the user: `tools/vmouse.py move|click|wheel|nudge` (uinput mouse; reuse it, do not write a new one). Screenshots for reading: `tools/shot.sh OUT.jpg "X,Y WxH"`.
+
 - Lint with Qt 6: `/usr/lib/qt6/bin/qmllint -I "$(dirname "$(readlink .qmlls.ini)")" -I /usr/lib/qt6/qml <file>` (run in `quickshell/ajmashell/`; `/usr/sbin/qmllint` is Qt 5 and prints nothing, exit 255).
 - Testing focus between monitors: under Lua `hyprctl dispatch 'hl.dsp.focus({ monitor = "eDP-1" })'` changes the focused monitor (the old `dispatch focusmonitor eDP-1` fails with a Lua syntax error); `hyprctl dispatch movecursor` does not change focus.
 - Hover tests: `hyprctl dispatch 'hl.dsp.cursor.move(…)'` sends no motion to the client, so hover/tooltips keep the old state; follow it with a 1 px relative move from the virtual uinput mouse.
