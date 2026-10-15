@@ -32,6 +32,6 @@ fi
 
 if (( rc != 0 )) || grep -qiE '(^|\s)error\s|spicetify (restore )?backup apply|re-install Spotify' <<< "$out"; then
     notify-send -a Spicetify "Spotify colours not applied" "See $LOG"
-elif hyprctl -j clients | grep -q '"class": "Spotify"'; then
-    hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "CTRL SHIFT", key = "R", window = "class:^(Spotify)$" })' >> "$LOG"
+elif hyprctl -j clients | grep -qE '"class": "[Ss]potify"'; then
+    hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "CTRL SHIFT", key = "R", window = "class:^([Ss]potify)$" })' >> "$LOG"
 fi

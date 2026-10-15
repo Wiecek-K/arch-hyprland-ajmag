@@ -180,14 +180,6 @@ div[data-testid="dark-mode-bg"],
     visibility: hidden !important;
 }
 
-/* ajmag 2026-10-15: track/context titles that do not fit scroll with a Web Animations API translateX
-   (~12 s, to the end and back) on .main-watchFeed-contentWrapper. Every frame repaints the whole XWayland
-   window (~80% Intel GPU, measured). Allow it only under the cursor; an !important transform beats the
-   animation, so leaving the title snaps it back to the start at once. */
-.main-trackInfo-overlay:not(:hover) .main-watchFeed-contentWrapper {
-    transform: none !important;
-}
-
 /* ajmag 2026-10-14 (Spotify 1.3.4): sticky home filter chips row (dwp-home-chips-row.css) fades in a
    background of var(--background-base) — the cover colour — plus a #0009 overlay when scrolled. Same
    theme background as the other sticky bars instead. Hashed classes only, re-check after updates. */
