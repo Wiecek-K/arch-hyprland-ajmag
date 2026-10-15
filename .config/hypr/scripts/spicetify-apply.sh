@@ -28,7 +28,8 @@ failed() { (( rc != 0 )) || grep -qiE '(^|\s)error\s|spicetify (restore )?backup
 
 CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/spicetify/config-xpui.ini"
 ini() { sed -n "s/^$1 *= *//p" "$CONFIG" 2>/dev/null | head -n 1; }
-xpui="$(ini spotify_path)Apps/xpui"
+spotify="$(ini spotify_path)"
+xpui="${spotify%/}/Apps/xpui"
 : > "$LOG"
 if grep -q "extensions/live-colors.js" "$xpui/index.html" 2>/dev/null && [[ "$(spicetify -v 2>/dev/null)" == "$(ini with)" ]]; then
     out="$(spicetify refresh -s -n 2>&1)"; rc=$?

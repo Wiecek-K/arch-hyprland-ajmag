@@ -168,11 +168,6 @@ div[data-testid="dark-mode-bg"],
     transition: opacity 150ms ease;
 }
 
-/* ajmag 2026-10-14 (Spotify 1.3.4): home page header (dwp-home-header.css, and its copy in
-   home-ads-container.css) is a 256px gradient to var(--background-base) with an inline background-color
-   that follows the hovered card. Replaced with the fixed card gradient (same as the Recents cards below),
-   fading out at the bottom. It has only hashed classes and is mounted through a lazy slot, so there is
-   no stable selector; re-check these class names after a Spotify update. */
 /* ajmag 2026-10-15 (Spotify 1.3.4): a collapsed Now Playing panel keeps a 51px peek strip, and the panel
    content (cover, title) showed through it; the strip has no hover peek, so hide the content until the
    panel is expanded again. */
@@ -191,6 +186,11 @@ div[data-testid="dark-mode-bg"],
     display: none !important;
 }
 
+/* ajmag 2026-10-14 (Spotify 1.3.4): home page header (dwp-home-header.css, and its copy in
+   home-ads-container.css) is a 256px gradient to var(--background-base) with an inline background-color
+   that follows the hovered card. Replaced with the fixed card gradient (same as the Recents cards below),
+   fading out at the bottom. It has only hashed classes and is mounted through a lazy slot, so there is
+   no stable selector; re-check these class names after a Spotify update. */
 .dqwQhIudKoD98eWJzj5E,
 .Ycqn19PQZncajMn_Igur {
     background-color: transparent !important;
