@@ -35,7 +35,8 @@ Singleton {
     readonly property int count: historyModel.count
     // appKey → entries, for the group headers in the Centrum
     readonly property var groupCounts: {
-        historyModel.count; // re-count on every insert / remove
+        // re-count on every insert / remove: reading count makes the binding depend on it
+        historyModel.count; // qmllint disable confusing-expression-statement
         return Logic.groupCounts(roleValues(historyModel, "appKey"));
     }
     // Silent mode (DND): right click on the bell or the switch in the Centrum. Notifications still reach the

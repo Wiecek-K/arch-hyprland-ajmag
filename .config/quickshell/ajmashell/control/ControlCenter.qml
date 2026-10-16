@@ -262,7 +262,7 @@ Scope {
                 }
 
                 Column {
-                    id: top
+                    id: topSection
 
                     x: Theme.control.padding
                     y: Theme.control.padding
@@ -418,11 +418,11 @@ Scope {
                     id: list
 
                     x: Theme.control.padding
-                    anchors.top: top.bottom
+                    anchors.top: topSection.bottom
                     anchors.topMargin: Theme.control.spacing
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: Theme.control.padding
-                    width: top.width
+                    width: topSection.width
                     clip: true
                     model: Notifications.history
 
