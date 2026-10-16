@@ -14,7 +14,8 @@ hl.env("LIBVA_DRIVER_NAME", "iHD")
 -- Backendy toolkitów
 hl.env("GDK_BACKEND", "wayland,x11,*")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
-hl.env("SDL_VIDEODRIVER", "wayland")
+-- SDL_VIDEODRIVER celowo nieustawione: SDL3 sam wybiera Wayland, a globalne "wayland" psuje gry z własnym SDL
+-- i overlay Steam (Valve, steam-runtime #754/#716; ticket 50, 2026-10-16)
 hl.env("CLUTTER_BACKEND", "wayland")
 
 -- Qt
