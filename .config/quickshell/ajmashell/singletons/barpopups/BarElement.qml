@@ -21,8 +21,23 @@ Scope {
     signal close
     signal follow(string screenName) // the focused monitor changed: show the element there
 
+    onOpenChanged: BarPopups.openCount += open ? 1 : -1
+    Component.onCompleted: {
+        if (open)
+            BarPopups.openCount += 1;
+    }
+    Component.onDestruction: {
+        if (open)
+            BarPopups.openCount -= 1;
+    }
+
     Connections {
         target: BarPopups
+
+        function onEscaped(): void {
+            if (root.open)
+                root.close();
+        }
 
         function onPressed(hit: var): void {
             if (root.open && Logic.closesOn(hit, root.owners))

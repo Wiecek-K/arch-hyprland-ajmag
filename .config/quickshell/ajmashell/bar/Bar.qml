@@ -104,6 +104,9 @@ Scope {
             color: Theme.bar.background
 
             WlrLayershell.namespace: "ajmashell-bar"
+            // keyboard only while a Bar element is open, so Esc reaches its popup under the pointer (ticket 42);
+            // otherwise None: a click on the Bar never takes the keyboard from an app
+            WlrLayershell.keyboardFocus: BarPopups.openCount > 0 ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
             // Top, not Bottom (ticket 13, research B12): a commit from a surface below Top, or from its popup
             // (the Orbita), marks Hyprland's background blur stale and redraws the whole monitor every frame.
             // Fullscreen windows still cover a Top layer; floating windows no longer do.
@@ -151,6 +154,12 @@ Scope {
                     else if (kind === "calendar")
                         clock.openPopup();
                 }
+            }
+
+            // Esc while the pointer is over an open element's popup lands here, on its parent (ticket 42)
+            Item {
+                focus: true
+                Keys.onEscapePressed: BarPopups.escaped()
             }
 
             // Every island; the press catcher below stays out of it, so deepestAt finds the island under the pointer.
