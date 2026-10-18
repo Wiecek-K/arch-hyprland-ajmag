@@ -1,4 +1,4 @@
-// Launcher (ticket 11, B09 §1): SUPER+D → ~/.config/hypr/scripts/launcher.sh → qs -c ajmashell ipc call launcher toggle.
+// Launcher (ticket 11, B09 §1): SUPER+D → qs -c ajmashell ipc call launcher toggle (vars.lua `menu`).
 // Layout of the rofi it replaces (~/.config/rofi/config.rasi): wallpaper pane with the search field and the mode
 // buttons | list of 8 rows. Modes: Applications (drun) and Windows (focus the window, also on another workspace
 // and monitor); Tab switches. Text starting with "=" shows a qalc result instead of the list; Enter copies it.

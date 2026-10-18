@@ -23,11 +23,3 @@ export function checkMark(buttonType, checkState) {
         return on ? "\u{f043e}" : "\u{f043d}";
     return "";
 }
-
-// Applets whose job a Bar island does (Wi-Fi, BT): they keep running (nm-applet asks for Wi-Fi
-// passwords, blueman-applet is the pairing agent), only their tray icon is hidden (user, 2026-10-01).
-const HIDDEN_IDS = ["nm-applet", "blueman"]; // StatusNotifierItem Id
-
-export function shownInTray(id) {
-    return !HIDDEN_IDS.includes(id);
-}

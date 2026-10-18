@@ -4,7 +4,7 @@
 // with wlogout's commands and keys (l e u r s run at once, as in wlogout). No Hibernate: the kernel has it off here
 // (user, 2026-10-09: remove the button). Arrows / Tab move, Enter or Space runs the selected one; Esc or a click
 // on the backdrop closes.
-// Opened by SUPER+L (~/.config/hypr/scripts/power.sh; wlogout stays on SUPER+SHIFT+L) and the power button of the
+// Opened by SUPER+L (keybinds.lua) and the power button of the
 // Centrum sterowania. IPC: qs -c ajmashell ipc call power toggle
 // Test without running anything: AJMASHELL_POWER_DRYRUN=1 logs the command instead (throw-away instance).
 // Own implementation after caelestia modules/session/Content.qml (idea only: large icon buttons, the keyboard

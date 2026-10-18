@@ -1,14 +1,13 @@
 // BT island — adapter and connection state only, like our Waybar "bluetooth" module
 // (~/.config/waybar/Modules) without the connection count; connected devices show in the tooltip (D2, ticket 09).
 // The only place on the Bar that shows a BT connection: the volume island has no BT mark (user, 2026-10-01).
-// Left click opens the Orbita on the BT tab (ticket 12, wired in Bar.qml); right click starts
-// blueman-applet (pairing agent; a second copy exits at once) and blueman-manager, the emergency fallback (D2).
+// Left click opens the Orbita on the BT tab (ticket 12, wired in Bar.qml). No right click: it started
+// blueman-applet + blueman-manager, the emergency fallback (D2), removed with the applets in ticket 23 (user, 2026-10-18).
 // Own implementation, state from Quickshell.Bluetooth (BlueZ), logic in connectivity.mjs.
 
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell
 import Quickshell.Bluetooth as BT
 import qs.singletons.theme
 import "connectivity.mjs" as Logic
@@ -24,11 +23,6 @@ Island {
     readonly property list<BT.BluetoothDevice> connected: adapter?.devices.values.filter(device => device.connected) ?? [] // qmllint disable unresolved-type
 
     property bool orbitOpen: false // no tooltip over the open Orbita
-
-    onRightClicked: {
-        Quickshell.execDetached(["blueman-applet"]);
-        Quickshell.execDetached(["blueman-manager"]);
-    }
 
     IconSlot {
         icons: Logic.BT_ICONS

@@ -1,6 +1,5 @@
 // Tray island — StatusNotifierItem icons of running apps, like our Waybar "tray" module
 // (~/.config/waybar/Modules: icon-size 20, spacing 4). Hidden while no app has an icon.
-// No nm-applet and blueman icons: the Wi-Fi and BT islands replace them (tray.mjs shownInTray).
 // Left click activates the app (or opens its menu if the app only has a menu), middle click is
 // the secondary action, right click opens the app's menu, wheel goes to the app — like Waybar.
 // Own implementation; click mapping after serpantinum src/quickshell/bar/modules/TrayWidget.qml (idea only):
@@ -18,7 +17,7 @@ import "tray.mjs" as Logic
 Island {
     id: root
 
-    visible: SystemTray.items.values.some(item => Logic.shownInTray(item.id))
+    visible: SystemTray.items.values.length > 0
     spacing: Theme.bar.traySpacing
 
     TrayMenu {
@@ -34,7 +33,6 @@ Island {
             id: entry
             required property SystemTrayItem modelData
 
-            visible: Logic.shownInTray(modelData.id) // Row leaves no gap for hidden items
             implicitWidth: Theme.bar.trayIconSize
             implicitHeight: Theme.bar.islandHeight
 

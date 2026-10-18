@@ -31,7 +31,7 @@ ShellRoot {
         onPowerRequested: screenName => power.toggle(screenName)
     }
 
-    // Panel zasilania (ticket 18): SUPER+L (power.sh over IPC) and the Centrum's power button
+    // Panel zasilania (ticket 18): SUPER+L (qs ipc call power toggle) and the Centrum's power button
     PowerPanel {
         id: power
         onOpenChanged: if (open)

@@ -1,4 +1,4 @@
-// Wallpaper carousel (ticket 19, B11 #04): SUPER+W → qs -c ajmashell ipc call wallpaper toggle (wppicker.sh).
+// Wallpaper carousel (ticket 19, B11 #04): SUPER+W → qs -c ajmashell ipc call wallpaper toggle (keybinds.lua).
 // Horizontal strip of sheared thumbnails with an "All" tab and 7 colour filters; Enter or a click on the current
 // card runs ~/.config/hypr/scripts/wpapply.sh (matugen + hyprpaper, the same as the rofi picker).
 // Adapted from serpantinum src/quickshell/wallpaper/WallpaperPicker.qml:

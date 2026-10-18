@@ -34,6 +34,7 @@ import qs.singletons.theme
 import qs.singletons.look
 import "orbit.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
+import "../launcher/launcher.mjs" as Launch
 
 PopupWindow {
     id: root
@@ -171,7 +172,7 @@ PopupWindow {
             }
             passwordFor = "";
         } else if (action === "program") {
-            Quickshell.execDetached(["nm-connection-editor"]);
+            Hyprland.dispatch(Launch.execRequest(["nm-connection-editor"], "")); // a child of qs dies with ajmashell.service
             close();
         } else if (action === "password") {
             passwordFor = id;

@@ -39,7 +39,7 @@ Scope {
     signal mediaRequested(string screenName)
     signal calendarRequested(string screenName)
 
-    // SUPER+H: qs -c ajmashell ipc call bar toggle (via ~/.config/hypr/scripts/shellset.sh hide)
+    // SUPER+H: qs -c ajmashell ipc call bar toggle (keybinds.lua)
     IpcHandler {
         target: "bar"
 
