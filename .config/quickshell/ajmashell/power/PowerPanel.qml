@@ -1,0 +1,227 @@
+// Panel zasilania (ticket 18, D10): replaces wlogout. Like wlogout it covers the screen with a translucent, blurred
+// backdrop (our colours) and a row of large buttons in the middle of every monitor (user, 2026-10-09; one selection
+// shared by all): Lock, Logout, Suspend, Reboot, Shutdown,
+// with wlogout's commands and keys (l e u r s run at once, as in wlogout). No Hibernate: the kernel has it off here
+// (user, 2026-10-09: remove the button). Arrows / Tab move, Enter or Space runs the selected one; Esc or a click
+// on the backdrop closes.
+// Opened by SUPER+L (keybinds.lua) and the power button of the
+// Centrum sterowania. IPC: qs -c ajmashell ipc call power toggle
+// Test without running anything: AJMASHELL_POWER_DRYRUN=1 logs the command instead (throw-away instance).
+// Own implementation after caelestia modules/session/Content.qml (idea only: large icon buttons, the keyboard
+// moving the selection, Enter runs):
+// https://github.com/caelestia-dots/shell/blob/454f46da16ae75cc57f34adf48dea74db0fa5175/modules/session/Content.qml
+// (GPL-3.0). Ours: wlogout's actions and keys and its full-screen backdrop, no GIF, Theme.power colours, the
+// look's flare behind the buttons (turning in a look with motion: fancy, fancy2).
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Io
+import Quickshell.Wayland
+import qs.orbit
+import qs.singletons.apps
+import qs.singletons.look
+import qs.singletons.theme
+import "power.mjs" as Logic
+
+Scope {
+    id: root
+
+    property bool open: false
+    property string screenName: ""
+    property int current: 0 // selected button; Lock after every open, so Enter at once only locks
+
+    readonly property bool dryRun: Quickshell.env("AJMASHELL_POWER_DRYRUN") === "1"
+    readonly property var env: ({
+            home: Quickshell.env("HOME"),
+            sessionId: Quickshell.env("XDG_SESSION_ID") ?? ""
+        })
+
+    // empty name (IPC, keyboard): the monitor with the focus
+    function toggle(name: string): void {
+        if (open) {
+            open = false;
+            return;
+        }
+        screenName = name || (Hyprland.focusedMonitor?.name ?? "");
+        current = 0;
+        open = true;
+    }
+
+    function run(index: int): void {
+        const action = Logic.ACTIONS[index];
+        if (!action)
+            return;
+        open = false;
+        const command = Logic.command(action, env);
+        if (dryRun)
+            console.log("power dry run:", JSON.stringify(command));
+        else
+            Apps.run(command, ""); // through Hyprland, as the launcher's apps
+    }
+
+    IpcHandler {
+        target: "power"
+
+        function toggle(): void {
+            root.toggle("");
+        }
+    }
+
+    // a click on another app's window (none is visible while open) or on any backdrop closes
+    HyprlandFocusGrab {
+        id: grab
+        windows: screens.instances
+        onCleared: root.open = false
+    }
+
+    // One window per monitor, created at startup and only hidden (as the launcher: no stall on open); Variants
+    // follows hotplug. Every window has the key handler: the grab gives the keyboard to one of them.
+    Variants {
+        id: screens
+        model: Quickshell.screens
+
+        // qmltypes mark PanelWindow uncreatable; Quickshell substitutes the Wayland implementation at runtime
+        PanelWindow { // qmllint disable uncreatable-type
+            id: win
+
+            required property ShellScreen modelData
+            readonly property bool main: modelData.name === root.screenName // takes the keyboard focus first
+
+            screen: modelData
+            visible: root.open
+            // the whole monitor, over the Bar, as wlogout (user, 2026-10-09)
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+            color: Theme.transparent // the backdrop below draws the colour
+            exclusionMode: ExclusionMode.Ignore
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.namespace: "ajmashell-power"
+            // OnDemand + focus grab, as the launcher
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+            onVisibleChanged: {
+                // the grab refuses a window that is not mapped yet, so arm it after the windows show
+                Qt.callLater(() => grab.active = root.open);
+                if (visible && main)
+                    backdrop.forceActiveFocus();
+            }
+
+            // translucent and blurred in every look (rules.lua layerrule-10): a full-screen opaque colour would
+            // hide the desktop, unlike wlogout
+            Rectangle {
+                id: backdrop
+                anchors.fill: parent
+                color: Theme.power.backdrop
+
+                focus: true
+                Keys.onPressed: event => {
+                    const key = event.key;
+                    if (key === Qt.Key_Escape)
+                        root.open = false;
+                    else if (key === Qt.Key_Left || key === Qt.Key_Up || key === Qt.Key_Backtab)
+                        root.current = Logic.step(root.current, Logic.ACTIONS.length, -1);
+                    else if (key === Qt.Key_Right || key === Qt.Key_Down || key === Qt.Key_Tab)
+                        root.current = Logic.step(root.current, Logic.ACTIONS.length, 1);
+                    else if (key === Qt.Key_Return || key === Qt.Key_Enter || key === Qt.Key_Space)
+                        root.run(root.current);
+                    else {
+                        const action = Logic.actionForKey(event.text);
+                        if (!action || (event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)))
+                            return;
+                        root.run(Logic.ACTIONS.indexOf(action));
+                    }
+                    event.accepted = true;
+                }
+
+                // a click on the backdrop closes; nested TapHandlers both fire, so skip clicks on the buttons
+                TapHandler {
+                    onTapped: point => {
+                        const p = buttons.mapFromItem(backdrop, point.position.x, point.position.y);
+                        if (!buttons.contains(p))
+                            root.open = false;
+                    }
+                }
+
+                // looks with `flare`: the Orbita's lens flare over the whole monitor; turns only in a look with
+                // motion (fancy, fancy2; user 2026-10-09) — then the whole monitor is redrawn 30 times a second
+                OrbitBackdrop {
+                    anchors.fill: parent
+                    radius: 0
+                    visible: Look.current.flare
+                    open: win.visible
+                }
+
+                Row {
+                    id: buttons
+                    anchors.centerIn: parent
+                    spacing: Theme.power.spacing
+
+                    Repeater {
+                        model: Logic.ACTIONS
+
+                        // colours of the Orbita's pills (Pill.qml): selected = the current tab, `softPills` = faint fill
+                        Rectangle {
+                            id: button
+
+                            required property var modelData
+                            required property int index
+                            readonly property bool selected: root.current === index
+                            readonly property bool soft: Look.current.softPills
+                            readonly property color ink: soft ? (selected ? Theme.orbit.selected : Theme.power.text) : selected ? Theme.orbit.tabText : Theme.orbit.buttonText
+
+                            width: Theme.power.button
+                            height: Theme.power.button
+                            radius: Theme.power.radius
+                            color: soft ? (selected ? Qt.alpha(Theme.orbit.tab, Theme.orbit.softPill.active) : Qt.alpha(Theme.power.text, Theme.orbit.softPill.idle))
+                                        : selected ? Theme.orbit.tab : Theme.orbit.button
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: Theme.spacing.md
+
+                                OrbitText {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: button.modelData.icon
+                                    font.pixelSize: Theme.power.iconSize
+                                    color: button.ink
+                                }
+
+                                OrbitText {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: button.modelData.label
+                                    font.pixelSize: Theme.font.sizeLarge
+                                    color: button.ink
+                                }
+
+                                // wlogout's key, so it can be learnt from the panel
+                                OrbitText {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: button.modelData.key.toUpperCase()
+                                    color: button.ink
+                                    opacity: Theme.orbit.dimmed
+                                }
+                            }
+
+                            // the pointer selects, as the arrows do
+                            HoverHandler {
+                                onHoveredChanged: if (hovered) root.current = button.index
+                            }
+
+                            TapHandler {
+                                onTapped: root.run(button.index)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
