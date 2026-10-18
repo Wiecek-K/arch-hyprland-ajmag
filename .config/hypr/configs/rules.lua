@@ -22,9 +22,10 @@ hl.window_rule({
 hl.window_rule({ name = "windowrule-2", match = { tag = "settings*" }, opacity = "0.8 override 0.8 override", float = true })
 hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.9 override 0.7 override" })
 hl.window_rule({ name = "windowrule-4", match = { class = "^(org.gnome.TextEditor|mousepad)$" }, opacity = "0.9 override 0.9 override" })
+-- Mikser awaryjny: hyprpwcenter (ticket 23, użytkownik 2026-10-18; pavucontrol usunięty)
 hl.window_rule({
     name    = "windowrule-5",
-    match   = { class = "^(org.pulseaudio.pavucontrol)$" },
+    match   = { class = "^(hyprpwcenter)$" },
     opacity = "0.9 override 0.7 override",
     float   = true,
     size    = "(monitor_w*0.5) (monitor_h*0.6)",
@@ -64,7 +65,7 @@ hl.window_rule({
 
 -- === WARSTWY ===
 hl.layer_rule({ name = "layerrule-5", match = { namespace = "flameshot" }, blur = true, ignore_alpha = 0 })
--- Ajmashell (2026-10-03, ticket 11): blur pod launcherem i wyspami Bara (jak dawniej Waybar). ignore_alpha = 0.5:
+-- Ajmashell (2026-10-03, ticket 11): blur pod launcherem i wyspami Bara. ignore_alpha = 0.5:
 -- tło z alfą < 0.5 (Theme.qml) nie dostaje bluru wcale — przy niższej alfie obniż i tutaj.
 hl.layer_rule({ name = "layerrule-6", match = { namespace = "ajmashell-launcher" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-03 (ticket 12): blur_popups — blur także pod popupami Bara (Orbita, dymki, menu traya); tło Orbity alfa 0.8.

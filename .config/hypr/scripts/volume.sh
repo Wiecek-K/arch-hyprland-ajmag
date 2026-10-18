@@ -3,12 +3,8 @@
 # Volume keys: change the output volume, then show Ajmashell's OSD (ticket 15).
 # Ticket 23: the notify-send fallback for Waybar + swaync, its swaync icons and the unbound mic actions are gone.
 
-# Ajmashell's OSD; false when the shell is not running or has no `osd` target (it prints "Target not found.", exit 0).
-# Nothing else shows the level then: there is no other notification server since ticket 23.
-show_osd() {
-    local out
-    out=$(qs -c ajmashell ipc call osd "$@" 2>&1) && [[ -z "$out" ]]
-}
+# show_osd (Ajmashell OSD over IPC)
+source "$(dirname "${BASH_SOURCE[0]}")/osd.sh"
 
 get_volume() {
     volume=$(pamixer --get-volume)
@@ -37,10 +33,10 @@ dec_volume() {
 
 toggle_mute() {
     if [ "$(pamixer --get-mute)" == "false" ]; then
-        pamixer -m && show_osd volume
+        pamixer -m
     else
-        pamixer -u && show_osd volume
-    fi
+        pamixer -u
+    fi && show_osd volume
 }
 
 case "$1" in

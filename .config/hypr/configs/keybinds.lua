@@ -31,14 +31,14 @@ bind(M .. " + O", "Toggle pseudotile", dsp.window.pseudo()) -- dwindle
 bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
 bind(M .. " + R", "Restart Ajmashell", exec("systemctl --user restart " .. v.shellService))
 bind(M .. " + B", "Web browser", exec('xdg-open "https://"')) -- domyślna przeglądarka
-bind(M .. " + L", "Power menu", exec("qs -c ajmashell ipc call power toggle")) -- Ajmashell: Panel zasilania
+bind(M .. " + L", "Power menu", exec(v.ipc .. "power toggle")) -- Ajmashell: Panel zasilania
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
 bind(M .. " + CTRL + S", "Screenshot", exec(v.scripts .. "/screenshot.sh"))
-bind(M .. " + W", "Change wallpaper", exec("qs -c ajmashell ipc call wallpaper toggle")) -- karuzela tapet (ticket 19)
-bind(M .. " + K", "Keybinds", exec("qs -c ajmashell ipc call keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
+bind(M .. " + W", "Change wallpaper", exec(v.ipc .. "wallpaper toggle")) -- karuzela tapet (ticket 19)
+bind(M .. " + K", "Keybinds", exec(v.ipc .. "keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
 bind(M .. " + SHIFT + Q", "Kill active window process", exec(v.scripts .. "/KillActiveProcess.sh"))
 bind(M .. " + C", "Color picker", exec("hyprpicker -a"))
-bind(M .. " + H", "Hide/show bar", exec("qs -c ajmashell ipc call bar toggle"))
+bind(M .. " + H", "Hide/show bar", exec(v.ipc .. "bar toggle"))
 bind(M .. " + SHIFT + E", "Yazi in terminal", exec("kitty yazi"))
 bind(M .. " + F1", "Game mode (visual effects)", fn.gamemode) -- gamemode: przełącza efekty wizualne
 

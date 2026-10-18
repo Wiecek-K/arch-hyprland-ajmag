@@ -87,7 +87,6 @@ obs-studio
 obsidian
 pacman-contrib
 pamixer
-pavucontrol
 pipewire
 pipewire-audio
 pipewire-jack
