@@ -3,10 +3,8 @@ return {
     mainMod     = "SUPER",
     terminal    = "kitty",
     fileManager = "nautilus",
-    menu        = "~/.config/hypr/scripts/launcher.sh", -- Ajmashell launcher, rofi under the Waybar set
-    menuFallback = "rofi -show drun",
-    -- Zestaw shella startowany po zalogowaniu: "waybar" (Waybar + swaync) albo "ajmashell" (Ajmashell, Quickshell).
-    -- Jedyne miejsce zmiany domyślnego zestawu. Przełączanie w trakcie sesji: SUPER+SHIFT+R (scripts/shellset.sh).
-    shell       = "ajmashell",
+    menu        = "qs -c ajmashell ipc call launcher toggle", -- launcher Ajmashella
+    -- Ajmashell działa jako usługa systemd użytkownika (~/.config/systemd/user/ajmashell.service, ticket 23)
+    shellService = "ajmashell.service",
     scripts     = "~/.config/hypr/scripts",
 }

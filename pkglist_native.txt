@@ -97,7 +97,6 @@ podman
 polkit-kde-agent
 quickshell
 reflector
-rofi
 s-tui
 satty
 shellcheck
@@ -106,9 +105,7 @@ socat
 spotifyd
 steam
 sudo
-swappy
 swayimg
-swaync
 texinfo
 tree
 ttf-atkinson-hyperlegible
@@ -121,7 +118,6 @@ vim
 vlc
 vlc-plugin-ffmpeg
 vulkan-tools
-waybar
 wayland-utils
 wev
 wf-recorder

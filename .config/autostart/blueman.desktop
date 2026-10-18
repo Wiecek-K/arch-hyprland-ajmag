@@ -1,0 +1,5 @@
+[Desktop Entry]
+# Ticket 23: hides /etc/xdg/autostart/blueman.desktop; the Orbita on the Ajmashell Bar does its job.
+Type=Application
+Name=blueman
+Hidden=true

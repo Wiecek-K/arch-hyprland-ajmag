@@ -1,7 +1,7 @@
 #!/bin/bash
 # Set a wallpaper and regenerate the colours: hyprpaper + current_wallpaper symlink, then matugen (templates:
-# Hyprland borders, Ajmashell, Waybar, …), swaync reload, rofi launcher image.
-# Used by wppicker.sh (rofi, Waybar set) and the Ajmashell wallpaper carousel (ticket 19).
+# Hyprland borders, Ajmashell, kitty, …).
+# Used by the Ajmashell wallpaper carousel (ticket 19, SUPER+W); the rofi picker went with the Waybar set (ticket 23).
 # Usage: wpapply.sh /path/to/wallpaper
 
 SELECTED_PATH="$1"
@@ -38,7 +38,3 @@ else
     # The carousel indexer (~/.config/quickshell/ajmashell/wallpaper/indexer.py) uses the same flags for its colour buckets.
     matugen image --source-color-index 0 "$SELECTED_PATH"
 fi
-pgrep -x swaync >/dev/null && swaync-client -rs
-
-# jpeg:size lets libjpeg decode big JPEGs at 1/2–1/8 scale (10000 px wallpaper: 3.8 s → 1.2 s CPU); no effect on PNG
-magick -define jpeg:size=1600x1600 "$SELECTED_PATH" -resize x800 "$HOME/.config/hypr/rofi_wallpaper.bmp"

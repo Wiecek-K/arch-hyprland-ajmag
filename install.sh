@@ -75,10 +75,17 @@ install_config() {
     fi
 }
 
-folders=("hypr" "waybar" "kitty" "rofi" "swaync" "matugen" "wlogout" "spicetify")
+folders=("hypr" "kitty" "matugen" "spicetify")
 for folder in "${folders[@]}"; do
     install_config "$folder"
 done
+
+# Ajmashell runs as a systemd user service (started by hypr/configs/autostart.lua, restarted on failure);
+# nm-applet and blueman-applet stay out of the session: the Bar's Orbita does their job.
+mkdir -p "$CONFIG_DIR/systemd/user" "$CONFIG_DIR/autostart"
+cp "$REPO_CONFIG_DIR/systemd/user/ajmashell.service" "$CONFIG_DIR/systemd/user/"
+cp "$REPO_CONFIG_DIR/autostart/nm-applet.desktop" "$REPO_CONFIG_DIR/autostart/blueman.desktop" "$CONFIG_DIR/autostart/"
+systemctl --user daemon-reload
 
 # ZSH
 if [ -f "$HOME/.zshrc" ]; then

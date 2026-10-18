@@ -18,7 +18,6 @@ spicetify-cli
 spotify
 ttf-atkinson-hyperlegible-nerd
 visual-studio-code-bin
-wlogout
 xone-dkms
 xpadneo-dkms-git
 yay

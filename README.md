@@ -15,7 +15,7 @@ This configuration prioritizes **text clarity** ("High Visibility Mode") and **d
 
 ### 🎨 Visual Identity
 *   **Dynamic Theming:** System-wide colors generated from your wallpaper using `Matugen`.
-    *   *Affected apps:* Waybar, Kitty, Rofi, Hyprland borders, Zen Browser (via userChrome.css), Spotify (via Spicetyfy).
+    *   *Affected apps:* Ajmashell (Quickshell), Kitty, Hyprland borders, Zen Browser (via userChrome.css), Spotify (via Spicetyfy).
 *   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Terminal/Code) for maximum readability.
 *   **High Visibility Mode:**
     *   **Active Windows:** 100% opacity + colored border (3px).
@@ -101,12 +101,9 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 
 ## 🛠️ Customizations Detail
 
-### Waybar
-*   **Config:** `ajmag-waybar`
-*   **Style:** Uses a detached `style.css` to protect font settings from Matugen overwrites.
-*   **Features:**
-    *   **Roman/Arabic Numerals:** Configured for Arabic (1-10).
-    *   **Occupied Indicator:** Workspaces with windows have a distinct color (Secondary) vs Empty (Gray) vs Active (Primary).
+### Shell (Ajmashell)
+*   The only shell: Quickshell config `ajmashell`, run by the systemd user service `.config/systemd/user/ajmashell.service` (restarted on failure; `Super+R` restarts it by hand).
+*   **Removed fallback set:** Waybar, swaync, rofi and wlogout, with their scripts, shortcuts and matugen templates, are gone. They stay in git history under the tag `fallback-set-before-23`. To bring them back: `git checkout fallback-set-before-23 -- .config/waybar .config/swaync .config/rofi .config/wlogout` (plus the old `hypr/scripts/shellset.sh` and keybinds if you want the switcher), and install the packages again.
 
 ### Zen Browser
 *   Uses `userChrome.css` (`home_files/zen/chrome/`) to import `matugen-colors.css` at startup.
@@ -127,7 +124,7 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 
 ```text
 .
-├── .config/                # Dotfiles (Hypr, Waybar, Kitty, etc.)
+├── .config/                # Dotfiles (Hypr, Quickshell, Kitty, etc.)
 ├── home_files/             # Files for home dir (.zshrc, zen/chrome/userChrome.css)
 ├── system/                 # System-level configs (udev rules)
 ├── install.sh              # Automated installer
