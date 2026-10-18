@@ -43,16 +43,12 @@ PopupWindow {
         onCleared: root.visible = false
     }
 
-    // ticket 27: closes on a press on the Bar outside its own islands; follows the focused monitor
+    // ticket 27: closes on a press on the Bar outside its own islands; ticket 52: and on a change of the focused workspace
     BarElement {
         open: root.visible
         owners: [root.source]
         screenName: root.screen?.name ?? ""
         onClose: root.visible = false
-        onFollow: name => {
-            root.visible = false;
-            BarPopups.reopen("audio", root.microphone, name);
-        }
     }
 
     visible: false

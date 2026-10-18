@@ -4,8 +4,8 @@
 // longer eaten by clearing the grab; the Bar reports every press (`press`) and each open element closes itself
 // through its BarElement unless the press is on one of its own islands — that island's toggle still closes
 // it on a second click. A click beside the Bar and the element still clears the grab and only closes.
-// An open element follows the focused monitor (user, 2026-10-10): BarElement asks it to `follow`; a Bar element
-// closes and asks the Bar on the new monitor to open the same element (`reopen`), the Centrum moves itself.
+// A change of the focused workspace closes an open element (ticket 52, user 2026-10-16: following the focused
+// monitor, ticket 27, was irritating): `focusSettled` once Hyprland's burst of events ends, BarElement decides.
 // Pure logic: popups.mjs (tests tools/test-bar-popups.mjs). Own implementation.
 
 pragma Singleton
@@ -13,6 +13,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import qs.singletons.theme
 import "popups.mjs" as Logic
 
 Singleton {
@@ -28,9 +29,41 @@ Singleton {
 
     signal escaped // Esc on a Bar window (it has the keyboard while an element is open): open elements close
     signal pressed(var hit) // a press on a Bar; hit = the deepest item under the pointer, null = none
-    // open element `kind` ("orbit", "audio", "media", "tray", "calendar") with `key` (tab, microphone, -, tray item id, -) on the Bar
-    // of `screenName`: an element that followed the focus there
-    signal reopen(string kind, var key, string screenName)
+    signal focusSettled(int workspace) // the focused workspace changed (id), read after Hyprland's events settle
+
+    // Read once the burst ends, as bar/Workspaces.qml: moving to the other monitor, Hyprland first reports that
+    // monitor's old workspace (focusedmon), a few ms later the new one (workspace)
+    // set by the timer, not bound: a binding would already hold the new id when the timer compares
+    property int settledWorkspace: 0
+
+    Component.onCompleted: settledWorkspace = Hyprland.focusedWorkspace?.id ?? 0
+
+    Connections {
+        target: Hyprland
+        function onFocusedWorkspaceChanged(): void {
+            settleTimer.restart();
+        }
+        function onFocusedMonitorChanged(): void {
+            settleTimer.restart();
+        }
+    }
+
+    Timer {
+        id: settleTimer
+        interval: Theme.motion.settle
+        onTriggered: {
+            const id = Hyprland.focusedWorkspace?.id ?? 0;
+            if (id === root.settledWorkspace)
+                return;
+            root.settledWorkspace = id;
+            root.focusSettled(id);
+        }
+    }
+
+    // the active workspace of monitor `name` (0 = unknown): an element's home when it opens
+    function activeWorkspace(name: string): int {
+        return Hyprland.monitors.values.find(m => m.name === name)?.activeWorkspace?.id ?? 0;
+    }
 
     // a press at (x, y) in `content`, the Bar's item holding every island
     function press(content: Item, x: real, y: real): void {

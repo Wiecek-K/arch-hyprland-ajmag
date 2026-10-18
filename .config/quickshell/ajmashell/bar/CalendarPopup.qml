@@ -47,12 +47,6 @@ PopupWindow {
         visible = !visible;
     }
 
-    // the popup followed the focus to this monitor (ticket 27)
-    function openPopup(): void {
-        if (!visible)
-            toggle();
-    }
-
     function showToday(): void {
         year = today.year;
         month = today.month;
@@ -82,16 +76,12 @@ PopupWindow {
         onCleared: root.visible = false
     }
 
-    // ticket 27: closes on a press on the Bar outside the clock; follows the focused monitor
+    // ticket 27: closes on a press on the Bar outside the clock; ticket 52: and on a change of the focused workspace
     BarElement {
         open: root.visible
         owners: [root.source]
         screenName: root.screen?.name ?? ""
         onClose: root.visible = false
-        onFollow: name => {
-            root.visible = false;
-            BarPopups.reopen("calendar", null, name);
-        }
     }
 
     visible: false

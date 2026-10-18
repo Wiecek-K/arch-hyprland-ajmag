@@ -15,11 +15,6 @@ Island {
         popup.toggle();
     }
 
-    // the popup followed the focus to this monitor (ticket 27)
-    function openPopup(): void {
-        popup.openPopup();
-    }
-
     SystemClock {
         id: clock
         precision: SystemClock.Minutes

@@ -84,17 +84,12 @@ PopupWindow {
         onCleared: root.close()
     }
 
-    // ticket 27: closes on a press on the Bar outside its own islands; follows the focused monitor
+    // ticket 27: closes on a press on the Bar outside its own islands; ticket 52: and on a change of the focused workspace
     BarElement {
         open: root.visible
         owners: [root.source]
         screenName: root.screen?.name ?? ""
         onClose: root.close()
-        onFollow: name => {
-            const id = root.itemId;
-            root.close();
-            BarPopups.reopen("tray", id, name);
-        }
     }
 
     // One opener per level, all open at once: when a menu loses its last opener, Quickshell drops

@@ -2,7 +2,8 @@
 // media popup, Centrum sterowania. Their focus grabs let clicks through to the Bar, so one click on another
 // island closes the open element and opens the next; a press on one of the element's own islands leaves it to
 // that island's toggle (a second click still closes it, the Orbita switches its tab without closing).
-// An open element also follows the focused monitor (user, 2026-10-10).
+// A change of the focused workspace closes an open element (ticket 52, user 2026-10-16; it followed the focused
+// monitor from ticket 27 until then).
 // Used by BarPopups.qml and BarElement.qml next to it.
 // A JS module (not QML) so tools/test-bar-popups.mjs can test it with node.
 // Own implementation.
@@ -32,10 +33,12 @@ export function closesOn(hit, owners) {
     return typeof owners === "function" ? !owners(hit) : !owners.some(owner => within(hit, owner));
 }
 
-// Where an open element moves when the focused monitor changes: the focused screen, or "" to stay
-// (closed, held — e.g. the Orbita while pairing or asking for a password —, already there, or a screen unknown).
-export function followTarget(open, stays, here, focused) {
-    return open && !stays && here !== "" && focused !== "" && focused !== here ? focused : "";
+// Whether a new focused workspace `focused` (after Hyprland's burst of events) closes an element: open, not held
+// (`stays`: the Orbita in the middle of an action) and the focus left `home`, the active workspace of the element's
+// monitor when it opened. A click on the other monitor's Bar may move the focus there after the element opened:
+// that workspace is its home, so it stays. 0 = unknown: nothing closes.
+export function closesOnFocus(open, stays, home, focused) {
+    return open && !stays && home !== 0 && focused !== 0 && focused !== home;
 }
 
 // The deepest item under (x, y) in `root`'s coordinates; `childAt(item, x, y)` as Item.childAt.

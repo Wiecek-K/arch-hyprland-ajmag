@@ -37,7 +37,7 @@ Scope {
 
     property bool open: false
     property string screenName: ""
-    property bool moving: false // following the focus to another monitor (ticket 27)
+    property bool moving: false // moving to another bell's monitor (ticket 27): its new surface clears the grab
     // 0 = hidden, 1 = fully in; the window shows while above 0, so the panel can slide out before it hides
     property real shown: open ? 1 : 0
     // true for one close only: the window hides at once instead of sliding out (ticket 35)
@@ -64,7 +64,9 @@ Scope {
             return;
         }
         // empty name (IPC, keyboard): the monitor with the focus
-        screenName = name || (Hyprland.focusedMonitor?.name ?? "");
+        const to = name || (Hyprland.focusedMonitor?.name ?? "");
+        moving = open && to !== screenName;
+        screenName = to;
         open = true;
     }
 
@@ -164,16 +166,12 @@ Scope {
         onRunningChanged: if (!running) root.sendBrightness()
     }
 
-    // ticket 27: closes on a press on the Bar outside every bell; moves to the focused monitor
+    // ticket 27: closes on a press on the Bar outside every bell; ticket 52: and on a change of the focused workspace
     BarElement {
         open: root.open
         owners: BarLogic.onBell
         screenName: root.screenName
         onClose: root.open = false
-        onFollow: name => {
-            root.moving = true;
-            root.screenName = name;
-        }
     }
 
     SystemClock {

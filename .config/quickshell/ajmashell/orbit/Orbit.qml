@@ -408,18 +408,14 @@ PopupWindow {
         onCleared: root.close()
     }
 
-    // ticket 27: closes on a press on the Bar outside its own islands; follows the focused monitor
+    // ticket 27: closes on a press on the Bar outside its own islands; ticket 52: and on a change of the focused
+    // workspace, except in the middle of an action (closing would cancel pairing, a password or a code; user 2026-10-16)
     BarElement {
         open: root.visible
         owners: root.islands
         screenName: root.screen?.name ?? ""
-        stays: root.pairing !== null || root.passwordMode || root.promptMode // closing would cancel them
+        stays: root.pairing !== null || root.passwordMode || root.promptMode || root.watched !== null || root.nodes.some(node => node.busy)
         onClose: root.close()
-        onFollow: name => {
-            const tab = root.tab;
-            root.close();
-            BarPopups.reopen("orbit", tab, name);
-        }
     }
 
     visible: false

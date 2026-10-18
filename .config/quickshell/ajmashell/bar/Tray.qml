@@ -21,14 +21,6 @@ Island {
     visible: SystemTray.items.values.some(item => Logic.shownInTray(item.id))
     spacing: Theme.bar.traySpacing
 
-    // the menu of tray item `id`, unless open already: the menu followed the focus here (ticket 27)
-    function openMenu(id: string): void {
-        const index = SystemTray.items.values.findIndex(item => item.id === id);
-        const item = SystemTray.items.values[index];
-        if (index >= 0 && item.hasMenu && !trayMenu.visible)
-            trayMenu.toggle(entries.itemAt(index), item.menu, id); // qmllint disable unresolved-type
-    }
-
     TrayMenu {
         id: trayMenu
     }
