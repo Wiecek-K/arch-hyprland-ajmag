@@ -1,7 +1,7 @@
 // OSD (ticket 15, CONTEXT.md): the volume and brightness keys show the new level for a moment at the bottom
 // centre of the focused monitor, then it fades out. Replaces the notify-send popups of volume.sh / brightness.sh:
 // the scripts call this over IPC while Ajmashell runs (keys only — no OSD for the Bar's wheel or the Centrum's
-// sliders; user, 2026-10-07) and fall back to notify-send for Waybar + swaync.
+// sliders; user, 2026-10-07); without it the keys show nothing (ticket 23).
 // IPC: qs -c ajmashell ipc call osd volume | osd brightness <percent>
 // Volume is read live from the default PipeWire output (it may update a moment after the call);
 // brightness comes from the script (sysfs sends no change events).

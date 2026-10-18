@@ -1,5 +1,5 @@
-// Pure logic of the volume islands (output volume, microphone): wheel step, icon and percent text like our Waybar
-// (~/.config/waybar/Modules → "pulseaudio", ~/.config/hypr/scripts/volume.sh).
+// Pure logic of the volume islands (output volume, microphone): wheel step, icon and percent text like our old Waybar
+// (waybar/Modules, dotfiles tag fallback-set-before-23 → "pulseaudio", ~/.config/hypr/scripts/volume.sh).
 // A JS module (not QML) so tools/test-bar-audio.mjs can test it with node.
 // Own implementation; form-factor lookup and the 150% clamp after DankMaterialShell
 // quickshell/Services/AudioService.qml (sinkIcon, adjustDefaultSinkVolume), idea only:

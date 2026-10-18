@@ -1,8 +1,7 @@
-// BT island — adapter and connection state only, like our Waybar "bluetooth" module
-// (~/.config/waybar/Modules) without the connection count; connected devices show in the tooltip (D2, ticket 09).
+// BT island — adapter and connection state only, like our old Waybar "bluetooth" module
+// (waybar/Modules, dotfiles tag fallback-set-before-23) without the connection count; connected devices show in the tooltip (D2, ticket 09).
 // The only place on the Bar that shows a BT connection: the volume island has no BT mark (user, 2026-10-01).
-// Left click opens the Orbita on the BT tab (ticket 12, wired in Bar.qml). No right click: it started
-// blueman-applet + blueman-manager, the emergency fallback (D2), removed with the applets in ticket 23 (user, 2026-10-18).
+// Left click opens the Orbita on the BT tab (ticket 12, wired in Bar.qml); no right-click action (user, 2026-10-18).
 // Own implementation, state from Quickshell.Bluetooth (BlueZ), logic in connectivity.mjs.
 
 pragma ComponentBehavior: Bound

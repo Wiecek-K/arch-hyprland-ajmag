@@ -1,4 +1,4 @@
-// Clock island — format as in our Waybar clock module (Modules → "clock"): " 03:07 AM".
+// Clock island — format as in our old Waybar clock module (Modules → "clock"): " 03:07 AM".
 // A click opens the calendar popup (ticket 42).
 // Own implementation; SystemClock with minute precision wakes the shell once a minute.
 

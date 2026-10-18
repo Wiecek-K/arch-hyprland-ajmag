@@ -1,5 +1,5 @@
-// Pure logic of the Wi-Fi and BT islands (ticket 09): state icon and tooltip like our Waybar
-// "network" and "bluetooth" modules (~/.config/waybar/Modules).
+// Pure logic of the Wi-Fi and BT islands (ticket 09): state icon and tooltip like our old Waybar
+// "network" and "bluetooth" modules (waybar/Modules, dotfiles tag fallback-set-before-23).
 // A JS module (not QML) so tools/test-bar-connectivity.mjs can test it with node.
 // Own implementation; signal steps like serpantinum bar/modules/system/WifiWidget.qml (idea only):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a

@@ -1,17 +1,15 @@
-// Wi-Fi island — state icon only (radio off, not connected, signal strength, cable), like our Waybar
-// "network" module (~/.config/waybar/Modules); the network name shows in the tooltip (D2, ticket 09).
+// Wi-Fi island — state icon only (radio off, not connected, signal strength, cable), like our old Waybar
+// "network" module (waybar/Modules, dotfiles tag fallback-set-before-23); the network name shows in the tooltip (D2, ticket 09).
 // Left click opens the Orbita on the Wi-Fi tab (ticket 12, wired in Bar.qml); right click opens
-// nm-connection-editor, the emergency fallback (D2), started by Hyprland: a child of qs would die with
-// every restart of ajmashell.service (ticket 23).
+// nm-connection-editor, the emergency fallback (D2), through Apps.networkEditor().
 // Own implementation, state from Quickshell.Networking (NetworkManager), logic in connectivity.mjs.
 
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import Quickshell.Hyprland
 import Quickshell.Networking
+import qs.singletons.apps
 import "connectivity.mjs" as Logic
-import "../launcher/launcher.mjs" as Launch
 
 Island {
     id: root
@@ -25,7 +23,7 @@ Island {
 
     property bool orbitOpen: false // no tooltip over the open Orbita
 
-    onRightClicked: Hyprland.dispatch(Launch.execRequest(["nm-connection-editor"], ""))
+    onRightClicked: Apps.networkEditor()
 
     IconSlot {
         icons: Logic.WIFI_ICONS

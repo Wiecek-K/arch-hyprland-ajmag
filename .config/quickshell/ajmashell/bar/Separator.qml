@@ -1,4 +1,4 @@
-// Separator — a glyph between two Bar islands, like Waybar's "custom/separator#dot-line" (~/.config/waybar/ModulesCustom:
+// Separator — a glyph between two Bar islands, like Waybar's "custom/separator#dot-line" (waybar/ModulesCustom, dotfiles tag fallback-set-before-23:
 // format U+E621, no island background) between the notification group and the audio modules.
 // Between the volume islands and the BT / Wi-Fi / bell pill (user, 2026-10-07, ticket 17).
 // Own implementation.

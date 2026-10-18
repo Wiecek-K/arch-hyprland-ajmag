@@ -1,5 +1,5 @@
 // Pure logic of the Panel zasilania (power/PowerPanel.qml, ticket 18, D10): the actions of the wlogout it replaces
-// (~/.config/wlogout/layout: same commands and keys) and moves between the buttons. No Hibernate: the kernel has it
+// (wlogout/layout, dotfiles tag fallback-set-before-23: same commands and keys) and moves between the buttons. No Hibernate: the kernel has it
 // off on this laptop (/sys/power/disk = [disabled], logind CanHibernate = "na"), user 2026-10-09: remove the button.
 // Tests: ~/Projects/hyprland-lua-migration/tools/test-power.mjs
 // Own implementation; keyboard moves after caelestia modules/session/Content.qml (idea only, see PowerPanel.qml).

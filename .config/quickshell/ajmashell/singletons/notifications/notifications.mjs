@@ -1,14 +1,14 @@
 // Pure logic of Ajmashell notifications (ticket 10): popup lifetime, history, popup replacement,
 // the bell's badge and icon sources; the full Notification centre (ticket 16): groups per app, action buttons,
 // progress bars and the saved silent mode. A JS module (not QML) so tools/test-notifications.mjs can test it with node.
-// Popup timeouts from our swaync (~/.config/swaync/config.json: timeout-low 3, timeout 6, timeout-critical 0);
+// Popup timeouts from our old swaync (swaync/config.json, dotfiles tag fallback-set-before-23: timeout-low 3, timeout 6, timeout-critical 0);
 // icon source rules from serpantinum notifications/types/Default.qml (idea only):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 
 const LOW = 0; // NotificationUrgency.Low
 const CRITICAL = 2; // NotificationUrgency.Critical
 
-// our Waybar "custom/swaync" format-icons: "none" / "notification" and "dnd-none" / "dnd-notification"
+// our old Waybar "custom/swaync" format-icons: "none" / "notification" and "dnd-none" / "dnd-notification"
 export const BELL_ICON = "\u{f0a2}";
 const BELL_SILENT_ICON = "\u{f1f7}";
 export const BELL_ICONS = [BELL_ICON, BELL_SILENT_ICON];

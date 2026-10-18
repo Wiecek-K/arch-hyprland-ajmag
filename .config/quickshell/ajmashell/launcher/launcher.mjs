@@ -123,15 +123,6 @@ export function terminalCommand(command) {
     return [TERMINAL, "-e"].concat(command);
 }
 
-const shellQuote = arg => `'${String(arg).replace(/'/g, "'\\''")}'`;
-
-// Argument for Hyprland.dispatch(): Hyprland starts the app, as it did with rofi, so the window gets a fresh
-// workspace token. Started by qs it would inherit the shell's HL_INITIAL_WORKSPACE_TOKEN and, with
-// misc:initial_workspace_tracking = 2, open on the workspace where the shell was started.
-export function execRequest(command, workingDirectory) {
-    const cmd = command.map(shellQuote).join(" ");
-    return `hl.dsp.exec_cmd(${luaString(workingDirectory ? `cd ${shellQuote(workingDirectory)} && ${cmd}` : cmd)})`;
-}
 
 // --- calculator ------------------------------------------------------------------
 // Text after "=" is evaluated live, on every key press, so it must never run anything: qalc's command()

@@ -1,5 +1,5 @@
-// Volume island — output volume of the default PipeWire sink, like our Waybar "pulseaudio" module
-// (~/.config/waybar/Modules) and ~/.config/hypr/scripts/volume.sh.
+// Volume island — output volume of the default PipeWire sink, like our old Waybar "pulseaudio" module
+// (waybar/Modules, dotfiles tag fallback-set-before-23) and ~/.config/hypr/scripts/volume.sh.
 // Wheel ±5% up to 150%, left click mutes (ticket 08a, user 2026-10-01).
 // Right click opens the audio popup: device choice and app volumes in the Orbita's look (ticket 14, user 2026-10-07;
 // was pavucontrol).

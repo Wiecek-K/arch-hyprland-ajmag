@@ -29,12 +29,12 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Bluetooth as BT
+import qs.singletons.apps
 import qs.singletons.barpopups
 import qs.singletons.theme
 import qs.singletons.look
 import "orbit.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
-import "../launcher/launcher.mjs" as Launch
 
 PopupWindow {
     id: root
@@ -172,7 +172,7 @@ PopupWindow {
             }
             passwordFor = "";
         } else if (action === "program") {
-            Hyprland.dispatch(Launch.execRequest(["nm-connection-editor"], "")); // a child of qs dies with ajmashell.service
+            Apps.networkEditor();
             close();
         } else if (action === "password") {
             passwordFor = id;

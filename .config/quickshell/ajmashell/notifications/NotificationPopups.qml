@@ -1,5 +1,5 @@
 // NotificationPopups — the column of notification popups in the top-right corner of the focused
-// monitor (like our swaync: positionX right, positionY top), below the Bar (ticket 10).
+// monitor (like our old swaync: positionX right, positionY top), below the Bar (ticket 10).
 // Adapted from serpantinum src/quickshell/notifications/NotificationPopups.qml:
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 // Copyright (C) 2026 Illia Miroshnichenko — AGPL-3.0-or-later

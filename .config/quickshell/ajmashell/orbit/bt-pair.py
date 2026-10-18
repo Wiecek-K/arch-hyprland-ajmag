@@ -2,7 +2,8 @@
 # Pairs one Bluetooth device for the Orbita (ticket 12) and acts as its BlueZ agent, so a device that
 # asks to compare a code (Numeric Comparison) can be confirmed in the Orbita's core.
 # BlueZ asks the agent of the D-Bus client that called Device1.Pair(), so this helper calls Pair() itself
-# and registers a non-default agent: blueman-applet stays the default agent for pairings a device starts.
+# and registers a non-default agent. No default agent runs since ticket 23 (blueman-applet removed), so a pairing
+# a device starts has none: pair from the Orbita.
 # Own implementation after the BlueZ Agent1 API (doc/org.bluez.Agent.rst); blueman's pairing
 # notification (Confirm / Deny) is the model for the flow.
 #

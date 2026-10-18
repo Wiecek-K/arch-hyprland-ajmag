@@ -1,5 +1,5 @@
 // Bell island — the number of notifications in the history on a badge over the bell (ticket 10),
-// like our Waybar "custom/swaync" (count + bell, red dot while there are notifications).
+// like our old Waybar "custom/swaync" (count + bell, red dot while there are notifications).
 // The count sits on a badge, not beside the bell, so the island keeps its width (no jumps).
 // Right click toggles silent mode (DND): crossed-out bell, no popups except critical ones.
 // Left click opens the Centrum sterowania (ticket 14, D1; wired in Bar.qml). Until then (ticket 10) it cleared

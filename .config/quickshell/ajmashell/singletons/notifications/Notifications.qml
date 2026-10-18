@@ -1,4 +1,4 @@
-// Notifications — the shell's notification server (replaces swaync while Ajmashell runs, ticket 10):
+// Notifications — the shell's notification server (replaced swaync, ticket 10; swaync removed in ticket 23):
 // history in memory for the bell's count and the Centrum powiadomień (tickets 14, 16), kept grouped per app,
 // and the model of the popups shown by notifications/NotificationPopups.qml.
 // Adapted from serpantinum src/quickshell/notifications/NotificationManager.qml:

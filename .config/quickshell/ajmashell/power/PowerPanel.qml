@@ -22,10 +22,10 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.orbit
+import qs.singletons.apps
 import qs.singletons.look
 import qs.singletons.theme
 import "power.mjs" as Logic
-import "../launcher/launcher.mjs" as Launch
 
 Scope {
     id: root
@@ -60,7 +60,7 @@ Scope {
         if (dryRun)
             console.log("power dry run:", JSON.stringify(command));
         else
-            Hyprland.dispatch(Launch.execRequest(command, "")); // through Hyprland, as the launcher's apps
+            Apps.run(command, ""); // through Hyprland, as the launcher's apps
     }
 
     IpcHandler {

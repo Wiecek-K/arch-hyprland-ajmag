@@ -5,7 +5,7 @@
 // Services/HyprlandService.qml (Lua dispatch, see workspaces.mjs):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 // https://github.com/AvengeMedia/DankMaterialShell@9dc5b2c5af7d18b7231f425fe0d8fa7243233109
-// Own implementation; look and states from our Waybar (style/islands.css) via Theme.
+// Own implementation; look and states from our old Waybar (style/islands.css) via Theme.
 
 pragma ComponentBehavior: Bound
 

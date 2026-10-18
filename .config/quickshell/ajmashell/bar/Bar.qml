@@ -3,7 +3,7 @@
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 // Copyright (C) 2026 Illia Miroshnichenko — AGPL-3.0-or-later
 // Changes: kept only Variants + PanelWindow (no Config, autohide, redact, masks);
-// size and layer match our Waybar; colour and size from Theme (ticket 05).
+// size and layer match our old Waybar; colour and size from Theme (ticket 05).
 // One IpcHandler "bar" for all screens (serpantinum has one "topbar" handler per window).
 // Ticket 07: transparent window with islands (ADR 0002); clock on the monitor's axis, workspaces to its right.
 // Ticket 08a: left zone with the volume island. Ticket 08b: microphone island to its right.

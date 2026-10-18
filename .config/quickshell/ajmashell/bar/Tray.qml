@@ -1,5 +1,5 @@
-// Tray island — StatusNotifierItem icons of running apps, like our Waybar "tray" module
-// (~/.config/waybar/Modules: icon-size 20, spacing 4). Hidden while no app has an icon.
+// Tray island — StatusNotifierItem icons of running apps, like our old Waybar "tray" module
+// (waybar/Modules, dotfiles tag fallback-set-before-23: icon-size 20, spacing 4). Hidden while no app has an icon.
 // Left click activates the app (or opens its menu if the app only has a menu), middle click is
 // the secondary action, right click opens the app's menu, wheel goes to the app — like Waybar.
 // Own implementation; click mapping after serpantinum src/quickshell/bar/modules/TrayWidget.qml (idea only):

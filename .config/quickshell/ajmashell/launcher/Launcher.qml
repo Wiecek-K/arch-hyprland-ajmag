@@ -1,13 +1,13 @@
 // Launcher (ticket 11, B09 §1): SUPER+D → qs -c ajmashell ipc call launcher toggle (vars.lua `menu`).
-// Layout of the rofi it replaces (~/.config/rofi/config.rasi): wallpaper pane with the search field and the mode
+// Layout of the rofi it replaces (rofi/config.rasi, dotfiles tag fallback-set-before-23): wallpaper pane with the search field and the mode
 // buttons | list of 8 rows. Modes: Applications (drun) and Windows (focus the window, also on another workspace
 // and monitor); Tab switches. Text starting with "=" shows a qalc result instead of the list; Enter copies it.
 // Search order adapted from serpantinum src/quickshell/launcher/Launcher.qml (see launcher.mjs):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 // Copyright (C) 2026 Illia Miroshnichenko — AGPL-3.0-or-later
 // Changes: only the matching kept (no file search, ">" commands, widgets, emoji, app_rank.py, intro animation,
-// Config/I18n layers); look and sizes of our rofi theme from Theme.launcher; usage counts in rofi's history
-// format (ours, the rofi history was copied once on 2026-10-02 and is not read any more); apps started by Hyprland, not by qs (launcher.mjs execRequest).
+// Config/I18n layers); look and sizes of our old rofi theme from Theme.launcher; usage counts in rofi's history
+// format (ours, the rofi history was copied once on 2026-10-02 and is not read any more); apps started by Hyprland, not by qs (Apps.run, singletons/apps).
 // Calculator after end-4/dots-hyprland ii/services/LauncherSearch.qml (qalc in a Process; pattern only), with our guard:
 // https://github.com/end-4/dots-hyprland/blob/547836f1b01a45445cfbbcd92b206d1b5ceee4d9/dots/.config/quickshell/ii/services/LauncherSearch.qml
 // Own: window list (B09 §1.5), the window created once and only hidden (as the wallpaper carousel), the last 5
@@ -22,6 +22,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import qs.singletons.apps
 import qs.singletons.theme
 import "launcher.mjs" as Logic
 import "../orbit" // OrbitBackdrop behind the list in the fancy look (ticket 13)
@@ -107,7 +108,7 @@ Scope {
         }
         const e = item.entry;
         const command = Array.from(e.command);
-        Hyprland.dispatch(Logic.execRequest(e.runInTerminal ? Logic.terminalCommand(command) : command, e.workingDirectory));
+        Apps.run(e.runInTerminal ? Logic.terminalCommand(command) : command, e.workingDirectory);
         usage = Logic.addLaunch(usage, e.id);
         usageFile.setText(Logic.formatUsage(usage));
     }

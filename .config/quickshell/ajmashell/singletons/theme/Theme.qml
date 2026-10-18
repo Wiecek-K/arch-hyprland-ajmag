@@ -98,7 +98,7 @@ Singleton {
     }
 
     // Launcher (launcher/Launcher.qml, ticket 11): the colours of the rofi theme it replaces
-    // (~/.config/rofi/config.rasi, matugen roles of rofi/colors.rasi)
+    // (rofi/config.rasi, dotfiles tag fallback-set-before-23, matugen roles of rofi/colors.rasi)
     readonly property LauncherStyle launcher: LauncherStyle {
         background: Qt.alpha(root.colors.on_primary_fixed, 0.7) // rofi window; user, 2026-10-03: 0.7 (tried 0.8, 0.6); blur: rules.lua layerrule-6, needs alpha ≥ 0.5
         backgroundOpaque: root.colors.on_primary_fixed // a look with `opaque` (fancy2), no blur under it
@@ -390,7 +390,7 @@ Singleton {
         property color card
     }
 
-    // Sizes from ~/.config/rofi/config.rasi, so the launcher looks like rofi did
+    // Sizes from rofi/config.rasi, dotfiles tag fallback-set-before-23, so the launcher looks like rofi did
     component LauncherStyle: QtObject {
         readonly property int width: 1000
         readonly property int radius: 15
