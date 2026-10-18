@@ -124,6 +124,9 @@ PopupWindow {
             return Logic.pairActions(prompt);
         return wifiTab ? Logic.wifiActions(selected) : Logic.btActions(selected, profile);
     }
+    // in the middle of an action: pairing, a password or pairing code asked, a Wi-Fi connect watched, a node
+    // connecting or disconnecting — a workspace change does not close it, closing would cancel it (ticket 52)
+    readonly property bool acting: pairing !== null || passwordMode || promptMode || watched !== null || nodes.some(node => node.busy)
     readonly property int btConnected: devices.filter(dev => dev.connected).length
     // only in a look with motion: still strands looked poor (user, 2026-10-06)
     readonly property bool bolts: animate && Theme.orbit.lightning && Logic.hasBolts(nodes)
@@ -414,7 +417,7 @@ PopupWindow {
         open: root.visible
         owners: root.islands
         screenName: root.screen?.name ?? ""
-        stays: root.pairing !== null || root.passwordMode || root.promptMode || root.watched !== null || root.nodes.some(node => node.busy)
+        stays: root.acting
         onClose: root.close()
     }
 

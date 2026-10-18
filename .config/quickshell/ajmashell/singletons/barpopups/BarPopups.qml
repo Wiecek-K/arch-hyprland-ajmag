@@ -21,7 +21,6 @@ Singleton {
 
     property list<QtObject> bars: [] // the Bar's PanelWindows on all screens (Bar.qml)
 
-    readonly property string focusedScreen: Hyprland.focusedMonitor?.name ?? ""
     // open elements (BarElement counts itself). While > 0 the Bar windows take the keyboard on demand: with the
     // pointer over a Bar popup Hyprland gives the keyboard to the popup's parent, the Bar's layer, and with
     // keyboardFocus None there Esc was lost (ticket 42, user 2026-10-16)
