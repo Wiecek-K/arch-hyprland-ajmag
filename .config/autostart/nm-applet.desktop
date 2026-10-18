@@ -1,0 +1,5 @@
+[Desktop Entry]
+# Ticket 23: hides /etc/xdg/autostart/nm-applet.desktop; the Orbita on the Ajmashell Bar does its job.
+Type=Application
+Name=nm-applet
+Hidden=true

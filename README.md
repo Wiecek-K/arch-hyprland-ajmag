@@ -13,7 +13,7 @@ The Hyprland config is written in **Lua** (`.config/hypr/hyprland.lua`), the for
 ## 🌟 Key Features
 
 ### 🐚 Shell: Ajmashell (Quickshell)
-Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/quickshell/ajmashell/`. One process replaces Waybar, swaync, rofi and wlogout (still in the repo as a fallback set for now), all in Matugen colors:
+Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/quickshell/ajmashell/`. One process replaces Waybar, swaync, rofi and wlogout, all in Matugen colors:
 *   **Bar:** islands for tray, media, clock with calendar, workspaces, volume and microphone, Bluetooth / Wi-Fi / notifications.
 *   **Orbit:** Wi-Fi and Bluetooth popup (scan, connect, pair, battery, headset profile).
 *   **Control Center:** volume and brightness sliders, audio outputs, per-app volume, grouped notifications with actions, silent mode, power buttons.
@@ -92,7 +92,7 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 ## 🛠️ Customizations Detail
 
 ### Shell (Ajmashell)
-*   Quickshell config `ajmashell`, started by `hypr/scripts/shellset.sh` (default set in `hypr/configs/vars.lua`; `Super + R` restarts the active set, `Super + Shift + R` switches to the Waybar + swaync fallback set).
+*   Quickshell config `ajmashell`, run by the systemd user service `.config/systemd/user/ajmashell.service` (restarted on failure; `Super + R` restarts it by hand).
 *   **Colors:** Matugen writes `~/.local/state/ajmashell/colors.json`; the shell reloads it live, without a restart.
 *   **License:** Ajmashell is licensed under **AGPL-3.0-or-later** — see [`LICENSE`](.config/quickshell/ajmashell/LICENSE). Parts of it are copied from or inspired by other Quickshell configs; [`SOURCES.md`](.config/quickshell/ajmashell/SOURCES.md) lists them with their licenses. The license covers only `.config/quickshell/ajmashell/`, not the rest of this repository.
 

@@ -27,23 +27,18 @@ bind("CTRL + ALT + Delete", "Exit Hyprland", dsp.exit())
 bind(M .. " + E", "File manager", exec(v.fileManager))
 bind(M .. " + Space", "Toggle floating", dsp.window.float())
 bind(M .. " + D", "App launcher", exec(v.menu))
-bind(M .. " + SHIFT + D", "App launcher (rofi, fallback)", exec(v.menuFallback))
 bind(M .. " + O", "Toggle pseudotile", dsp.window.pseudo()) -- dwindle
 bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
-bind(M .. " + R", "Restart bar (active shell set)", exec(v.scripts .. "/shellset.sh restart"))
-bind(M .. " + SHIFT + R", "Switch Waybar + swaync / Ajmashell", exec(v.scripts .. "/shellset.sh toggle"))
+bind(M .. " + R", "Restart Ajmashell", exec("systemctl --user restart " .. v.shellService))
 bind(M .. " + B", "Web browser", exec('xdg-open "https://"')) -- domyślna przeglądarka
-bind(M .. " + L", "Power menu", exec(v.scripts .. "/power.sh")) -- Ajmashell: Panel zasilania, Waybar: wlogout
-bind(M .. " + SHIFT + L", "Power menu (wlogout, fallback)", exec(v.scripts .. "/Wlogout.sh"))
+bind(M .. " + L", "Power menu", exec(v.ipc .. "power toggle")) -- Ajmashell: Panel zasilania
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
 bind(M .. " + CTRL + S", "Screenshot", exec(v.scripts .. "/screenshot.sh"))
-bind(M .. " + W", "Change wallpaper", exec(v.scripts .. "/wppicker.sh"))
-bind(M .. " + K", "Keybinds", exec("qs -c ajmashell ipc call keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
+bind(M .. " + W", "Change wallpaper", exec(v.ipc .. "wallpaper toggle")) -- karuzela tapet (ticket 19)
+bind(M .. " + K", "Keybinds", exec(v.ipc .. "keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
 bind(M .. " + SHIFT + Q", "Kill active window process", exec(v.scripts .. "/KillActiveProcess.sh"))
 bind(M .. " + C", "Color picker", exec("hyprpicker -a"))
-bind(M .. " + CTRL + B", "Waybar style", exec(v.scripts .. "/WaybarStyles.sh"))
-bind(M .. " + ALT + B", "Waybar layout", exec(v.scripts .. "/WaybarLayout.sh"))
-bind(M .. " + H", "Hide/show bar", exec(v.scripts .. "/shellset.sh hide")) -- Waybar: SIGUSR1, Ajmashell: IpcHandler
+bind(M .. " + H", "Hide/show bar", exec(v.ipc .. "bar toggle"))
 bind(M .. " + SHIFT + E", "Yazi in terminal", exec("kitty yazi"))
 bind(M .. " + F1", "Game mode (visual effects)", fn.gamemode) -- gamemode: przełącza efekty wizualne
 

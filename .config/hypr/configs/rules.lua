@@ -2,14 +2,13 @@
 
 -- === TAGI ===
 hl.window_rule({ name = "tag-multimedia-video", match = { class = "^([Mm]pv|vlc)$" }, tag = "+multimedia_video" })
-hl.window_rule({ name = "tag-settings-1", match = { class = "^(nm-applet|nm-connection-editor|blueman-manager|org.gnome.FileRoller)$" }, tag = "+settings" })
+hl.window_rule({ name = "tag-settings-1", match = { class = "^(nm-connection-editor|blueman-manager|org.gnome.FileRoller)$" }, tag = "+settings" })
 hl.window_rule({ name = "tag-settings-2", match = { class = "^(org.gnome.DiskUtility|wihotspot(-gui)?)$" }, tag = "+settings" })
 hl.window_rule({ name = "tag-viewer-1", match = { class = "^(org.gnome.SystemMonitor)$" }, tag = "+viewer" })
 hl.window_rule({ name = "tag-viewer-2", match = { class = "^(org.gnome.Evince)$" }, tag = "+viewer" })
 hl.window_rule({ name = "tag-viewer-3", match = { class = "^(eog|org.gnome.Loupe)$" }, tag = "+viewer" })
 
 -- === APLIKACJE: BLUR I PRZEZROCZYSTOŚĆ ===
-hl.window_rule({ name = "rofi-animation", match = { class = "^(rofi)$" }, animation = "popin 80%" })
 hl.window_rule({ name = "steam-tiling", match = { initial_class = "^(steam)$" }, tile = true })
 
 hl.window_rule({
@@ -23,9 +22,10 @@ hl.window_rule({
 hl.window_rule({ name = "windowrule-2", match = { tag = "settings*" }, opacity = "0.8 override 0.8 override", float = true })
 hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.9 override 0.7 override" })
 hl.window_rule({ name = "windowrule-4", match = { class = "^(org.gnome.TextEditor|mousepad)$" }, opacity = "0.9 override 0.9 override" })
+-- Mikser awaryjny: hyprpwcenter (ticket 23, użytkownik 2026-10-18; pavucontrol usunięty)
 hl.window_rule({
     name    = "windowrule-5",
-    match   = { class = "^(org.pulseaudio.pavucontrol)$" },
+    match   = { class = "^(hyprpwcenter)$" },
     opacity = "0.9 override 0.7 override",
     float   = true,
     size    = "(monitor_w*0.5) (monitor_h*0.6)",
@@ -64,12 +64,8 @@ hl.window_rule({
 })
 
 -- === WARSTWY ===
-hl.layer_rule({ name = "layerrule-1", match = { namespace = "waybar" }, blur = true, ignore_alpha = 0.5 })
-hl.layer_rule({ name = "layerrule-2", match = { namespace = "swaync-control-center" }, blur = true, ignore_alpha = 0.5, xray = false, no_anim = true })
-hl.layer_rule({ name = "layerrule-3", match = { namespace = "swaync-notification-window" }, blur = true, ignore_alpha = 0.5, xray = false })
-hl.layer_rule({ name = "layerrule-4", match = { namespace = "wlogout" }, blur = true, ignore_alpha = 0 })
 hl.layer_rule({ name = "layerrule-5", match = { namespace = "flameshot" }, blur = true, ignore_alpha = 0 })
--- Ajmashell (2026-10-03, ticket 11): blur pod launcherem i wyspami Bara (jak waybar wyżej). ignore_alpha = 0.5:
+-- Ajmashell (2026-10-03, ticket 11): blur pod launcherem i wyspami Bara. ignore_alpha = 0.5:
 -- tło z alfą < 0.5 (Theme.qml) nie dostaje bluru wcale — przy niższej alfie obniż i tutaj.
 hl.layer_rule({ name = "layerrule-6", match = { namespace = "ajmashell-launcher" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-03 (ticket 12): blur_popups — blur także pod popupami Bara (Orbita, dymki, menu traya); tło Orbity alfa 0.8.
@@ -78,7 +74,7 @@ hl.layer_rule({ name = "layerrule-7", match = { namespace = "ajmashell-bar" }, b
 hl.layer_rule({ name = "layerrule-8", match = { namespace = "ajmashell-control" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-07 (ticket 15): blur pod OSD (wyspa jak na Barze, alfa 0.75); no_anim — OSD sam się wygasza (150 ms).
 hl.layer_rule({ name = "layerrule-9", match = { namespace = "ajmashell-osd" }, blur = true, ignore_alpha = 0.5, no_anim = true })
--- 2026-10-09 (ticket 18): blur pod Panelem zasilania (pełny ekran jak wlogout, tło alfa 0.7) we wszystkich wyglądach.
+-- 2026-10-09 (ticket 18): blur pod Panelem zasilania (pełny ekran, tło alfa 0.7) we wszystkich wyglądach.
 hl.layer_rule({ name = "layerrule-10", match = { namespace = "ajmashell-power" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-09 (ticket 20): blur pod oknem Keybinds (tło jak launcher, alfa 0.7); w wyglądzie „fancy2” zdejmuje go ajmashellBlurOff.
 hl.layer_rule({ name = "layerrule-11", match = { namespace = "ajmashell-keybinds" }, blur = true, ignore_alpha = 0.5 })

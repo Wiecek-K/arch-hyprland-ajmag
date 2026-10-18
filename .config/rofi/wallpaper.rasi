@@ -1,9 +1,0 @@
-@import "config.rasi"
-
-listview {
-    lines: 4;
-}
-
-element-icon {
-    size: 160px;
-}
