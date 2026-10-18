@@ -21,3 +21,6 @@ wallpapers/
 .config/gtk-3.0/colors.css
 .config/gtk-4.0/colors.css
 .config/cava/config
+
+# Written by the Bitwarden app itself ("start on login"), not part of this config
+.config/autostart/bitwarden.desktop
