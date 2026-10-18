@@ -71,14 +71,19 @@ install_config() {
         if [ -d "$CONFIG_DIR/$folder" ]; then
             mv "$CONFIG_DIR/$folder" "$CONFIG_DIR/${folder}_backup_$(date +%s)"
         fi
-        cp -r "$REPO_CONFIG_DIR/$folder" "$TARGET_CONFIG_DIR/"
+        cp -r "$REPO_CONFIG_DIR/$folder" "$CONFIG_DIR/"
     fi
 }
 
-folders=("hypr" "waybar" "kitty" "rofi" "swaync" "matugen" "wlogout" "spicetify")
+folders=("hypr" "waybar" "kitty" "rofi" "swaync" "matugen" "wlogout" "spicetify" "quickshell")
 for folder in "${folders[@]}"; do
     install_config "$folder"
 done
+
+# Ajmashell (quickshell/ajmashell, AGPL-3.0-or-later): matugen writes its colours here and the shell watches this
+# directory from the start, so it must exist before the first wallpaper is set.
+mkdir -p "$HOME/.local/state/ajmashell" "$HOME/.local/share/applications"
+cp .local/share/applications/ajmashell-keybinds.desktop "$HOME/.local/share/applications/"
 
 # ZSH
 if [ -f "$HOME/.zshrc" ]; then

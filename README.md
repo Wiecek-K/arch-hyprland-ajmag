@@ -2,25 +2,34 @@
 
 ![Arch Linux](https://img.shields.io/badge/Arch_Linux-DISTRO-1793d1?style=for-the-badge&logo=arch-linux)
 ![Hyprland](https://img.shields.io/badge/Hyprland-WM-00a4a6?style=for-the-badge&logo=hyprland)
+![Quickshell](https://img.shields.io/badge/Quickshell-SHELL-7e57c2?style=for-the-badge)
 ![Matugen](https://img.shields.io/badge/Matugen-THEMING-ff0055?style=for-the-badge)
 
-A highly customized, stable, and performance-oriented Hyprland environment.
-This configuration prioritizes **text clarity** ("High Visibility Mode") and **dynamic theming**, while providing robust support for **Hybrid Graphics (Intel/Nvidia)** laptops.
-
-> **Credits:** This configuration is heavily based on the excellent work of [binnewbs](https://github.com/binnewbs) and [JaKooLit](https://github.com/JaKooLit).
+A highly customized, stable, and performance-oriented Hyprland environment. This configuration prioritizes **text clarity** ("High Visibility Mode") and **dynamic theming**.
+The Hyprland config is written in **Lua** (`.config/hypr/hyprland.lua`), the format Hyprland uses since 0.55 — upstream removes the old hyprlang `.conf` format in 0.57, so this config is ready for it.
 
 ---
 
 ## 🌟 Key Features
 
+### 🐚 Shell: Ajmashell (Quickshell)
+Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/quickshell/ajmashell/`. One process replaces Waybar, swaync, rofi and wlogout (still in the repo as a fallback set for now), all in Matugen colors:
+*   **Bar:** islands for tray, media, clock with calendar, workspaces, volume and microphone, Bluetooth / Wi-Fi / notifications.
+*   **Orbit:** Wi-Fi and Bluetooth popup (scan, connect, pair, battery, headset profile).
+*   **Control Center:** volume and brightness sliders, audio outputs, per-app volume, grouped notifications with actions, silent mode, power buttons.
+*   **Launcher** (`Super + D`): apps, open windows, calculator (`=`).
+*   **Wallpaper carousel** (`Super + W`): sets the wallpaper and the colors.
+*   **Power panel** (`Super + L`), **OSD** for volume and brightness keys, **Keybinds viewer** (`Super + K`).
+
 ### 🎨 Visual Identity
 *   **Dynamic Theming:** System-wide colors generated from your wallpaper using `Matugen`.
-    *   *Affected apps:* Waybar, Kitty, Rofi, Hyprland borders, Zen Browser (via userChrome.css), Spotify (via Spicetyfy).
-*   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Terminal/Code) for maximum readability.
-*   **High Visibility Mode:**
-    *   **Active Windows:** 100% opacity + colored border (3px).
-    *   **Text-Heavy Apps:** (Browsers, IDEs, Discord) maintain 95-100% opacity even when inactive to prevent eye strain.
-    *   **Background Apps:** (File managers, settings) fade to 80% opacity when inactive.
+    *   *Affected apps:* Ajmashell (Quickshell), Hyprland borders, hyprlock, Kitty, GTK 3/4 apps, folder icons, Cava, Spotify (via Spicetify), Vesktop, Zen Browser (via userChrome.css).
+*   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Shell/Terminal/Code) for maximum readability.
+*   **High Visibility Mode** (window rules in `.config/hypr/configs/rules.lua`, active / inactive opacity):
+    *   **Active Windows:** 100% opacity + 3px gradient border (primary → secondary). Other windows fade to 80% when inactive.
+    *   **Text-Heavy Apps** stay readable when inactive: browsers and messengers (Zen, Firefox, Chromium, Discord/Vesktop, Telegram, Slack) 100% / 95%, notes (Obsidian, Logseq) 98% / 94%, code editors (VS Code, JetBrains, Gedit) 97% / 91%.
+    *   **Background Apps:** Kitty 89% / 70%, Nautilus 90% / 70%, Spotify 90% / 75%; settings tools (network, Bluetooth, disks) 80% and floating.
+    *   **Video players** (mpv, VLC): always 100%, no blur, floating.
 
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/cb734e5d-62e6-49d3-9b4f-ccea77971446" />
 <img width="1920" height="1076" alt="image" src="https://github.com/user-attachments/assets/9e62d346-622d-49d1-8736-a9c9b95bf142" />
@@ -29,29 +38,13 @@ This configuration prioritizes **text clarity** ("High Visibility Mode") and **d
 <img width="1917" height="1066" alt="image" src="https://github.com/user-attachments/assets/00501aa3-9755-4230-91c5-dbb38dfe03b3" />
 <img width="1922" height="1081" alt="image" src="https://github.com/user-attachments/assets/ba5a8f3e-c983-49a6-abe3-40853f9923b2" />
 
-
-
-
-
-### ⚙️ System & Hardware
-*   **Hybrid Graphics Support:** Optimized for Pascal architecture (GTX 1050).
-    *   Includes custom `udev` rules to create stable symlinks (`/dev/dri/intel-card`, `/dev/dri/nvidia-card`), preventing Hyprland crashes on boot.
-*   **Performance:**
-    *   `preload` daemon enabled for faster app launches.
-    *   Bloat-free: Unnecessary services (like `pyprland`) removed.
-*   **Monitor Management:**
-    *   Custom scripts for hot-plugging displays.
-    *   Failsafe mechanism to prevent black screens when disconnecting HDMI.
-
 ---
-
-
 
 ## 📦 Installation
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/arch-hyprland-ajmag.git
+git clone https://github.com/Wiecek-K/arch-hyprland-ajmag.git
 cd arch-hyprland-ajmag
 ```
 
@@ -70,43 +63,38 @@ chmod +x install.sh
 
 ---
 
-## 🖥️ Monitor Configuration (Critical)
+## 🖥️ Monitor Configuration
 
-The file `~/.config/hypr/monitors.conf` contains hardware-specific port names (e.g., `eDP-1`, `HDMI-A-2`). On a new machine, these names will differ.
+Monitor layout lives in `~/.config/hypr/monitors.lua`, generated by **`nwg-displays`** (GUI). It contains hardware-specific port names (e.g., `eDP-1`, `HDMI-A-2`), which differ on a new machine.
 
-**If you see a black screen or errors:**
-1.  Switch to TTY (`Ctrl+Alt+F3`).
-2.  Run: `echo "" > ~/.config/hypr/monitors.conf` (forces auto-detection).
-3.  Return to Hyprland (`Ctrl+Alt+F1` or reboot).
-4.  Use **`nwg-displays`** (GUI) to configure your layout and save.
-
-**Quick Switcher:**
-Use `Super + Shift + P` to open a menu for quick layout changes (Laptop Only, External Only, Mirror, Extend).
+*   `install.sh` creates an empty `monitors.lua` when it is missing; Hyprland then uses `preferred, auto` for every monitor.
+*   `hyprland.lua` loads the file with `pcall`, so a broken or missing file does not stop the config.
+*   **Wrong layout or a black screen:** switch to a TTY (`Ctrl+Alt+F3`), empty the file (`echo "" > ~/.config/hypr/monitors.lua`), return to Hyprland and set the layout again in `nwg-displays`.
 
 ---
 
 ## ⌨️ Keybinds & Configuration
 
 All keybindings are defined and can be modified in:
-> **`~/.config/hypr/configs/keybinds.conf`**
+> **`~/.config/hypr/configs/keybinds.lua`**
+
+`Super + K` opens a searchable list of all keybindings with their descriptions.
 
 ### ⚠️ Important Note on Keyboard Layout
 The workspace switching binds in this configuration use specific symbols (e.g., `bracketleft`, `minus`, `equal`) instead of standard numbers.
 
 **Reason:** This setup is tailored for a **custom keyboard layout** where number keys might behave differently.
 
-**Recommendation:** If you are using a standard layout (QWERTY/ANSI/ISO), **you should edit `keybinds.conf` and revert the workspace binds to standard numbers (`1`, `2`, `3`...)** to ensure they work as expected.
+**Recommendation:** If you are using a standard layout (QWERTY/ANSI/ISO), **you should edit `keybinds.lua` and revert the workspace binds to standard numbers (`1`, `2`, `3`...)** to ensure they work as expected.
 
 ---
 
 ## 🛠️ Customizations Detail
 
-### Waybar
-*   **Config:** `ajmag-waybar`
-*   **Style:** Uses a detached `style.css` to protect font settings from Matugen overwrites.
-*   **Features:**
-    *   **Roman/Arabic Numerals:** Configured for Arabic (1-10).
-    *   **Occupied Indicator:** Workspaces with windows have a distinct color (Secondary) vs Empty (Gray) vs Active (Primary).
+### Shell (Ajmashell)
+*   Quickshell config `ajmashell`, started by `hypr/scripts/shellset.sh` (default set in `hypr/configs/vars.lua`; `Super + R` restarts the active set, `Super + Shift + R` switches to the Waybar + swaync fallback set).
+*   **Colors:** Matugen writes `~/.local/state/ajmashell/colors.json`; the shell reloads it live, without a restart.
+*   **License:** Ajmashell is licensed under **AGPL-3.0-or-later** — see [`LICENSE`](.config/quickshell/ajmashell/LICENSE). Parts of it are copied from or inspired by other Quickshell configs; [`SOURCES.md`](.config/quickshell/ajmashell/SOURCES.md) lists them with their licenses. The license covers only `.config/quickshell/ajmashell/`, not the rest of this repository.
 
 ### Zen Browser
 *   Uses `userChrome.css` (`home_files/zen/chrome/`) to import `matugen-colors.css` at startup.
@@ -127,10 +115,21 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 
 ```text
 .
-├── .config/                # Dotfiles (Hypr, Waybar, Kitty, etc.)
+├── .config/                # Dotfiles (Hypr, Quickshell, Kitty, Matugen, etc.)
 ├── home_files/             # Files for home dir (.zshrc, zen/chrome/userChrome.css)
-├── system/                 # System-level configs (udev rules)
+├── .local/share/           # Desktop entries (Ajmashell Keybinds)
+├── local/share/icons/      # Cursor themes
+├── system/                 # System-level configs (udev rules, Zen AutoConfig)
+├── cursor-src/             # Cursor hotspot tools and notes
+├── keyboard_*.vil          # Keyboard layouts (Vial)
 ├── install.sh              # Automated installer
 ├── pkglist_native.txt      # Official Arch packages
 └── pkglist_aur.txt         # AUR packages
 ```
+
+---
+
+## 🙏 Credits & Inspirations
+
+*   [binnewbs](https://github.com/binnewbs) and [JaKooLit](https://github.com/JaKooLit): the starting point of this configuration and the idea of wallpaper-based theming with Matugen.
+*   Ajmashell: [serpantinum](https://github.com/ilyamiro/serpantinum), [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell), [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland), [caelestia-dots/shell](https://github.com/caelestia-dots/shell), [omarchy](https://github.com/basecamp/omarchy) — details in [`SOURCES.md`](.config/quickshell/ajmashell/SOURCES.md).

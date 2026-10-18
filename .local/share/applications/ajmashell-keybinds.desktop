@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Keybinds
+Comment=Hyprland key bindings with descriptions (Ajmashell)
+Keywords=shortcuts;skróty;hotkeys;keybindings;
+Icon=preferences-desktop-keyboard-shortcuts
+Exec=qs -c ajmashell ipc call keybinds toggle
+Terminal=false
+Categories=Utility;
