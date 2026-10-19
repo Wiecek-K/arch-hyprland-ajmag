@@ -21,7 +21,9 @@ hyprctl hyprpaper wallpaper ", $SELECTED_PATH, cover"
 # only if that fails the colours come from the full image. {{image}} (Hyprland templates) comes via --import-json-string.
 # Palette flags (scheme, contrast, lightness) come from the Przepis palety (~/.config/matugen/przepis-palety.json,
 # faza E) through palette_recipe.py, the same module the indexer uses; the stored seed counts only when the entry was
-# computed with the current recipe (its fingerprint), else the indexer redoes it first.
+# computed with the current recipe (its fingerprint), else the indexer redoes it first. Right after a recipe change
+# that redoes every wallpaper (~3 s CPU-bound on 8 threads for ~106), unless the carousel's own indexer run, started
+# when it opened, has already done it (one indexer at a time: this call waits for it and then finds the cache).
 INDEX="$HOME/.cache/ajmashell/wallpapers/index.json"
 INDEXER="$HOME/.config/quickshell/ajmashell/wallpaper/indexer.py"
 RECIPE="$HOME/.config/quickshell/ajmashell/wallpaper/palette_recipe.py"
