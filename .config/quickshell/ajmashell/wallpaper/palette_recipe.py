@@ -20,8 +20,8 @@ import hashlib
 import json
 import math
 import os
+import secrets
 import sys
-import tempfile
 
 DEFAULT_PATH = os.path.expanduser("~/.config/matugen/przepis-palety.json")
 # Tuples: options() lists them in this order for a user interface (starting value first).
@@ -64,6 +64,10 @@ FIELDS = {
 }
 
 
+def _invalid(section, key, value, want):
+    return f"{section}.{key} = {json.dumps(value)} is not {want}"
+
+
 def _warn(path, msg):
     print(f"palette_recipe: {path}: {msg}; using the starting value", file=sys.stderr)
 
@@ -98,16 +102,10 @@ def load(path=None):
                 continue
             value = check(given[key])
             if value is None:
-                _warn(path, f"{section}.{key} = {json.dumps(given[key])} is not {want}")
+                _warn(path, _invalid(section, key, given[key], want))
             else:
                 recipe[section][key] = value
     return recipe
-
-
-def _umask():
-    mask = os.umask(0)
-    os.umask(mask)
-    return mask
 
 
 def save(recipe, path=None):
@@ -126,19 +124,18 @@ def save(recipe, path=None):
         for key, (check, want) in fields.items():
             value = check(given[key])
             if value is None:
-                raise ValueError(f"palette_recipe: {section}.{key} = {json.dumps(given[key])} is not {want}")
+                raise ValueError("palette_recipe: " + _invalid(section, key, given[key], want))
             valid[section][key] = value
     # a temporary file next to it, then one rename: a reader gets the old file or the new one, never half of it.
     # Through a symlink (dotfiles linked into ~/.config) the target is replaced and the link stays; the permissions
-    # stay those of the old file (mkstemp gives 0600), or the umask's for a new one.
+    # stay those of the old file, or the umask's for a new one (os.open applies it; reading it with os.umask() would
+    # change it for a moment in every thread of a caller).
     path = os.path.realpath(path)
+    tmp = os.path.join(os.path.dirname(path), f".{os.path.basename(path)}.{secrets.token_hex(4)}")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
     try:
-        mode = os.stat(path).st_mode & 0o7777
-    except FileNotFoundError:
-        mode = 0o666 & ~_umask()
-    fd, tmp = tempfile.mkstemp(prefix="." + os.path.basename(path) + ".", dir=os.path.dirname(path))
-    try:
-        os.fchmod(fd, mode)
+        with contextlib.suppress(FileNotFoundError):
+            os.fchmod(fd, os.stat(path).st_mode & 0o7777)
         with os.fdopen(fd, "w") as f:
             f.write(json.dumps(valid, indent=2) + "\n")
             f.flush()
