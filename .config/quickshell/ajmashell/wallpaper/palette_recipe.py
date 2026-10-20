@@ -21,12 +21,15 @@ import os
 import sys
 
 DEFAULT_PATH = os.path.expanduser("~/.config/matugen/przepis-palety.json")
-SCHEMES = {"scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-content", "scheme-fidelity",
-           "scheme-monochrome", "scheme-neutral", "scheme-rainbow", "scheme-fruit-salad", "scheme-smart"}
+# Tuples: options() gives them in this order to the tuning tool's controls (faza E spec, stories 4 and 6).
+SCHEMES = ("scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-content", "scheme-fidelity",
+           "scheme-monochrome", "scheme-neutral", "scheme-rainbow", "scheme-fruit-salad", "scheme-smart")
 # dominant = the most dominant Kandydat (--source-color-index 0); the others are matugen's --prefer rules.
 # Not rules (ADR 0019, decision 2): a fixed Kandydat position (gives a random background colour on most wallpapers)
 # and closest-to-fallback (needs a fixed colour).
-SEED_RULES = {"dominant", "darkness", "lightness", "saturation", "less-saturation", "value"}
+SEED_RULES = ("dominant", "darkness", "lightness", "saturation", "less-saturation", "value")
+# matugen 4.2.0: --contrast from -1 to 1, --lightness-dark from -inf to 1
+RANGES = {"contrast": (-1.0, 1.0), "lightnessDark": (-math.inf, 1.0)}
 # Starting values = the flags wpapply.sh and indexer.py used before faza E (matugen 4.2.0 defaults for the palette)
 DEFAULTS = {"seed": {"rule": "dominant"},
             "palette": {"scheme": "scheme-tonal-spot", "contrast": 0.0, "lightnessDark": 0.0}}
@@ -52,8 +55,8 @@ FIELDS = {
     },
     "palette": {
         "scheme": (_one_of(SCHEMES), "one of " + ", ".join(sorted(SCHEMES))),
-        "contrast": (_number(-1.0, 1.0), "a number from -1 to 1"),
-        "lightnessDark": (_number(-math.inf, 1.0), "a number up to 1"),
+        "contrast": (_number(*RANGES["contrast"]), "a number from -1 to 1"),
+        "lightnessDark": (_number(*RANGES["lightnessDark"]), "a number up to 1"),
     },
 }
 
@@ -96,6 +99,15 @@ def load(path=None):
             else:
                 recipe[section][key] = value
     return recipe
+
+
+def options():
+    """The values the recipe accepts, for the tuning tool's controls (so it keeps no copy): rules and schemes in UI
+    order, number ranges as [low, high] with None for no limit (JSON has no infinity)."""
+    def bound(v):
+        return None if math.isinf(v) else v
+    return {"rules": list(SEED_RULES), "schemes": list(SCHEMES),
+            **{k: [bound(lo), bound(hi)] for k, (lo, hi) in RANGES.items()}}
 
 
 def seed_flags(recipe):
