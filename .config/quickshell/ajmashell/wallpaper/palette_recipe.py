@@ -6,7 +6,11 @@
 # flags) and a warning goes to stderr, so changing the wallpaper always works.
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
-# Usage: palette_recipe.py [--file PATH] flags palette   one matugen flag per line (none for the starting values)
+# Two parts: "seed" (which Kandydat becomes the Seed, one rule for every wallpaper; ticket 03) and "palette" (how
+# the palette is built from the Seed; ticket 02).
+#
+# Usage: palette_recipe.py [--file PATH] flags seed      Seed-choice flags for `matugen image`, one per line
+#        palette_recipe.py [--file PATH] flags palette   palette flags, one per line (none for the starting values)
 #        palette_recipe.py [--file PATH] fingerprint     short hash of the validated recipe
 # Tests: ~/Projects/hyprland-lua-migration/tools/test-palette-recipe.py
 
@@ -19,8 +23,13 @@ import sys
 DEFAULT_PATH = os.path.expanduser("~/.config/matugen/przepis-palety.json")
 SCHEMES = {"scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-content", "scheme-fidelity",
            "scheme-monochrome", "scheme-neutral", "scheme-rainbow", "scheme-fruit-salad", "scheme-smart"}
-# Starting values = matugen 4.2.0 defaults, which wpapply.sh and indexer.py used before faza E
-DEFAULTS = {"palette": {"scheme": "scheme-tonal-spot", "contrast": 0.0, "lightnessDark": 0.0}}
+# dominant = the most dominant Kandydat (--source-color-index 0); the others are matugen's --prefer rules.
+# Not rules (ADR 0019, decision 2): a fixed Kandydat position (gives a random background colour on most wallpapers)
+# and closest-to-fallback (needs a fixed colour).
+SEED_RULES = {"dominant", "darkness", "lightness", "saturation", "less-saturation", "value"}
+# Starting values = the flags wpapply.sh and indexer.py used before faza E (matugen 4.2.0 defaults for the palette)
+DEFAULTS = {"seed": {"rule": "dominant"},
+            "palette": {"scheme": "scheme-tonal-spot", "contrast": 0.0, "lightnessDark": 0.0}}
 
 
 def _number(lo, hi):
@@ -31,11 +40,21 @@ def _number(lo, hi):
     return check
 
 
-# field: (validator returning the normalised value or None, description for the warning)
-PALETTE_FIELDS = {
-    "scheme": (lambda v: v if v in SCHEMES else None, "one of " + ", ".join(sorted(SCHEMES))),
-    "contrast": (_number(-1.0, 1.0), "a number from -1 to 1"),
-    "lightnessDark": (_number(-math.inf, 1.0), "a number up to 1"),
+def _one_of(names):
+    return lambda v: v if isinstance(v, str) and v in names else None
+
+
+# section: {field: (validator returning the normalised value or None, description for the warning)}
+FIELDS = {
+    "seed": {
+        "rule": (_one_of(SEED_RULES), "one of " + ", ".join(sorted(SEED_RULES))
+                 + " (a Kandydat position and closest-to-fallback are not rules)"),
+    },
+    "palette": {
+        "scheme": (_one_of(SCHEMES), "one of " + ", ".join(sorted(SCHEMES))),
+        "contrast": (_number(-1.0, 1.0), "a number from -1 to 1"),
+        "lightnessDark": (_number(-math.inf, 1.0), "a number up to 1"),
+    },
 }
 
 
@@ -46,7 +65,7 @@ def _warn(path, msg):
 def load(path=None):
     """The validated recipe from the file; never raises."""
     path = path or DEFAULT_PATH
-    recipe = {"palette": dict(DEFAULTS["palette"])}
+    recipe = {section: dict(values) for section, values in DEFAULTS.items()}
     try:
         with open(path) as f:
             data = json.load(f)
@@ -61,21 +80,29 @@ def load(path=None):
         return recipe
     for key in data.keys() - DEFAULTS.keys():
         print(f"palette_recipe: {path}: unknown field {key!r} ignored", file=sys.stderr)
-    palette = data.get("palette", {})
-    if not isinstance(palette, dict):
-        _warn(path, "palette is not a JSON object")
-        return recipe
-    for key in palette.keys() - PALETTE_FIELDS.keys():
-        print(f"palette_recipe: {path}: unknown field palette.{key!r} ignored", file=sys.stderr)
-    for key, (check, want) in PALETTE_FIELDS.items():
-        if key not in palette:
+    for section, fields in FIELDS.items():
+        given = data.get(section, {})
+        if not isinstance(given, dict):
+            _warn(path, f"{section} is not a JSON object")
             continue
-        value = check(palette[key])
-        if value is None:
-            _warn(path, f"palette.{key} = {json.dumps(palette[key])} is not {want}")
-        else:
-            recipe["palette"][key] = value
+        for key in given.keys() - fields.keys():
+            print(f"palette_recipe: {path}: unknown field {section}.{key!r} ignored", file=sys.stderr)
+        for key, (check, want) in fields.items():
+            if key not in given:
+                continue
+            value = check(given[key])
+            if value is None:
+                _warn(path, f"{section}.{key} = {json.dumps(given[key])} is not {want}")
+            else:
+                recipe[section][key] = value
     return recipe
+
+
+def seed_flags(recipe):
+    """Flags for choosing the Seed among the Kandydaci (`matugen image` only): always exactly one rule. With both
+    --source-color-index and --prefer matugen 4.2.0 takes the index; with neither it asks interactively."""
+    rule = recipe["seed"]["rule"]
+    return ["--source-color-index", "0"] if rule == "dominant" else ["--prefer", rule]
 
 
 def palette_flags(recipe):
@@ -103,12 +130,14 @@ def main(argv):
     path = None
     if argv[:1] == ["--file"] and len(argv) > 1:
         path, argv = argv[1], argv[2:]
-    if argv == ["flags", "palette"]:
+    if argv == ["flags", "seed"]:
+        out = seed_flags(load(path))
+    elif argv == ["flags", "palette"]:
         out = palette_flags(load(path))
     elif argv == ["fingerprint"]:
         out = [fingerprint(load(path))]
     else:
-        print("usage: palette_recipe.py [--file PATH] flags palette | fingerprint", file=sys.stderr)
+        print("usage: palette_recipe.py [--file PATH] flags seed | flags palette | fingerprint", file=sys.stderr)
         return 2
     sys.stdout.write("".join(line + "\n" for line in out))
     return 0

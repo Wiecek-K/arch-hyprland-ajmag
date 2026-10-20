@@ -10,7 +10,8 @@
 # thumbnails made here (magick), so the carousel never decodes full-size images; no videos, no posters,
 # no per-directory hash dirs; Python standard library only (Pillow is not installed); matugen's palette flags
 # from the Przepis palety (palette_recipe.py, faza E ticket 02), and an entry made with another recipe is redone
-# (Seed, primary, bucket; the thumbnail stays).
+# (Seed, primary, bucket; the thumbnail stays); the Seed-choice flag (most dominant Kandydat or a --prefer rule)
+# from the Przepis palety too, instead of a fixed --source-color-index 0 (faza E ticket 03).
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # Usage: indexer.py [wallpaper_dir] [cache_dir]   prints the index JSON on stdout
@@ -31,9 +32,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import palette_recipe  # noqa: E402
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
-# Same flags as ~/.config/hypr/scripts/wpapply.sh, so the bucket matches the colour actually applied; the palette
-# flags are added from the Przepis palety
-MATUGEN = ["matugen", "image", "--dry-run", "-q", "-j", "hex", "--source-color-index", "0"]
+# Same flags as ~/.config/hypr/scripts/wpapply.sh, so the bucket matches the colour actually applied; the Seed-choice
+# and palette flags are added from the Przepis palety
+MATUGEN = ["matugen", "image", "--dry-run", "-q", "-j", "hex"]
 THUMB_HEIGHT = 540
 FALLBACK = "#808080"
 
@@ -69,11 +70,11 @@ def color_bucket(hex_str):
     return "Red"
 
 
-def scheme_colors(path, palette_flags=()):
+def scheme_colors(path, recipe_flags=()):
     """(primary, seed): the bucket colour and matugen's source colour picked from the image.
     wpapply.sh feeds the seed to `matugen color hex`, which gives the same scheme without decoding the image."""
     try:
-        out = subprocess.check_output(MATUGEN + list(palette_flags) + [path], stderr=subprocess.DEVNULL, timeout=30)
+        out = subprocess.check_output(MATUGEN + list(recipe_flags) + [path], stderr=subprocess.DEVNULL, timeout=30)
         colors = json.loads(out)["colors"]
         return colors["primary"]["dark"]["color"].lower(), colors["source_color"]["dark"]["color"].lower()
     except (subprocess.SubprocessError, OSError, ValueError, KeyError):
@@ -111,7 +112,7 @@ def process(entry, thumb_dir, cached, recipe):
     # Colours from the thumbnail, not the full image (user, 2026-10-01): 0.1 s and ~14 MB instead of up to
     # 2.3 s and 320 MB per wallpaper; on most wallpapers the primary moves by 1–5 RGB units, and on the few
     # where the dominant colour flips the user prefers the thumbnail's.
-    primary, seed = scheme_colors(thumb, palette_recipe.palette_flags(recipe))
+    primary, seed = scheme_colors(thumb, palette_recipe.seed_flags(recipe) + palette_recipe.palette_flags(recipe))
     return {
         "fileName": name,
         "path": path,
