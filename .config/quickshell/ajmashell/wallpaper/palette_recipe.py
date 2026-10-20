@@ -21,14 +21,14 @@ import os
 import sys
 
 DEFAULT_PATH = os.path.expanduser("~/.config/matugen/przepis-palety.json")
-# Tuples: options() gives them in this order to the tuning tool's controls (faza E spec, stories 4 and 6).
+# Tuples: options() lists them in this order for a user interface (starting value first).
 SCHEMES = ("scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-content", "scheme-fidelity",
            "scheme-monochrome", "scheme-neutral", "scheme-rainbow", "scheme-fruit-salad", "scheme-smart")
 # dominant = the most dominant Kandydat (--source-color-index 0); the others are matugen's --prefer rules.
 # Not rules (ADR 0019, decision 2): a fixed Kandydat position (gives a random background colour on most wallpapers)
 # and closest-to-fallback (needs a fixed colour).
 SEED_RULES = ("dominant", "darkness", "lightness", "saturation", "less-saturation", "value")
-# matugen 4.2.0: --contrast from -1 to 1, --lightness-dark from -inf to 1
+# Accepted ranges of matugen 4.2.0 (`matugen --help`)
 RANGES = {"contrast": (-1.0, 1.0), "lightnessDark": (-math.inf, 1.0)}
 # Starting values = the flags wpapply.sh and indexer.py used before faza E (matugen 4.2.0 defaults for the palette)
 DEFAULTS = {"seed": {"rule": "dominant"},
@@ -55,8 +55,8 @@ FIELDS = {
     },
     "palette": {
         "scheme": (_one_of(SCHEMES), "one of " + ", ".join(sorted(SCHEMES))),
-        "contrast": (_number(*RANGES["contrast"]), "a number from -1 to 1"),
-        "lightnessDark": (_number(*RANGES["lightnessDark"]), "a number up to 1"),
+        "contrast": (_number(*RANGES["contrast"]), "a number from {} to {}".format(*RANGES["contrast"])),
+        "lightnessDark": (_number(*RANGES["lightnessDark"]), "a number up to {}".format(RANGES["lightnessDark"][1])),
     },
 }
 
@@ -102,12 +102,12 @@ def load(path=None):
 
 
 def options():
-    """The values the recipe accepts, for the tuning tool's controls (so it keeps no copy): rules and schemes in UI
+    """The values the recipe accepts, for a user interface that edits it (so it keeps no copy): rules and schemes in
     order, number ranges as [low, high] with None for no limit (JSON has no infinity)."""
-    def bound(v):
+    def finite_or_none(v):
         return None if math.isinf(v) else v
     return {"rules": list(SEED_RULES), "schemes": list(SCHEMES),
-            **{k: [bound(lo), bound(hi)] for k, (lo, hi) in RANGES.items()}}
+            **{k: [finite_or_none(lo), finite_or_none(hi)] for k, (lo, hi) in RANGES.items()}}
 
 
 def seed_flags(recipe):
