@@ -62,11 +62,11 @@ hl.window_rule({
     match   = { class = "^(obsidian|Logseq)$" },
     opacity = "0.98 override 0.94 override",
 })
--- Narzędzie strojenia palety matugena (faza E, ADR 0019; prywatne, poza dotfiles): pełne krycie także bez fokusu,
--- bo inactive_opacity 0.8 przekłamuje próbki kolorów.
+-- Ajmashell Theme Center (strojenie palety, faza E, ADR 0019; osobne repo, poza dotfiles): pełne krycie także bez
+-- fokusu, bo inactive_opacity 0.8 przekłamuje próbki kolorów.
 hl.window_rule({
-    name    = "matugen-tool-opaque",
-    match   = { class = "^(matugen-ajmashell-tool)$" },
+    name    = "theme-center-opaque",
+    match   = { class = "^(ajmashell-theme-center)$" },
     opacity = "1.0 override 1.0 override",
 })
 
