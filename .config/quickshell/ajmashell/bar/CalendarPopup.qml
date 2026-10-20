@@ -22,6 +22,8 @@ import qs.orbit
 import qs.singletons.barpopups
 import qs.singletons.theme
 import qs.singletons.look
+import qs.prototype // PROTOTYPE C10
+import qs.singletons.protogradient // PROTOTYPE C10
 import "calendar.mjs" as Logic
 import "wheel.mjs" as Wheel
 
@@ -103,7 +105,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: Look.background(Theme.control)
+        color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.control) // PROTOTYPE C10
+        ProtoGradientFill { base: Look.background(Theme.control) } // PROTOTYPE C10
 
         focus: true
         Keys.onEscapePressed: root.visible = false

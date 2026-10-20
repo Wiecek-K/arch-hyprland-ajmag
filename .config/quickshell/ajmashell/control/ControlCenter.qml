@@ -24,6 +24,8 @@ import qs.notifications
 import qs.orbit
 import qs.singletons.barpopups
 import qs.singletons.look
+import qs.prototype // PROTOTYPE C10
+import qs.singletons.protogradient // PROTOTYPE C10
 import qs.singletons.notifications
 import qs.singletons.theme
 import "control.mjs" as Logic
@@ -239,7 +241,8 @@ Scope {
                 width: parent.width
                 height: parent.height
                 radius: Theme.radius.lg
-                color: Look.background(Theme.control)
+                color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.control) // PROTOTYPE C10
+                ProtoGradientFill { base: Look.background(Theme.control) } // PROTOTYPE C10
 
                 focus: true
                 Keys.onEscapePressed: root.open = false
@@ -317,6 +320,57 @@ Scope {
                                 }
                             }
                         }
+                    }
+
+                    // PROTOTYPE C10: gradient of the big popups' backgrounds (style, matugen pair)
+                    Item {
+                        width: parent.width
+                        height: gradientSelects.height
+                        z: 1 // the open list lies over the rows below
+
+                        OrbitText {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Gradient"
+                            font.pixelSize: Theme.font.sizeSmall
+                            color: Theme.control.subtext
+                        }
+
+                        Row {
+                            id: gradientSelects
+                            anchors.right: parent.right
+                            spacing: Theme.spacing.sm
+
+                            ProtoSelect {
+                                options: ProtoGradient.styles.map(s => s.label)
+                                index: ProtoGradient.style
+                                onPicked: i => ProtoGradient.style = i
+                            }
+                            ProtoSelect {
+                                options: ProtoGradient.palettes.map(p => p.label)
+                                index: ProtoGradient.palette
+                                onPicked: i => ProtoGradient.palette = i
+                            }
+                        }
+                    }
+
+                    // PROTOTYPE C10: how far the accent goes into the background, and the turn of the gradient
+                    ControlSlider {
+                        width: parent.width
+                        iconClickable: false
+                        icon: "◐"
+                        position: ProtoGradient.strength
+                        text: "siła " + Math.round(ProtoGradient.strength * 100) + "%"
+                        onMoved: position => ProtoGradient.strength = position
+                    }
+
+                    ControlSlider {
+                        width: parent.width
+                        iconClickable: false
+                        icon: "↻"
+                        position: ProtoGradient.angle / 360
+                        text: "kąt " + Math.round(ProtoGradient.angle) + "°"
+                        onMoved: position => ProtoGradient.angle = Math.round(position * 360)
                     }
 
                     ConnectionRow {

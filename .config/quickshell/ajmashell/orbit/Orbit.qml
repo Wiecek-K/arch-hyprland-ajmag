@@ -33,6 +33,8 @@ import qs.singletons.apps
 import qs.singletons.barpopups
 import qs.singletons.theme
 import qs.singletons.look
+import qs.prototype // PROTOTYPE C10
+import qs.singletons.protogradient // PROTOTYPE C10
 import "orbit.mjs" as Logic
 import "../bar/connectivity.mjs" as Net
 
@@ -456,7 +458,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: Look.background(Theme.orbit)
+        color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.orbit) // PROTOTYPE C10
+        ProtoGradientFill { base: Look.background(Theme.orbit) } // PROTOTYPE C10
 
         focus: true
         Keys.onEscapePressed: root.close()

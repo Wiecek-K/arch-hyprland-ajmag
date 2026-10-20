@@ -18,6 +18,8 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.singletons.theme
 import qs.singletons.look
+import qs.prototype // PROTOTYPE C10
+import qs.singletons.protogradient // PROTOTYPE C10
 import "keybinds.mjs" as Logic
 import "../orbit" // OrbitBackdrop: the look's flare, as in the launcher
 
@@ -99,7 +101,8 @@ Scope {
                 width: Theme.keybinds.width
                 height: field.height + Theme.keybinds.padding + Theme.keybinds.rows * Theme.keybinds.rowHeight + 2 * Theme.keybinds.padding
                 radius: Theme.keybinds.radius
-                color: Look.background(Theme.keybinds)
+                color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.keybinds) // PROTOTYPE C10
+                ProtoGradientFill { base: Look.background(Theme.keybinds) } // PROTOTYPE C10
                 border.width: Theme.keybinds.borderWidth
                 border.color: Theme.keybinds.border
 
