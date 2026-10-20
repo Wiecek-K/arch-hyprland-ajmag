@@ -62,6 +62,13 @@ hl.window_rule({
     match   = { class = "^(obsidian|Logseq)$" },
     opacity = "0.98 override 0.94 override",
 })
+-- Narzędzie strojenia palety matugena (faza E, ADR 0019; prywatne, poza dotfiles): pełne krycie także bez fokusu,
+-- bo inactive_opacity 0.8 przekłamuje próbki kolorów.
+hl.window_rule({
+    name    = "matugen-tool-opaque",
+    match   = { class = "^(matugen-ajmashell-tool)$" },
+    opacity = "1.0 override 1.0 override",
+})
 
 -- === WARSTWY ===
 hl.layer_rule({ name = "layerrule-5", match = { namespace = "flameshot" }, blur = true, ignore_alpha = 0 })
