@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-# Przepis palety (faza E): the one set of matugen parameters the system uses for every wallpaper, read from
-# ~/.config/matugen/przepis-palety.json and turned into matugen flags. indexer.py imports it, wpapply.sh calls it from
+# Palette recipe (faza E): the one set of matugen parameters the system uses for every wallpaper, read from
+# ~/.config/matugen/palette-recipe.json and turned into matugen flags. indexer.py imports it, wpapply.sh calls it from
 # the command line, so neither keeps its own copy of the flags (ADR 0019). Own implementation, Python standard
 # library only. A missing or broken file, or a bad field, never raises: that field takes its starting value (today's
 # flags) and a warning goes to stderr, so changing the wallpaper always works.
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
-# Two parts: "seed" (which Kandydat becomes the Seed, one rule for every wallpaper; ticket 03) and "palette" (how
-# the palette is built from the Seed; ticket 02). save() writes the file atomically for a user interface that edits
+# Two parts: "seed" (which candidate becomes the seed, one rule for every wallpaper; ticket 03) and "palette" (how
+# the palette is built from the seed; ticket 02). save() writes the file atomically for a user interface that edits
 # the recipe, so it keeps no format of its own (ticket 07).
 #
-# Usage: palette_recipe.py [--file PATH] flags seed      Seed-choice flags for `matugen image`, one per line
+# Usage: palette_recipe.py [--file PATH] flags seed      seed-choice flags for `matugen image`, one per line
 #        palette_recipe.py [--file PATH] flags palette   palette flags, one per line (none for the starting values)
 #        palette_recipe.py [--file PATH] fingerprint     short hash of the validated recipe
 # Tests: ~/Projects/hyprland-lua-migration/tools/test-palette-recipe.py
@@ -23,12 +23,12 @@ import os
 import secrets
 import sys
 
-DEFAULT_PATH = os.path.expanduser("~/.config/matugen/przepis-palety.json")
+DEFAULT_PATH = os.path.expanduser("~/.config/matugen/palette-recipe.json")
 # Tuples: options() lists them in this order for a user interface (starting value first).
 SCHEMES = ("scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-content", "scheme-fidelity",
            "scheme-monochrome", "scheme-neutral", "scheme-rainbow", "scheme-fruit-salad", "scheme-smart")
-# dominant = the most dominant Kandydat (--source-color-index 0); the others are matugen's --prefer rules.
-# Not rules (ADR 0019, decision 2): a fixed Kandydat position (gives a random background colour on most wallpapers)
+# dominant = the most dominant candidate (--source-color-index 0); the others are matugen's --prefer rules.
+# Not rules (ADR 0019, decision 2): a fixed candidate position (gives a random background colour on most wallpapers)
 # and closest-to-fallback (needs a fixed colour).
 SEED_RULES = ("dominant", "darkness", "lightness", "saturation", "less-saturation", "value")
 # Accepted ranges of matugen 4.2.0 (`matugen --help`)
@@ -54,7 +54,7 @@ def _one_of(names):
 FIELDS = {
     "seed": {
         "rule": (_one_of(SEED_RULES), "one of " + ", ".join(sorted(SEED_RULES))
-                 + " (a Kandydat position and closest-to-fallback are not rules)"),
+                 + " (a candidate position and closest-to-fallback are not rules)"),
     },
     "palette": {
         "scheme": (_one_of(SCHEMES), "one of " + ", ".join(sorted(SCHEMES))),
@@ -158,14 +158,14 @@ def options():
 
 
 def seed_flags(recipe):
-    """Flags for choosing the Seed among the Kandydaci (`matugen image` only): always exactly one rule. With both
+    """Flags for choosing the seed among the candidates (`matugen image` only): always exactly one rule. With both
     --source-color-index and --prefer matugen 4.2.0 takes the index; with neither it asks interactively."""
     rule = recipe["seed"]["rule"]
     return ["--source-color-index", "0"] if rule == "dominant" else ["--prefer", rule]
 
 
 def palette_flags(recipe):
-    """Flags for building the palette from the Seed (`matugen image` and `matugen color hex`): only values other than
+    """Flags for building the palette from the seed (`matugen image` and `matugen color hex`): only values other than
     matugen's defaults, so the starting recipe gives exactly the commands used before faza E. --flag=value, because a
     negative value after a space would be read as an option."""
     p, d = recipe["palette"], DEFAULTS["palette"]
