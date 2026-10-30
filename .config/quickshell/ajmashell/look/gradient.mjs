@@ -21,29 +21,29 @@ export function line(angle, w, h) {
 // What to draw for gradient g ({style, angle, reachA, reachB}) in a w×h box, bottom layer first:
 // [{type: "linear", x1, y1, x2, y2, stops} | {type: "radial", cx, cy, r, stops}], stops = [[position 0–1, colour name]].
 export function layers(g, w, h) {
-    const l = line(g.angle, w, h);
-    const a = g.reachA;
-    const b = g.reachB;
-    const linear = stops => [{ type: "linear", x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2, stops }];
+    const axis = line(g.angle, w, h);
+    const reachA = g.reachA;
+    const reachB = g.reachB;
+    const linear = stops => [{ type: "linear", x1: axis.x1, y1: axis.y1, x2: axis.x2, y2: axis.y2, stops }];
     switch (g.style) {
     case "linear":
-        return linear([[0, "a"], [a, "base"], [1, "base"]]);
+        return linear([[0, "a"], [reachA, "base"], [1, "base"]]);
     case "corner": {
-        // glows from the line's ends, reach = share of the diagonal
+        // glows from the axis' ends, reach = share of the diagonal
         const diagonal = Math.sqrt(w * w + h * h);
-        const out = [{ type: "radial", cx: l.x1, cy: l.y1, r: a * diagonal, stops: [[0, "a"], [1, "base"]] }];
-        if (b > 0)
-            out.push({ type: "radial", cx: l.x2, cy: l.y2, r: b * diagonal, stops: [[0, "b"], [1, "clear"]] });
+        const out = [{ type: "radial", cx: axis.x1, cy: axis.y1, r: reachA * diagonal, stops: [[0, "a"], [1, "base"]] }];
+        if (reachB > 0)
+            out.push({ type: "radial", cx: axis.x2, cy: axis.y2, r: reachB * diagonal, stops: [[0, "b"], [1, "clear"]] });
         return out;
     }
     case "bands": {
         // overlapping bands meet at one point, shared in proportion to the reaches
-        const k = a + b > 1 ? 1 / (a + b) : 1;
-        const meet = Math.round(a * k * 1e6) / 1e6;
-        return linear([[0, "a"], [meet, "base"], [a + b > 1 ? meet : 1 - b, "base"], [1, "b"]]);
+        const overlap = reachA + reachB > 1;
+        const meet = overlap ? Math.round(reachA / (reachA + reachB) * 1e6) / 1e6 : reachA;
+        return linear([[0, "a"], [meet, "base"], [overlap ? meet : 1 - reachB, "base"], [1, "b"]]);
     }
     case "duo":
-        return linear([[0, "a"], [a, "mid"], [1, "b"]]);
+        return linear([[0, "a"], [reachA, "mid"], [1, "b"]]);
     default:
         return [];
     }

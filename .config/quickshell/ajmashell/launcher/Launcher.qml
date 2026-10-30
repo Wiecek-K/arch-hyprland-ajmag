@@ -24,10 +24,10 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.look
 import qs.singletons.apps
+import qs.singletons.look // the look (faza E ticket 13), set in Ajmashell Theme Center
 import qs.singletons.theme
 import "launcher.mjs" as Logic
 import "../orbit" // OrbitBackdrop behind the list in the fancy look (ticket 13)
-import qs.singletons.look // the look (faza E ticket 13), set in Ajmashell Theme Center
 
 Scope {
     id: root
