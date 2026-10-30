@@ -9,6 +9,9 @@ After=graphical-session.target
 
 [Service]
 Type=simple
+# The shell's live files (colors.json, look.json…) live here; FileView watches only a directory that exists when
+# qs starts (a directory made later stays unseen until a restart), so make it first (faza E ticket 17).
+ExecStartPre=/usr/bin/mkdir -p %h/.local/state/ajmashell
 ExecStart=/usr/bin/qs -c ajmashell -n
 Restart=on-failure
 RestartSec=1
