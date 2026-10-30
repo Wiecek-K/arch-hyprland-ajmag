@@ -324,8 +324,8 @@ Scope {
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius
-                color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.launcher) // PROTOTYPE C10
-                ProtoGradientFill { base: Look.background(Theme.launcher) } // PROTOTYPE C10
+                color: ProtoGradient.on ? Theme.transparent : Look.background // PROTOTYPE C10
+                ProtoGradientFill { base: Look.background } // PROTOTYPE C10
                 border.width: Theme.launcher.borderWidth
                 border.color: Theme.launcher.border
 
@@ -436,7 +436,7 @@ Scope {
                     }
                 }
 
-                // fancy and still looks (ticket 13, user 2026-10-06): the Orbita's lens flare behind the
+                // a look with `flare` (ticket 13, user 2026-10-06): the Orbita's lens flare behind the
                 // list; turns like the orbit while open, only in a look with motion
                 OrbitBackdrop {
                     visible: Look.current.flare

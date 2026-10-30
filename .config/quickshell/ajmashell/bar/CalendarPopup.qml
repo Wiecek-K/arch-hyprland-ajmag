@@ -105,8 +105,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.control) // PROTOTYPE C10
-        ProtoGradientFill { base: Look.background(Theme.control) } // PROTOTYPE C10
+        color: ProtoGradient.on ? Theme.transparent : Look.background // PROTOTYPE C10
+        ProtoGradientFill { base: Look.background } // PROTOTYPE C10
 
         focus: true
         Keys.onEscapePressed: root.visible = false

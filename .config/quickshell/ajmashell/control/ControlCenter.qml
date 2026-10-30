@@ -1,10 +1,10 @@
 // Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
-// right edge, full height under the Bar. Top to bottom: date and the power button, look buttons (on top: user,
-// 2026-10-07), Wiersze Wi-Fi / Bluetooth, sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
+// right edge, full height under the Bar. Top to bottom: date and the power button, Wiersze Wi-Fi / Bluetooth, sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
 // (ticket 16: groups per app, collapsed to the newest entry with a header to expand and clear the group; silent
 // mode switch; clear all; action buttons and progress bars on the cards).
 // Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.
-// Also the one place to switch the Wygląd of the Orbita and the launcher: look buttons and F2 (user, 2026-10-07).
+// The look (background, flare, pills) is set only in Ajmashell Theme Center (faza E ticket 13; the look buttons and
+// F2 that were here went with it).
 // IPC: qs -c ajmashell ipc call control toggle
 // Own implementation. Layout after caelestia's sidebar (B11 #09: full height at the right edge, slides in) and
 // end-4's right sidebar (B11 #12: header with the power button, toggles and sliders above the notifications),
@@ -241,20 +241,13 @@ Scope {
                 width: parent.width
                 height: parent.height
                 radius: Theme.radius.lg
-                color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.control) // PROTOTYPE C10
-                ProtoGradientFill { base: Look.background(Theme.control) } // PROTOTYPE C10
+                color: ProtoGradient.on ? Theme.transparent : Look.background // PROTOTYPE C10
+                ProtoGradientFill { base: Look.background } // PROTOTYPE C10
 
                 focus: true
                 Keys.onEscapePressed: root.open = false
-                // F2: next look; the only place besides the buttons below and IPC (user, 2026-10-07)
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_F2) {
-                        Look.cycle();
-                        event.accepted = true;
-                    }
-                }
 
-                // looks with `flare` (fancy, fancy2, still; user 2026-10-07): the Orbita's lens flare behind the
+                // a look with `flare` (user 2026-10-07): the Orbita's lens flare behind the
                 // content, as in the launcher; turns only in a look with motion
                 OrbitBackdrop {
                     anchors.fill: parent
@@ -288,37 +281,6 @@ Scope {
                             text: OrbitLogic.POWER_ICON
                             fontSize: Theme.font.sizeLarge // a lone glyph, read at a glance (user, 2026-10-07)
                             onClicked: root.openPower() // Panel zasilania (ticket 18; was wlogout)
-                        }
-                    }
-
-                    // Wygląd of the Orbita and the launcher (ADR 0006): shown here, so nobody has to remember F2
-                    Item {
-                        width: parent.width
-                        height: looks.height
-
-                        OrbitText {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Look"
-                            font.pixelSize: Theme.font.sizeSmall
-                            color: Theme.control.subtext
-                        }
-
-                        Row {
-                            id: looks
-                            anchors.right: parent.right
-                            spacing: Theme.spacing.sm
-
-                            Repeater {
-                                model: Look.modes
-
-                                Pill {
-                                    required property string modelData
-                                    text: modelData
-                                    active: Look.mode === modelData
-                                    onClicked: Look.mode = modelData
-                                }
-                            }
                         }
                     }
 

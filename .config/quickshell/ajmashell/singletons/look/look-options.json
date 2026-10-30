@@ -1,0 +1,28 @@
+{
+  "_comment": "Look of Ajmashell's big popups (faza E ticket 13, ADR 0021): the one source of the roles, ranges, presets and defaults. Read by Look.qml (look.mjs) and look_settings.py; Theme Center gets them from look_settings.options(). Live file: ~/.local/state/ajmashell/look.json (written by Theme Center only). Changing defaults or adding a preset: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.",
+  "roles": [
+    "surface_container_lowest",
+    "surface_container_low",
+    "surface_container",
+    "surface_container_high",
+    "surface_container_highest",
+    "on_primary_fixed",
+    "on_primary_fixed_variant",
+    "on_tertiary_fixed_variant",
+    "primary",
+    "primary_container",
+    "secondary",
+    "secondary_container",
+    "tertiary",
+    "tertiary_container"
+  ],
+  "alpha": { "min": 0.5, "max": 1, "step": 0.01 },
+  "flags": ["motion", "flare", "glass", "softPills"],
+  "presets": {
+    "basic": { "background": "surface_container", "alpha": 0.8, "motion": false, "flare": false, "glass": false, "softPills": false },
+    "fancy": { "background": "surface_container", "alpha": 0.8, "motion": true, "flare": true, "glass": true, "softPills": true },
+    "fancy2": { "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true },
+    "still": { "background": "on_primary_fixed", "alpha": 0.9, "motion": false, "flare": true, "glass": true, "softPills": true }
+  },
+  "defaults": { "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true }
+}

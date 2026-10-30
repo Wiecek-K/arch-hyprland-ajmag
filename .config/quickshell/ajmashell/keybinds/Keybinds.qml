@@ -101,8 +101,8 @@ Scope {
                 width: Theme.keybinds.width
                 height: field.height + Theme.keybinds.padding + Theme.keybinds.rows * Theme.keybinds.rowHeight + 2 * Theme.keybinds.padding
                 radius: Theme.keybinds.radius
-                color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.keybinds) // PROTOTYPE C10
-                ProtoGradientFill { base: Look.background(Theme.keybinds) } // PROTOTYPE C10
+                color: ProtoGradient.on ? Theme.transparent : Look.background // PROTOTYPE C10
+                ProtoGradientFill { base: Look.background } // PROTOTYPE C10
                 border.width: Theme.keybinds.borderWidth
                 border.color: Theme.keybinds.border
 

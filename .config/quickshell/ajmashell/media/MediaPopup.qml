@@ -102,8 +102,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: ProtoGradient.on ? Theme.transparent : Look.background(Theme.control) // PROTOTYPE C10
-        ProtoGradientFill { base: Look.background(Theme.control) } // PROTOTYPE C10
+        color: ProtoGradient.on ? Theme.transparent : Look.background // PROTOTYPE C10
+        ProtoGradientFill { base: Look.background } // PROTOTYPE C10
         clip: true // the flare reaches past the panel
 
         focus: true

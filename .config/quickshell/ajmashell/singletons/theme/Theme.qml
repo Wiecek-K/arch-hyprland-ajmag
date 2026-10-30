@@ -100,9 +100,6 @@ Singleton {
     // Launcher (launcher/Launcher.qml, ticket 11): the colours of the rofi theme it replaces
     // (rofi/config.rasi, dotfiles tag fallback-set-before-23, matugen roles of rofi/colors.rasi)
     readonly property LauncherStyle launcher: LauncherStyle {
-        background: Qt.alpha(root.colors.on_primary_fixed, 0.7) // rofi window; user, 2026-10-03: 0.7 (tried 0.8, 0.6); blur: rules.lua layerrule-6, needs alpha ≥ 0.5
-        backgroundOpaque: root.colors.on_primary_fixed // a look with `opaque` (fancy2), no blur under it
-        backgroundTinted: Qt.alpha(root.colors.on_primary_fixed, 0.8) // a look with `tinted` (still); user, 2026-10-08: 0.8 (was `background`, 0.7)
         border: root.colors.secondary_container
         field: root.colors.on_primary // search field and mode buttons
         text: root.colors.on_surface
@@ -117,9 +114,6 @@ Singleton {
     // Orbita (orbit/Orbit.qml, ticket 12): the popup of the Bar's Wi-Fi and BT islands
     readonly property OrbitStyle orbit: OrbitStyle {
         id: orbitStyle
-        background: Qt.alpha(root.colors.surface_container, 0.8) // user, 2026-10-03; blurred by Hyprland (blur_popups of the ajmashell-bar layer rule)
-        backgroundOpaque: root.launcher.backgroundOpaque // fancy2; user, 2026-10-07: same as the launcher (surface_container too grey)
-        backgroundTinted: Qt.alpha(root.orbit.backgroundOpaque, 0.9) // still: fancy2's colour, translucent and blurred (user, 2026-10-08: 0.9; first 0.8)
         node: root.colors.surface_container_high // known network or device (saved / paired)
         // new node, only in range (user, 2026-10-05): outline only, dimmed text, outer ring
         unknown: root.transparent
@@ -162,12 +156,9 @@ Singleton {
 
     // Centrum sterowania (control/ControlCenter.qml) and the audio popup under the Bar's volume islands
     // (control/AudioPopup.qml), ticket 14: the Orbita's colours and buttons, so the three look alike (user, 2026-10-07).
-    // Background follows the look like the Orbita: `opaque` (fancy2) → backgroundOpaque without blur
-    // (rules.lua layerrule-8 + ajmashellBlurOffRules), otherwise background with blur.
+    // Background: Look.background, one for every big popup (faza E ticket 13), blurred by rules.lua layerrule-8
+    // while its alpha is below 1 (ajmashellBlurOffRules).
     readonly property ControlStyle control: ControlStyle {
-        background: root.orbit.background
-        backgroundOpaque: root.orbit.backgroundOpaque
-        backgroundTinted: root.orbit.backgroundTinted
         text: root.orbit.text
         subtext: root.orbit.subtext
         track: Qt.alpha(root.orbit.text, root.orbit.softPill.idle) // empty part of a slider, idle row
@@ -209,17 +200,14 @@ Singleton {
     // backdrop in the launcher / fancy2 colour, blurred (rules.lua layerrule-10, needs alpha ≥ 0.5); buttons coloured
     // like the Orbita's pills (Pill.qml) so the selected one reads at once.
     readonly property PowerStyle power: PowerStyle {
-        backdrop: Qt.alpha(root.launcher.backgroundOpaque, 0.7) // wlogout: rgba(17, 17, 17, 0.45)
+        backdrop: Qt.alpha(root.colors.on_primary_fixed, 0.7) // wlogout: rgba(17, 17, 17, 0.45)
         text: root.control.text
     }
 
     // Keybinds (keybinds/Keybinds.qml, ticket 20): a plain text window like omarchy's list (B11 #07) in the
-    // launcher's colours; background follows the look (flare, opaque, tinted) like every big popup.
-    // Blur: rules.lua layerrule-11 (alpha ≥ 0.5), off in `opaque` (ajmashellBlurOffRules).
+    // launcher's colours; background (Look.background) and flare by the look like every big popup.
+    // Blur: rules.lua layerrule-11, off at the look's alpha 1 (ajmashellBlurOffRules).
     readonly property KeybindsStyle keybinds: KeybindsStyle {
-        background: root.launcher.background
-        backgroundOpaque: root.launcher.backgroundOpaque
-        backgroundTinted: root.launcher.backgroundTinted
         border: root.launcher.border
         field: root.launcher.field
         text: root.launcher.text
@@ -410,9 +398,6 @@ Singleton {
         readonly property int resultSize: 34 // px; calculator result
         readonly property int calcDelay: 120 // ms; pause in typing before qalc runs (~70 ms per run)
         readonly property int calcKeyColumns: 5 // calculator keys per row (launcher.mjs CALC_KEYS: 15)
-        property color background
-        property color backgroundOpaque
-        property color backgroundTinted
         property color border
         property color field
         property color text
@@ -464,23 +449,13 @@ Singleton {
         // px from the centre where a strand starts: just inside the core's edge (coreSize / 2), so it comes
         // out from under the glass core (user, 2026-10-06: "shorten"; was 130, 70 and 120, each plus a 5 px gap that boltStrands added)
         readonly property int boltStart: 125
-        // The set looks of the Orbita and the launcher (ticket 13, user 2026-10-06), switched in the Centrum sterowania
-        // (singletons/look). flare: a lens flare behind the Orbita and the launcher's list
+        // The look's flags (singletons/look/Look.qml, faza E ticket 13: parameters in the live file, set in
+        // Ajmashell Theme Center). flare: a lens flare behind the Orbita and the launcher's list
         // (orbit/OrbitBackdrop.qml); glass: a translucent core over a wide fade; softPills: faint
         // buttons with coloured text instead of filled ones; motion: the orbit turns, nodes wobble,
         // fly out and glide, lightning flickers, colours fade. Without motion nothing moves and there
         // is no lightning (user, 2026-10-06: a moving Orbita costs ~80% of the iGPU; still strands look poor).
-        // opaque: the Orbita and the launcher on `backgroundOpaque` with no blur under them (Look.qml switches
-        // the rules in ~/.config/hypr/configs/rules.lua); cheaper while moving and easier to read (user, 2026-10-07).
-        // tinted: `backgroundTinted` instead of `background` — the opaque look's colour, still translucent and
-        // blurred (user, 2026-10-08: still's grey blur gets fancy2's colour). Look.background() picks the colour.
-        // still: fancy without motion, tinted; fancy2: fancy on an opaque background.
-        readonly property var looks: ({
-            basic: { flare: false, glass: false, softPills: false, motion: false, opaque: false, tinted: false },
-            fancy: { flare: true, glass: true, softPills: true, motion: true, opaque: false, tinted: false },
-            fancy2: { flare: true, glass: true, softPills: true, motion: true, opaque: true, tinted: false },
-            still: { flare: true, glass: true, softPills: true, motion: false, opaque: false, tinted: true }
-        })
+        // The background of the big popups is Look.background (a role and an alpha of the look).
         readonly property real glassAlpha: 0.45 // the glass core's fill
         // fade under the glass core, spread over fadeScale × coreSize: [position, alpha of `core`]
         // (user, 2026-10-06: "a larger area")
@@ -494,9 +469,6 @@ Singleton {
         // each time the turn wrapped at 2π)
         readonly property var flare: ({ orbit: 0.42, phase: -2.3, reach: 140, lap: 2 * period })
         readonly property int boltFade: 400 // ms; strands fade in and out with the connection (serpantinum)
-        property color background
-        property color backgroundOpaque
-        property color backgroundTinted
         property color node
         property color unknown
         property color unknownBorder
@@ -536,9 +508,6 @@ Singleton {
         readonly property int itemHeight: 34 // device row, stream name
         readonly property int slide: 250 // ms; slides in from the right edge (like the notification popups)
         readonly property int poll: 1000 // ms; brightness re-read while open (sysfs has no change events)
-        property color background
-        property color backgroundOpaque
-        property color backgroundTinted
         property color text
         property color subtext
         property color track
@@ -602,9 +571,6 @@ Singleton {
         readonly property int rowHeight: 30
         readonly property int fontSize: 16 // px; the font is monospace, so the chords pad to one column
         readonly property int fontWeight: Font.Medium
-        property color background
-        property color backgroundOpaque
-        property color backgroundTinted
         property color border
         property color field
         property color text
