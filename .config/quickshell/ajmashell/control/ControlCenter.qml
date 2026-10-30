@@ -1,5 +1,6 @@
 // Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
-// right edge, full height under the Bar. Top to bottom: date and the power button, Wiersze Wi-Fi / Bluetooth, sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
+// right edge, full height under the Bar. Top to bottom: date and the power button, Wiersze Wi-Fi / Bluetooth,
+// sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
 // (ticket 16: groups per app, collapsed to the newest entry with a header to expand and clear the group; silent
 // mode switch; clear all; action buttons and progress bars on the cards).
 // Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.

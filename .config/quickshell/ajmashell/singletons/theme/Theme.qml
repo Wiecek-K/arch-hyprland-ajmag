@@ -197,7 +197,7 @@ Singleton {
     }
 
     // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent
-    // backdrop in the launcher / fancy2 colour, blurred (rules.lua layerrule-10, needs alpha ≥ 0.5); buttons coloured
+    // backdrop in `on_primary_fixed` (the launcher's old colour; not the look's background), blurred (rules.lua layerrule-10, needs alpha ≥ 0.5); buttons coloured
     // like the Orbita's pills (Pill.qml) so the selected one reads at once.
     readonly property PowerStyle power: PowerStyle {
         backdrop: Qt.alpha(root.colors.on_primary_fixed, 0.7) // wlogout: rgba(17, 17, 17, 0.45)

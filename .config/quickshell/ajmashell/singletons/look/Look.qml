@@ -99,6 +99,8 @@ Singleton {
             const look = LookLogic.preset(root.options, name);
             if (look)
                 root.override = look;
+            else
+                console.warn("Look: ipc look set: no preset " + JSON.stringify(name));
         }
     }
 }
