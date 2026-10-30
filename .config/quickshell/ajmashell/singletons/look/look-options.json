@@ -1,5 +1,5 @@
 {
-  "_comment": "Look of Ajmashell's big popups (faza E ticket 13, ADR 0021): the one source of the roles, ranges, presets and defaults. Read by Look.qml (look.mjs) and look_settings.py; Theme Center gets them from look_settings.options(). Live file: ~/.local/state/ajmashell/look.json (written by Theme Center only). Changing defaults or adding a preset: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.",
+  "_comment": "Look of Ajmashell's big popups (faza E tickets 13 and 14, ADR 0021): the one source of the roles, ranges, presets, gradient styles and defaults. Read by Look.qml (look.mjs) and look_settings.py; Theme Center gets them from look_settings.options(). Live file: ~/.local/state/ajmashell/look.json (written by Theme Center only). Changing defaults or adding a preset: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.",
   "roles": [
     "surface_container_lowest",
     "surface_container_low",
@@ -18,11 +18,27 @@
   ],
   "alpha": { "min": 0.5, "max": 1, "step": 0.01 },
   "flags": ["motion", "flare", "glass", "softPills"],
+  "gradient": {
+    "_comment": "Gradient of the popups' background (faza E ticket 14), one for every look, so not in the presets. styles: in the order Theme Center shows them (a list: QML sorts the keys of an object), each with the reaches it uses and their defaults (Theme Center sets them when the style is picked); colours A and B are roles of the list above. angle: the direction in degrees, 0 = left to right, 90 = top to bottom. Geometry: look/gradient.mjs.",
+    "styles": [
+      { "name": "off", "reaches": {} },
+      { "name": "linear", "reaches": { "reachA": 1 } },
+      { "name": "corner", "reaches": { "reachA": 0.9, "reachB": 0 } },
+      { "name": "bands", "reaches": { "reachA": 0.5, "reachB": 0.5 } },
+      { "name": "duo", "reaches": { "reachA": 0.5 } }
+    ],
+    "strength": { "min": 0, "max": 1, "step": 0.01 },
+    "angle": { "min": 0, "max": 359, "step": 1 },
+    "reach": { "min": 0, "max": 1, "step": 0.01 }
+  },
   "presets": {
     "basic": { "background": "surface_container", "alpha": 0.8, "motion": false, "flare": false, "glass": false, "softPills": false },
     "fancy": { "background": "surface_container", "alpha": 0.8, "motion": true, "flare": true, "glass": true, "softPills": true },
     "fancy2": { "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true },
     "still": { "background": "on_primary_fixed", "alpha": 0.9, "motion": false, "flare": true, "glass": true, "softPills": true }
   },
-  "defaults": { "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true }
+  "defaults": {
+    "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true,
+    "gradient": { "style": "off", "a": "primary_container", "b": "tertiary_container", "strength": 0.6, "angle": 45, "reachA": 1, "reachB": 0.5 }
+  }
 }

@@ -15,11 +15,10 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import qs.control
+import qs.look
 import qs.orbit
 import qs.singletons.barpopups
 import qs.singletons.look
-import qs.prototype // PROTOTYPE C10
-import qs.singletons.protogradient // PROTOTYPE C10
 import qs.singletons.media
 import qs.singletons.theme
 import "../singletons/media/media.mjs" as Logic
@@ -102,8 +101,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: ProtoGradient.on ? Theme.transparent : Look.background // PROTOTYPE C10
-        ProtoGradientFill { base: Look.background } // PROTOTYPE C10
+        color: Theme.transparent // LookBackground draws the look's background
+        LookBackground {}
         clip: true // the flare reaches past the panel
 
         focus: true
