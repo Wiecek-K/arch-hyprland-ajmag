@@ -86,7 +86,7 @@ hl.layer_rule({ name = "layerrule-10", match = { namespace = "ajmashell-power" }
 -- 2026-10-09 (ticket 20): blur pod oknem Keybinds (tło jak launcher, alfa 0.7); przy alfie wyglądu 1 zdejmuje go ajmashellBlurOff.
 hl.layer_rule({ name = "layerrule-11", match = { namespace = "ajmashell-keybinds" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-07 (ticket 13): wygląd Ajmashella „fancy2” — Orbita i launcher z nieprzezroczystym tłem, bez bluru
--- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Od 2026-10-30 (faza E ticket 13): każdy wygląd z alfą tła 1. Reguły wyłączone; włącza je shell przez
+-- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Od 2026-10-30 (faza E tickety 13 i 14): każdy wygląd z alfą tła 1 albo z flagą `blur` wyłączoną. Reguły wyłączone; włącza je shell przez
 -- `hyprctl eval 'require("configs.functions").ajmashellBlurOff(true)'` (singletons/look/BlurOff.qml).
 -- Muszą być po layerrule-6/7/8/11: późniejsza reguła nadpisuje te same pola.
 require("configs.functions").ajmashellBlurOffRules()

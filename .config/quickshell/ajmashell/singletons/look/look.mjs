@@ -77,6 +77,11 @@ export function resolve(options, text) {
     return { look: out, warnings };
 }
 
+// Hyprland's blur under the big popups is off with the flag `blur` off, or at alpha 1 (nothing shows through)
+export function blurOff(look) {
+    return !look.blur || look.alpha >= 1;
+}
+
 // IPC `look set`: the preset over the look (a preset has no gradient, so the look's own stays); null for an unknown name
 export function preset(options, name, look) {
     return Object.prototype.hasOwnProperty.call(options.presets, name) ? Object.assign({}, look, options.presets[name]) : null;

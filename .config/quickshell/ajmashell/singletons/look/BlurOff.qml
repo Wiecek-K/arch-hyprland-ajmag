@@ -1,5 +1,5 @@
-// Hyprland's blur under the big popups, off for a look with alpha 1 (ticket 13; faza E ticket 13: the alpha of the
-// live look file, was the flag `opaque` of fancy2): ajmashellBlurOff in ~/.config/hypr/configs/functions.lua switches
+// Hyprland's blur under the big popups, off for a look with alpha 1 or the flag `blur` off (ticket 13; faza E tickets
+// 13 and 14: the live look file, was the flag `opaque` of fancy2; look.mjs blurOff()): ajmashellBlurOff in ~/.config/hypr/configs/functions.lua switches
 // the rules from rules.lua. Applied on a change, at start (a shell reload while Hyprland still has the rules on) and
 // after a config reload, which brings the rules back disabled. A change while hyprctl still runs is applied when it
 // ends (two quick saves of the look).

@@ -24,7 +24,7 @@ function M.gamemode()
     end
 end
 
--- Ajmashell, wygląd z alfą tła 1 (ticket 13; od fazy E ticket 13 nie nazwa „fancy2”, tylko alfa w pliku żywym):
+-- Ajmashell, wygląd z alfą tła 1 albo z flagą `blur` wyłączoną (ticket 13; faza E tickety 13 i 14: plik żywy, nie nazwa „fancy2”):
 -- reguły, które zdejmują blur spod launchera, popupów Baru (Orbita, popup audio, kalendarz, media)
 -- i Centrum sterowania (ticket 14), okna Keybinds (ticket 20). Tworzy je rules.lua w swoim miejscu (po layerrule-6/7/8/11: późniejsza reguła nadpisuje te same pola), wyłączone.
 -- Lista zostaje w tym module; z zewnątrz tylko ajmashellBlurOff.

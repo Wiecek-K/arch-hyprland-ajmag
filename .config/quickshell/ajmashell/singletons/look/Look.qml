@@ -1,12 +1,14 @@
 // Look of Ajmashell's big popups (faza E tickets 13 and 14, ADR 0021; was four named looks, ADR 0006): a set of
 // parameters, not a name — background (a matugen role) and its alpha 0.5–1, motion, lens flare, glass core, soft pills,
+// blur (Hyprland's, under the popups; ticket 14),
 // and the background's gradient (one for every look, so not in the presets; drawn by look/LookBackground.qml). Read from
 // the live file ~/.local/state/ajmashell/look.json, which only Ajmashell Theme Center writes; a change applies at once.
 // No file = `defaults` of look-options.json (that file holds the roles, ranges, presets and defaults: the one source,
 // also for look_settings.py, which Theme Center imports); a bad field = its default, with a warning in `qs log`
 // (look.mjs, the same rules as look_settings.load()).
 // One background for the 7 big popups (Orbita, audio popup, calendar, media, Centrum sterowania, launcher, Keybinds):
-// `background`, drawn by look/LookBackground.qml. At alpha 1 Hyprland's blur under them is off (BlurOff.qml; was the flag `opaque`).
+// `background`, drawn by look/LookBackground.qml. At alpha 1, or with
+// `blur` off, Hyprland's blur under them is off (BlurOff.qml; was the flag `opaque`).
 // IPC for tools/measure-gpu.sh: `qs -c ajmashell ipc call look set fancy` puts a preset on for the moment (with the
 // file's gradient), without writing the file; a change of the file or a shell restart takes it back. No other switch in the shell (the
 // Centrum sterowania's look buttons and F2 went with ticket 13).
@@ -27,7 +29,7 @@ Singleton {
     readonly property var options: JSON.parse(optionsFile.text())
     property var fileLook: options.defaults // the live file, read leniently
     property var override: null // IPC `look set`: a preset until the file changes
-    // background, alpha, motion, flare, glass, softPills, gradient {style, a, b, strength, angle, reachA, reachB}
+    // background, alpha, motion, flare, glass, softPills, blur, gradient {style, a, b, strength, angle, reachA, reachB}
     readonly property var current: override ?? fileLook
     // the background of every big popup
     readonly property color background: Qt.alpha(Theme.colors[current.background], current.alpha)
@@ -68,7 +70,7 @@ Singleton {
     }
 
     BlurOff {
-        off: root.current.alpha >= 1
+        off: LookLogic.blurOff(root.current)
     }
 
     // One motion clock for the whole shell (ticket 28), Theme.orbit.fps steps a second, running only
