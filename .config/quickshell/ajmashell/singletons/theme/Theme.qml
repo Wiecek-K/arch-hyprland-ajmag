@@ -230,7 +230,7 @@ Singleton {
 
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
-        readonly property string family: "AtkinsonHyperlegibleMono Nerd Font" // same as Waybar
+        readonly property string family: "AtkynsonMono Nerd Font" // same as Waybar
         readonly property int weight: Font.Bold
         readonly property int size: 16 // px, about Waybar's 98% of the 12 pt GTK font
         readonly property int sizeSmall: 13
