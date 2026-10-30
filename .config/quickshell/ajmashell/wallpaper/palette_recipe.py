@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-# Palette recipe (faza E): the one set of matugen parameters the system uses for every wallpaper, read from
-# ~/.config/matugen/palette-recipe.json and turned into matugen flags. indexer.py imports it, wpapply.sh calls it from
-# the command line, so neither keeps its own copy of the flags (ADR 0019). Own implementation, Python standard
-# library only. A missing or broken file, or a bad field, never raises: that field takes its starting value (today's
-# flags) and a warning goes to stderr, so changing the wallpaper always works.
+# Palette recipe (faza E): the one set of matugen parameters the system uses for every wallpaper, turned into matugen
+# flags. indexer.py imports it, wpapply.sh calls it from the command line, so neither keeps its own copy of the flags
+# (ADR 0019). Own implementation, Python standard library only.
+#
+# Two files (ticket 15, the model of ADR 0021): the live file ~/.local/state/ajmashell/palette-recipe.json, outside
+# git, which Theme Center writes; and the default recipe palette-recipe-default.json next to this module. No live file
+# = the default recipe. A bad field of the live file takes the default recipe's value; a missing or broken default
+# recipe, or a bad field of it, takes the starting value (DEFAULTS). Each with a warning on stderr, never an exception,
+# so changing the wallpaper always works.
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # Two parts: "seed" (which candidate becomes the seed, one rule for every wallpaper; ticket 03) and "palette" (how
@@ -23,7 +27,8 @@ import os
 import secrets
 import sys
 
-DEFAULT_PATH = os.path.expanduser("~/.config/matugen/palette-recipe.json")
+DEFAULT_PATH = os.path.expanduser("~/.local/state/ajmashell/palette-recipe.json")  # the live file
+DEFAULT_RECIPE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "palette-recipe-default.json")
 # Tuples: options() lists them in this order for a user interface (starting value first).
 SCHEMES = ("scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-content", "scheme-fidelity",
            "scheme-monochrome", "scheme-neutral", "scheme-rainbow", "scheme-fruit-salad", "scheme-smart")
@@ -33,7 +38,8 @@ SCHEMES = ("scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-c
 SEED_RULES = ("dominant", "darkness", "lightness", "saturation", "less-saturation", "value")
 # Accepted ranges of matugen 4.2.0 (`matugen --help`)
 RANGES = {"contrast": (-1.0, 1.0), "lightnessDark": (-math.inf, 1.0)}
-# Starting values = the flags wpapply.sh and indexer.py used before faza E (matugen 4.2.0 defaults for the palette)
+# Starting values = the flags wpapply.sh and indexer.py used before faza E (matugen 4.2.0 defaults for the palette);
+# only for a damaged default recipe
 DEFAULTS = {"seed": {"rule": "dominant"},
             "palette": {"scheme": "scheme-tonal-spot", "contrast": 0.0, "lightnessDark": 0.0}}
 
@@ -68,32 +74,42 @@ def _invalid(section, key, value, want):
     return f"{section}.{key} = {json.dumps(value)} is not {want}"
 
 
-def _warn(path, msg):
-    print(f"palette_recipe: {path}: {msg}; using the starting value", file=sys.stderr)
+def _warn(path, msg, fallback):
+    print(f"palette_recipe: {path}: {msg}; using {fallback}", file=sys.stderr)
 
 
-def load(path=None):
-    """The validated recipe from the file; never raises."""
-    path = path or DEFAULT_PATH
-    recipe = {section: dict(values) for section, values in DEFAULTS.items()}
+def load(path=None, default=None):
+    """The validated recipe: the live file over the default recipe; never raises."""
+    base = _layer({section: dict(values) for section, values in DEFAULTS.items()},
+                  default or DEFAULT_RECIPE_PATH, "the starting value", missing_ok=False)
+    return _layer(base, path or DEFAULT_PATH, "the default recipe's value", missing_ok=True)
+
+
+def _layer(base, path, fallback, missing_ok):
+    """The valid fields of the file over a copy of base; a warning for every other one."""
+    recipe = {section: dict(values) for section, values in base.items()}
     try:
         with open(path) as f:
             data = json.load(f)
+    except FileNotFoundError as e:
+        if not missing_ok:
+            _warn(path, f"cannot read ({e.strerror})", fallback)
+        return recipe
     except OSError as e:
-        _warn(path, f"cannot read ({e.strerror})")
+        _warn(path, f"cannot read ({e.strerror})", fallback)
         return recipe
     except ValueError as e:
-        _warn(path, f"not valid JSON ({e})")
+        _warn(path, f"not valid JSON ({e})", fallback)
         return recipe
     if not isinstance(data, dict):
-        _warn(path, "not a JSON object")
+        _warn(path, "not a JSON object", fallback)
         return recipe
     for key in data.keys() - DEFAULTS.keys():
         print(f"palette_recipe: {path}: unknown field {key!r} ignored", file=sys.stderr)
     for section, fields in FIELDS.items():
         given = data.get(section, {})
         if not isinstance(given, dict):
-            _warn(path, f"{section} is not a JSON object")
+            _warn(path, f"{section} is not a JSON object", fallback)
             continue
         for key in given.keys() - fields.keys():
             print(f"palette_recipe: {path}: unknown field {section}.{key!r} ignored", file=sys.stderr)
@@ -102,7 +118,7 @@ def load(path=None):
                 continue
             value = check(given[key])
             if value is None:
-                _warn(path, _invalid(section, key, given[key], want))
+                _warn(path, _invalid(section, key, given[key], want), fallback)
             else:
                 recipe[section][key] = value
     return recipe
@@ -111,7 +127,7 @@ def load(path=None):
 def save(recipe, path=None):
     """Write the recipe to the file in the format load() reads. Unlike load() it is strict: every field must be given
     and valid, else ValueError and the file stays as it was (a user interface must not save starting values it did
-    not show). Returns the validated recipe."""
+    not show). Creates the directory. Returns the validated recipe."""
     path = path or DEFAULT_PATH
     if not isinstance(recipe, dict) or recipe.keys() != FIELDS.keys():
         raise ValueError(f"palette_recipe: the recipe needs exactly the sections {', '.join(FIELDS)}")
@@ -131,6 +147,7 @@ def save(recipe, path=None):
     # stay those of the old file, or the umask's for a new one (os.open applies it; reading it with os.umask() would
     # change it for a moment in every thread of a caller).
     path = os.path.realpath(path)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = os.path.join(os.path.dirname(path), f".{os.path.basename(path)}.{secrets.token_hex(4)}")
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
     try:

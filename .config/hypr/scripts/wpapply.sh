@@ -19,9 +19,10 @@ hyprctl hyprpaper wallpaper ", $SELECTED_PATH, cover"
 # thumbnail in ~10 ms (checked 2026-10-01: all 13 template outputs byte-identical). Only when the entry matches the
 # file (path + mtime); a wallpaper not indexed yet is indexed first (only new files are processed, ~0.5 s each), and
 # only if that fails the colours come from the full image. {{image}} (Hyprland templates) comes via --import-json-string.
-# Palette flags (scheme, contrast, lightness) come from the palette recipe (~/.config/matugen/palette-recipe.json,
-# faza E) through palette_recipe.py, the same module the indexer uses, and so does the fallback's Seed-choice flag
-# (most dominant candidate or a --prefer rule, ticket 03); the stored seed counts only when the entry was
+# Palette flags (scheme, contrast, lightness) come from the palette recipe (faza E: the live file
+# ~/.local/state/ajmashell/palette-recipe.json over the default recipe next to the module) through palette_recipe.py,
+# the same module the indexer uses, and so does the fallback's Seed-choice flag (most dominant candidate or a --prefer
+# rule, ticket 03); the stored seed counts only when the entry was
 # computed with the current recipe (its fingerprint), else the indexer redoes it first. Right after a recipe change
 # that redoes every wallpaper (~3 s CPU-bound on 8 threads for ~106), unless the carousel's own indexer run, started
 # when it opened, has already done it (one indexer at a time: this call waits for it and then finds the cache).
