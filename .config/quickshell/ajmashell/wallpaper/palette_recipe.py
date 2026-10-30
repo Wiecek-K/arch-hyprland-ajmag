@@ -74,51 +74,59 @@ def _invalid(section, key, value, want):
     return f"{section}.{key} = {json.dumps(value)} is not {want}"
 
 
-def _warn(path, msg, fallback):
-    print(f"palette_recipe: {path}: {msg}; using {fallback}", file=sys.stderr)
+def _note(warnings, line):
+    if warnings is None:
+        print(line, file=sys.stderr)
+    else:
+        warnings.append(line)
 
 
-def load(path=None, default=None):
-    """The validated recipe: the live file over the default recipe; never raises."""
+def load(path=None, default=None, warnings=None):
+    """The validated recipe: the live file over the default recipe; never raises. Warnings go to stderr, or into the
+    list `warnings` when given (Theme Center shows them in its window)."""
     base = _layer({section: dict(values) for section, values in DEFAULTS.items()},
-                  default or DEFAULT_RECIPE_PATH, "the starting value", missing_ok=False)
-    return _layer(base, path or DEFAULT_PATH, "the default recipe's value", missing_ok=True)
+                  default or DEFAULT_RECIPE_PATH, "the starting value", False, warnings)
+    return _layer(base, path or DEFAULT_PATH, "the default recipe's value", True, warnings)
 
 
-def _layer(base, path, fallback, missing_ok):
+def _layer(base, path, fallback, missing_ok, warnings):
     """The valid fields of the file over a copy of base; a warning for every other one."""
     recipe = {section: dict(values) for section, values in base.items()}
+
+    def warn(msg):
+        _note(warnings, f"palette_recipe: {path}: {msg}; using {fallback}")
+
     try:
         with open(path) as f:
             data = json.load(f)
     except FileNotFoundError as e:
         if not missing_ok:
-            _warn(path, f"cannot read ({e.strerror})", fallback)
+            warn(f"cannot read ({e.strerror})")
         return recipe
     except OSError as e:
-        _warn(path, f"cannot read ({e.strerror})", fallback)
+        warn(f"cannot read ({e.strerror})")
         return recipe
     except ValueError as e:
-        _warn(path, f"not valid JSON ({e})", fallback)
+        warn(f"not valid JSON ({e})")
         return recipe
     if not isinstance(data, dict):
-        _warn(path, "not a JSON object", fallback)
+        warn("not a JSON object")
         return recipe
     for key in data.keys() - DEFAULTS.keys():
-        print(f"palette_recipe: {path}: unknown field {key!r} ignored", file=sys.stderr)
+        _note(warnings, f"palette_recipe: {path}: unknown field {key!r} ignored")
     for section, fields in FIELDS.items():
         given = data.get(section, {})
         if not isinstance(given, dict):
-            _warn(path, f"{section} is not a JSON object", fallback)
+            warn(f"{section} is not a JSON object")
             continue
         for key in given.keys() - fields.keys():
-            print(f"palette_recipe: {path}: unknown field {section}.{key!r} ignored", file=sys.stderr)
+            _note(warnings, f"palette_recipe: {path}: unknown field {section}.{key!r} ignored")
         for key, (check, want) in fields.items():
             if key not in given:
                 continue
             value = check(given[key])
             if value is None:
-                _warn(path, _invalid(section, key, given[key], want), fallback)
+                warn(_invalid(section, key, given[key], want))
             else:
                 recipe[section][key] = value
     return recipe
