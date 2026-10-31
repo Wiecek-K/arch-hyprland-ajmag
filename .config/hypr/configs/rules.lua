@@ -132,4 +132,13 @@ hl.window_rule({
     float = true,
     size  = "(monitor_w*0.7) (monitor_h*0.6)",
 })
+-- Okna wyboru pliku z portalu (każdy tytuł, np. migawki Theme Center, faza E ticket 18): jako kafelek były za wąskie
+-- na przycisk Save / Open w nagłówku
+hl.window_rule({
+    name   = "portal-file-dialog",
+    match  = { class = "^(xdg-desktop-portal-gtk)$" },
+    float  = true,
+    size   = "(monitor_w*0.5) (monitor_h*0.6)",
+    center = true,
+})
 hl.window_rule({ name = "windowrule-17", match = { class = ".*" }, suppress_event = "activate" })
