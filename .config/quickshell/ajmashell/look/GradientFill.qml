@@ -106,7 +106,10 @@ Item {
     }
 
     Repeater {
-        model: fill.layers.filter(l => l.type === "conical")
+        // Qt sweeps counter-clockwise from its angle, gradient.mjs clockwise: the stops mirrored (position p → 1 − p)
+        model: fill.layers.filter(l => l.type === "conical").map(l => Object.assign({}, l, {
+                    stops: l.stops.map(st => [1 - st[0], st[1]]).reverse()
+                }))
 
         Shape {
             id: conical

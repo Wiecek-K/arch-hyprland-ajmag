@@ -25,6 +25,7 @@ export function line(angle, w, h) {
 // (degrees, clockwise like g.angle), stops}], stops = [[position 0–1, colour name]].
 export function layers(g, w, h, t = 0) {
     const axis = line(g.angle, w, h);
+    const snap = v => Math.round(v * 1e6) / 1e6; // a stop's position without float noise (0.35, not 0.35000000000000003)
     const reachA = g.reachA;
     const reachB = g.reachB;
     const linear = stops => [{ type: "linear", x1: axis.x1, y1: axis.y1, x2: axis.x2, y2: axis.y2, stops }];
@@ -48,10 +49,8 @@ export function layers(g, w, h, t = 0) {
     case "duo":
         return linear([[0, "a"], [reachA, "mid"], [1, "b"]]);
     case "mirror": {
-        // symmetric: B over reach A in the middle, rounded like bands (float noise)
-        const from = Math.round((1 - reachA) / 2 * 1e6) / 1e6;
-        const to = Math.round((1 + reachA) / 2 * 1e6) / 1e6;
-        return linear([[0, "a"], [from, "b"], [to, "b"], [1, "a"]]);
+        // symmetric: B over reach A in the middle
+        return linear([[0, "a"], [snap((1 - reachA) / 2), "b"], [snap((1 + reachA) / 2), "b"], [1, "a"]]);
     }
     case "glow": {
         // reach = share of the way from the centre to a corner; no angle
@@ -70,22 +69,23 @@ export function layers(g, w, h, t = 0) {
     }
     case "vignette": {
         // a frame of the same thickness on every side, no angle: A across, then A down over it, see-through between
-        const t = reachA * Math.min(w, h) / 2;
-        const sx = Math.round(t / w * 1e6) / 1e6;
-        const sy = Math.round(t / h * 1e6) / 1e6;
+        const thick = reachA * Math.min(w, h) / 2;
+        const sx = snap(thick / w);
+        const sy = snap(thick / h);
         return [
             { type: "linear", x1: 0, y1: h / 2, x2: w, y2: h / 2, stops: [[0, "a"], [sx, "base"], [1 - sx, "base"], [1, "a"]] },
             { type: "linear", x1: w / 2, y1: 0, x2: w / 2, y2: h, stops: [[0, "a"], [sy, "clearA"], [1 - sy, "clearA"], [1, "a"]] }
         ];
     }
     case "stripes": {
-        // one period (a stripe of A, then plain) from the line's start, mirrored onwards by the gradient's spread
-        const period = Math.max(reachA, 0.02);
+        // half a stripe of A, then half a gap, from the line's start; the gradient's reflect spread mirrors it onwards,
+        // so a stripe and a gap together take reach A of the line (at least 2%)
+        const period = Math.max(reachA, 0.02) / 2;
         const edge = reachB / 2;
         return [{
             type: "linear", spread: "reflect",
             x1: axis.x1, y1: axis.y1, x2: axis.x1 + (axis.x2 - axis.x1) * period, y2: axis.y1 + (axis.y2 - axis.y1) * period,
-            stops: [[0, "a"], [Math.round((0.5 - edge) * 1e6) / 1e6, "a"], [Math.round((0.5 + edge) * 1e6) / 1e6, "base"], [1, "base"]]
+            stops: [[0, "a"], [snap(0.5 - edge), "a"], [snap(0.5 + edge), "base"], [1, "base"]]
         }];
     }
     case "aurora": {
