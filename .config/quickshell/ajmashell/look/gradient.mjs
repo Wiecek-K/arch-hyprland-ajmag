@@ -2,7 +2,8 @@
 // layers GradientFill.qml draws over it. Pure: the settings come from the look's `gradient` (look-options.json);
 // colours are names that GradientFill turns into colours: "a" and "b" (the roles pulled towards the background by the
 // strength), "base" (the background), "mid" (half way between a and b), "clear" (b fully transparent), "clearA" (a fully
-// transparent). Styles mirror, glow, conic and vignette: ticket E16.
+// transparent), "clearBase" (the background fully transparent). Styles mirror, glow, conic, vignette and
+// inverseVignette: ticket E16.
 // Own implementation, after the throw-away prototype of ticket C10 (ProtoGradientFill.qml).
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Tests: ~/Projects/hyprland-lua-migration/tools/test-gradient.mjs
@@ -56,14 +57,17 @@ export function layers(g, w, h) {
         const r = reachA * Math.sqrt(w * w + h * h) / 2;
         return [{ type: "radial", cx: w / 2, cy: h / 2, r, stops: [[0, "a"], [1, "base"]] }];
     }
-    case "vignette": {
-        // a frame of the same thickness on every side, no angle: A across, then A down over it, see-through between
+    case "vignette":
+    case "inverseVignette": {
+        // a frame of the same thickness on every side, no angle: across, then down over it, see-through between;
+        // vignette = A at the edges, inverse = the plain background at the edges and A in the middle
         const thick = reachA * Math.min(w, h) / 2;
         const sx = snap(thick / w);
         const sy = snap(thick / h);
+        const [edge, middle, clear] = g.style === "vignette" ? ["a", "base", "clearA"] : ["base", "a", "clearBase"];
         return [
-            { type: "linear", x1: 0, y1: h / 2, x2: w, y2: h / 2, stops: [[0, "a"], [sx, "base"], [1 - sx, "base"], [1, "a"]] },
-            { type: "linear", x1: w / 2, y1: 0, x2: w / 2, y2: h, stops: [[0, "a"], [sy, "clearA"], [1 - sy, "clearA"], [1, "a"]] }
+            { type: "linear", x1: 0, y1: h / 2, x2: w, y2: h / 2, stops: [[0, edge], [sx, middle], [1 - sx, middle], [1, edge]] },
+            { type: "linear", x1: w / 2, y1: 0, x2: w / 2, y2: h, stops: [[0, edge], [sy, clear], [1 - sy, clear], [1, edge]] }
         ];
     }
     case "conic":

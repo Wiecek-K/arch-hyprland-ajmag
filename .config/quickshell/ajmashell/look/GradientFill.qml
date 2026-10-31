@@ -36,7 +36,8 @@ Item {
             base: base,
             mid: mix(toneA, toneB, 0.5),
             clear: Qt.alpha(toneB, 0),
-            clearA: Qt.alpha(toneA, 0)
+            clearA: Qt.alpha(toneA, 0),
+            clearBase: Qt.alpha(base, 0)
         })
     readonly property var layers: settings ? G.layers(settings, width, height) : []
 
