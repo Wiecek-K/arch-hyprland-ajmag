@@ -19,13 +19,20 @@
   "alpha": { "min": 0.5, "max": 1, "step": 0.01 },
   "flags": ["motion", "flare", "glass", "softPills", "blur"],
   "gradient": {
-    "_comment": "Gradient of the popups' background (faza E ticket 14), one for every look, so not in the presets. styles: in the order Theme Center shows them (a list: QML sorts the keys of an object), each with the colours it uses (Theme Center shows only their selects) and the reaches it uses with their defaults (Theme Center sets them when the style is picked); colours A and B are roles of the list above. angle: the direction in degrees, 0 = left to right, 90 = top to bottom. Geometry: look/gradient.mjs.",
+    "_comment": "Gradient of the popups' background (faza E ticket 14), one for every look, so not in the presets. styles: in the order Theme Center shows them (a list: QML sorts the keys of an object), each with the colours it uses (Theme Center shows only their selects) and the reaches it uses with their defaults (Theme Center sets them when the style is picked); angle: false = the style has no direction (Theme Center greys out its slider); conic … aurora: ticket E16 (prototype, the user keeps some of them); colours A and B are roles of the list above. angle: the direction in degrees, 0 = left to right, 90 = top to bottom. Geometry: look/gradient.mjs.",
     "styles": [
-      { "name": "off", "uses": [], "reaches": {} },
+      { "name": "off", "uses": [], "reaches": {}, "angle": false },
       { "name": "linear", "uses": ["a"], "reaches": { "reachA": 1 } },
       { "name": "corner", "uses": ["a", "b"], "reaches": { "reachA": 0.9, "reachB": 0 } },
       { "name": "bands", "uses": ["a", "b"], "reaches": { "reachA": 0.5, "reachB": 0.5 } },
-      { "name": "duo", "uses": ["a", "b"], "reaches": { "reachA": 0.5 } }
+      { "name": "duo", "uses": ["a", "b"], "reaches": { "reachA": 0.5 } },
+      { "name": "conic", "uses": ["a", "b"], "reaches": { "reachA": 0.5 } },
+      { "name": "mirror", "uses": ["a", "b"], "reaches": { "reachA": 0.2 } },
+      { "name": "glow", "uses": ["a"], "reaches": { "reachA": 1 }, "angle": false },
+      { "name": "spotlight", "uses": ["a"], "reaches": { "reachA": 0.8 } },
+      { "name": "vignette", "uses": ["a"], "reaches": { "reachA": 0.5 }, "angle": false },
+      { "name": "stripes", "uses": ["a"], "reaches": { "reachA": 0.15, "reachB": 0.3 } },
+      { "name": "aurora", "uses": ["a", "b"], "reaches": { "reachA": 0.5 } }
     ],
     "strength": { "min": 0, "max": 1, "step": 0.01 },
     "angle": { "min": 0, "max": 359, "step": 1 },
