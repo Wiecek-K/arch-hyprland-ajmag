@@ -2,8 +2,8 @@
 // and no import of the shell's singletons, so Ajmashell Theme Center loads this file from the Ajmashell directory for
 // its look previews (a Loader with a file URL) instead of keeping a copy. In the shell: LookBackground.qml.
 // Geometry (line, layers, stops) in gradient.mjs next to it. Every stop keeps the background's alpha (Hyprland's blur
-// under the popup stays on); the second corner glow fades to transparent over the full background. Conical layers,
-// the focal point, the reflect spread and `time`: ticket E16.
+// under the popup stays on); the second corner glow fades to transparent over the full background. Conical layers:
+// ticket E16.
 // Own implementation, after the throw-away prototype of ticket C10 (ProtoGradientFill.qml).
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -21,7 +21,6 @@ Item {
     property color colorB
     property color base // the look's background (role and alpha)
     property real radius: 0 // corners of the box; 0 inside a box that clips them itself
-    property real time: 0 // seconds of the wall clock for a style that moves (aurora); 0 = standing
 
     // colour between a and b at t, with the alpha of a
     function mix(a: color, b: color, t: real): color {
@@ -39,7 +38,7 @@ Item {
             clear: Qt.alpha(toneB, 0),
             clearA: Qt.alpha(toneA, 0)
         })
-    readonly property var layers: settings ? G.layers(settings, width, height, time) : []
+    readonly property var layers: settings ? G.layers(settings, width, height) : []
 
     // stop i of a layer's stops, the last one repeated (a ShapePath gradient has a fixed number of GradientStops)
     function stop(stops: var, i: int): var {
@@ -58,7 +57,6 @@ Item {
             ShapePath {
                 strokeWidth: -1
                 fillGradient: LinearGradient {
-                    spread: linear.modelData.spread === "reflect" ? ShapeGradient.ReflectSpread : ShapeGradient.PadSpread
                     x1: linear.modelData.x1
                     y1: linear.modelData.y1
                     x2: linear.modelData.x2
@@ -91,8 +89,8 @@ Item {
                     centerX: radial.modelData.cx
                     centerY: radial.modelData.cy
                     centerRadius: radial.modelData.r
-                    focalX: radial.modelData.fx ?? radial.modelData.cx
-                    focalY: radial.modelData.fy ?? radial.modelData.cy
+                    focalX: radial.modelData.cx
+                    focalY: radial.modelData.cy
                     GradientStop { position: fill.stop(radial.modelData.stops, 0).position; color: fill.stop(radial.modelData.stops, 0).color }
                     GradientStop { position: fill.stop(radial.modelData.stops, 1).position; color: fill.stop(radial.modelData.stops, 1).color }
                 }
