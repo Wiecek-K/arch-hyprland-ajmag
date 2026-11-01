@@ -456,7 +456,7 @@ Scope {
                         // the card above it was removed: in a collapsed group it comes out from the stack (rise), in an
                         // expanded one the row takes the removed row's place at once (the header stays) and only the
                         // card slides up (slide); either way the view does not move the row (removeDisplaced)
-                        readonly property bool rising: rise.running || slide.running || slidePending
+                        readonly property bool rising: motion.running || slidePending
                         property bool slidePending: false
                         property real slideStartY: 0 // the row's y before the removal
 
@@ -472,7 +472,7 @@ Scope {
                             if (!created || !newest || leaving)
                                 return;
                             if (!open) {
-                                rise.restart();
+                                motion.rise();
                             } else {
                                 slideStartY = y;
                                 slidePending = true;
@@ -484,87 +484,25 @@ Scope {
                             if (!slidePending)
                                 return;
                             slidePending = false;
-                            slide.from = slideStartY - y - groupHeader.height;
-                            slide.restart();
+                            motion.slideFrom(slideStartY - y - groupHeader.height);
                         }
 
-                        NumberAnimation {
-                            id: slide
-                            target: card
-                            property: "y"
-                            to: 0
-                            duration: Theme.notifications.centrumReflow
-                            easing.type: Easing.OutCubic // as removeDisplaced: the rows below move with it
-                        }
-
-                        // starts as the first edge (narrower, bottom on the edge's bottom) and grows to a full card
-                        ParallelAnimation {
-                            id: rise
-                            NumberAnimation {
-                                target: card
-                                property: "y"
-                                from: Theme.notifications.stackGap + Theme.notifications.stackPeek
-                                to: 0
-                                duration: Theme.notifications.centrumReflow
-                                easing.type: Easing.OutCubic
-                            }
-                            NumberAnimation {
-                                target: card
-                                property: "scale"
-                                from: 1 - 2 * Theme.notifications.stackInset / Math.max(card.width, 1)
-                                to: 1
-                                duration: Theme.notifications.centrumReflow
-                                easing.type: Easing.OutCubic
-                            }
-                            // the edge's colour turns into the card: the card fades in over its edge-coloured copy
-                            NumberAnimation {
-                                target: card
-                                property: "opacity"
-                                from: 0
-                                to: 1
-                                duration: Theme.notifications.centrumReflow
-                                easing.type: Easing.InOutQuad
-                            }
+                        StackMotion {
+                            id: motion
+                            cardItem: card
                         }
 
                         // group header: app name, count, arrow (click expands), Clear (ticket 16)
-                        Item {
+                        GroupHeader {
                             id: groupHeader
-
                             width: parent.width
-                            height: row.newest ? groupClear.height + Theme.spacing.md : 0
-                            visible: row.newest && !row.leavesGroup
-
-                            OrbitText {
-                                anchors.left: parent.left
-                                anchors.right: groupClear.left
-                                anchors.rightMargin: Theme.spacing.md
-                                anchors.verticalCenter: groupClear.verticalCenter
-                                elide: Text.ElideRight
-                                text: (row.count > 1 ? (row.open ? NotifLogic.GROUP_OPEN_ICON : NotifLogic.GROUP_CLOSED_ICON) + "  " : "")
-                                      + row.groupKey + (row.count > 1 ? " (" + row.count + ")" : "")
-                                font.pixelSize: Theme.font.sizeSmall
-                                color: Theme.control.subtext
-                            }
-
-                            Pill {
-                                id: groupClear
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                                anchors.bottomMargin: Theme.spacing.sm
-                                text: "Clear"
-                                onClicked: Notifications.clearGroup(row.groupKey)
-                            }
-
-                            // Clear has its own TapHandler, but this one fires too: a tap on Clear does not expand
-                            TapHandler {
-                                enabled: row.count > 1
-                                onTapped: eventPoint => {
-                                    const p = groupHeader.mapToItem(groupClear, eventPoint.position);
-                                    if (!groupClear.contains(p))
-                                        root.toggleGroup(row.groupKey);
-                                }
-                            }
+                            groupKey: row.groupKey
+                            count: row.count
+                            open: row.open
+                            newest: row.newest
+                            leavesGroup: row.leavesGroup
+                            onToggleRequested: root.toggleGroup(row.groupKey)
+                            onClearRequested: Notifications.clearGroup(row.groupKey)
                         }
 
                         Item {
@@ -574,50 +512,12 @@ Scope {
                             width: parent.width
                             height: card.height
 
-                            // the card as an edge while it grows (row.rise); under the card, same place and size
-                            Rectangle {
-                                x: card.x
-                                y: card.y
-                                width: card.width
-                                height: card.height
-                                scale: card.scale
-                                transformOrigin: Item.Bottom
-                                radius: card.radius
-                                color: Theme.notifications.stack
-                                visible: row.rising
-                            }
-
-                            // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
-                            Repeater {
-                                model: NotifLogic.STACK_MAX_EDGES
-
-                                Item {
-                                    id: edge
-
-                                    required property int index
-                                    readonly property int inset: Theme.notifications.stackInset * (index + 1)
-
-                                    x: inset
-                                    y: card.height + Theme.notifications.stackGap + (Theme.notifications.stackPeek + Theme.notifications.stackGap) * index
-                                    width: body.width - 2 * inset
-                                    height: Theme.notifications.stackPeek
-                                    clip: true
-                                    opacity: index >= row.edgeCount ? 0 : index === 0 ? 1 : Theme.notifications.stackFade
-
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: Theme.motion.fast
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        width: parent.width
-                                        height: card.height
-                                        y: parent.height - height
-                                        radius: card.radius
-                                        color: Theme.notifications.stack
-                                    }
-                                }
+                            // edges of the stack and the card's copy while it rises; under the card
+                            StackEdges {
+                                anchors.fill: parent
+                                cardItem: card
+                                edgeCount: row.edgeCount
+                                rising: row.rising
                             }
 
                             NotificationCard {

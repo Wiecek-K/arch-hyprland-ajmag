@@ -72,9 +72,7 @@ Rectangle {
         opacity: closeButton.shown && root.closeOnIcon ? 0 : 1
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.motion.fast
-            }
+            FadeFast {}
         }
 
         Image {
@@ -112,9 +110,7 @@ Rectangle {
         opacity: closeButton.shown ? 0 : 1
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.motion.fast
-            }
+            FadeFast {}
         }
     }
 
@@ -136,9 +132,7 @@ Rectangle {
         color: closeHover.hovered ? Theme.notifications.actionHover : Theme.transparent
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.motion.fast
-            }
+            FadeFast {}
         }
 
         Text {
