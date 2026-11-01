@@ -48,6 +48,7 @@ hyprpicker
 hyprpolkitagent
 hyprpwcenter
 hyprshot
+imagemagick
 intel-gpu-tools
 intel-media-driver
 jq
