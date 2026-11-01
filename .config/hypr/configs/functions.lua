@@ -18,8 +18,8 @@ function M.gamemode()
         })
         notify("Gamemode", "Enabled (Max Performance)")
     else
-        -- reload odtwarza wartości z configu (brak hl.dsp.reload_config w 0.56.2)
-        hl.exec_cmd("hyprctl reload")
+        -- reload odtwarza wartości z configu (dispatcher od 0.57; wcześniej `hyprctl reload`)
+        hl.dispatch(hl.dsp.reload_config())
         notify("Gamemode", "Disabled (Visuals Restored)")
     end
 end
