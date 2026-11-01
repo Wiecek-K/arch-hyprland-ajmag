@@ -416,7 +416,7 @@ Scope {
                     removeDisplaced: Transition {
                         id: reflow
                         // the next card of a collapsed group (hidden one row lower until now) does not move from
-                        // there: it rises from under the removed card by itself (row.rise)
+                        // there: it rises from under the removed card by itself (StackMotion.rise)
                         NumberAnimation {
                             property: "y"
                             duration: reflow.ViewTransition.item?.rising === true ? 0 : Theme.notifications.centrumReflow // qmllint disable missing-property
