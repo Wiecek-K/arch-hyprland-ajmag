@@ -21,6 +21,11 @@ SLURP_BG="#${SURFACE%??}80"
 # got "pointer leave" and hid its hover (menu, tooltip) before grim took the picture. hyprpicker -r -z shows a frozen
 # copy of every monitor (no zoom lens); slurp and grim then work on that picture, so the hover stays on the screenshot.
 # Idea from hyprshot --freeze (github.com/Gustash/Hyprshot, GPL-3.0); own implementation, see pochodzenie-komponentow.md.
+# One screenshot at a time: a second press would start its slurp over the first run's frozen layer, before its own
+# freeze, and two selections would run at once.
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/ajmashell-screenshot.lock"
+flock -n 9 || exit 0
+
 FREEZE_PID=""
 unfreeze() {
     [ -n "$FREEZE_PID" ] || return 0
@@ -29,7 +34,7 @@ unfreeze() {
     FREEZE_PID=""
 }
 trap unfreeze EXIT
-hyprpicker -r -z >/dev/null 2>&1 &
+hyprpicker -r -z >/dev/null 2>&1 9>&- &
 FREEZE_PID=$!
 # slurp must map above the frozen layer: started earlier, it would take the pointer before hyprpicker copies the screen.
 # The layer shows after ~0.1 s; give up after 1 s and take the screenshot without the freeze.
@@ -47,8 +52,11 @@ fi
 X_COORD=$(echo "$GEOM" | cut -d',' -f1)
 Y_COORD=$(echo "$GEOM" | cut -d',' -f2 | cut -d' ' -f1)
 
-MON_X=$(hyprctl monitors -j | jq '.[] | select(.focused) | .x')
-MON_Y=$(hyprctl monitors -j | jq '.[] | select(.focused) | .y')
+# satty opens at the selection on the monitor that holds its top-left corner (width/height in pixels, x/y in layout
+# coordinates, hence / scale); the focused monitor only as a fallback.
+read -r MON_X MON_Y < <(hyprctl monitors -j | jq -r --argjson x "$X_COORD" --argjson y "$Y_COORD" '
+    (map(select($x >= .x and $x < .x + .width / .scale and $y >= .y and $y < .y + .height / .scale)) + map(select(.focused)))
+    | first | "\(.x) \(.y)"')
 
 LOCAL_X=$(( X_COORD - MON_X ))
 LOCAL_Y=$(( Y_COORD - MON_Y ))
