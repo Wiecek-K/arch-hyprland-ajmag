@@ -523,7 +523,7 @@ Scope {
                             NotificationCard {
                                 id: card
                                 width: parent.width
-                                transformOrigin: Item.Bottom // row.rise grows it from the edge
+                                transformOrigin: Item.Bottom // StackMotion.rise grows it from the edge
                                 showAppName: false
                                 time: row.model.time
                                 showTime: true
