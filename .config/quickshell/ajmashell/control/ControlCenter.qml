@@ -176,6 +176,14 @@ Scope {
         onClose: root.open = false
     }
 
+    // notification popups go at once when it opens and none show while it is open (user, 2026-11-01): they lay over
+    // the Centrum, and its list has every entry anyway
+    Binding {
+        target: Notifications
+        property: "centrumOpen"
+        value: root.open
+    }
+
     SystemClock {
         id: clock
         precision: SystemClock.Minutes

@@ -315,6 +315,9 @@ Singleton {
         // popup animations (serpantinum): slide in from the right and fade
         readonly property int appear: 250 // ms
         readonly property int disappear: 200 // ms
+        // ms; the Centrum opened: the emptied popup window shows this long before it unmaps, so Hyprland's layer
+        // fade-out runs on an empty frame (faza C ticket 03)
+        readonly property int dropDelay: 50
         readonly property int reflow: 220 // ms; the other popups move up or down
         readonly property real slide: 0.35 // of the popup width
         // Centrum: a card removed by a click slides out like a popup, a bit slower; the cards below move up

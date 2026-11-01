@@ -17,6 +17,7 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import qs.singletons.theme
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -42,6 +43,30 @@ Singleton {
     // Silent mode (DND): right click on the bell or the switch in the Centrum. Notifications still reach the
     // history and the count; only critical ones pop up. Saved, so a restart keeps it (ticket 16).
     property bool silent: false
+    // set by the Centrum sterowania while it is open: popups on screen go at once and no new ones show (its list
+    // has them all; user, 2026-11-01, faza C ticket 03). The popup window hides its cards at once
+    // (NotificationPopups.qml) and the popups go a moment later: unmapping the window at once let Hyprland fade out
+    // its last frame, cards included, under the sliding Centrum.
+    property bool centrumOpen: false
+    onCentrumOpenChanged: if (centrumOpen)
+        dropTimer.restart()
+
+    Timer {
+        id: dropTimer
+        interval: Theme.notifications.dropDelay
+        onTriggered: root.dropBlockedPopups()
+    }
+
+    function popupAllowed(urgency: int): bool {
+        return Logic.popupAllowed({ silent, urgency, centrumOpen });
+    }
+
+    // popups that may not show any more go (silent mode on, the Centrum opened); the last one hides the window at once
+    function dropBlockedPopups(): void {
+        for (let i = popupsModel.count - 1; i >= 0; i--)
+            if (!popupAllowed(popupsModel.get(i).urgency))
+                removePopup(popupsModel.get(i).uid);
+    }
     property int arrivals: 0 // arrival number of the newest entry: the history limit drops the oldest one
 
     FileView {
@@ -140,7 +165,7 @@ Singleton {
                 timeout: Logic.popupTimeout(n),
                 generation: popupsModel.get(p).generation + 1
             }));
-        } else if (Logic.popupAllowed({ silent, urgency: n.urgency })) {
+        } else if (popupAllowed(n.urgency)) {
             showPopup(n);
         }
     }
@@ -228,12 +253,8 @@ Singleton {
     function setSilent(value: bool): void {
         silent = value;
         stateFile.setText(Logic.formatState({ silent }));
-        if (!silent)
-            return;
         // popups already on screen go too, except critical ones
-        for (let i = popupsModel.count - 1; i >= 0; i--)
-            if (!Logic.popupAllowed({ silent, urgency: popupsModel.get(i).urgency }))
-                removePopup(popupsModel.get(i).uid);
+        dropBlockedPopups();
     }
 
     function clear(): void {
@@ -302,7 +323,7 @@ Singleton {
 
             if (Logic.keptInHistory(n))
                 root.addToHistory(n);
-            if (!n.lastGeneration && Logic.popupAllowed({ silent: root.silent, urgency: n.urgency }))
+            if (!n.lastGeneration && root.popupAllowed(n.urgency))
                 root.showPopup(n);
             else if (!Logic.keptInHistory(n))
                 n.expire(); // transient without a popup (silent mode, or from before the reload): nothing to keep

@@ -19,7 +19,11 @@ export function bellIcon(silent) {
 
 // Silent mode (DND, right click on the bell): notifications go to the history without a popup;
 // critical ones still pop up (serpantinum NotificationPopups.qml does the same).
-export function popupAllowed({ silent, urgency }) {
+// While the Centrum is open no popup at all, critical too: its list shows every entry, and popups lay over it
+// (user, 2026-11-01, faza C ticket 03).
+export function popupAllowed({ silent, urgency, centrumOpen }) {
+    if (centrumOpen)
+        return false;
     return !silent || urgency === CRITICAL;
 }
 
