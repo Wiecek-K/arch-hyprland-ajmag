@@ -17,6 +17,27 @@ SLURP_BORDER="#${PRIMARY}"
 SLURP_FILL="#${PRIMARY%??}20"
 SLURP_BG="#${SURFACE%??}80"
 
+# Freeze the screen before the selection (ticket c04, faza C). slurp's overlay takes the pointer, so the app under it
+# got "pointer leave" and hid its hover (menu, tooltip) before grim took the picture. hyprpicker -r -z shows a frozen
+# copy of every monitor (no zoom lens); slurp and grim then work on that picture, so the hover stays on the screenshot.
+# Idea from hyprshot --freeze (github.com/Gustash/Hyprshot, GPL-3.0); own implementation, see pochodzenie-komponentow.md.
+FREEZE_PID=""
+unfreeze() {
+    [ -n "$FREEZE_PID" ] || return 0
+    kill "$FREEZE_PID" 2>/dev/null
+    wait "$FREEZE_PID" 2>/dev/null
+    FREEZE_PID=""
+}
+trap unfreeze EXIT
+hyprpicker -r -z >/dev/null 2>&1 &
+FREEZE_PID=$!
+# slurp must map above the frozen layer: started earlier, it would take the pointer before hyprpicker copies the screen.
+# The layer shows after ~0.1 s; give up after 1 s and take the screenshot without the freeze.
+for _ in $(seq 40); do
+    hyprctl layers -j | jq -e 'any(.. | objects | .namespace? ; . == "hyprpicker")' >/dev/null && break
+    sleep 0.025
+done
+
 GEOM=$(slurp -b "$SLURP_BG" -c "$SLURP_BORDER" -s "$SLURP_FILL" -w 3)
 
 if [ -z "$GEOM" ]; then
@@ -34,6 +55,7 @@ LOCAL_Y=$(( Y_COORD - MON_Y ))
 
 TMP_IMG="/tmp/satty_capture.png"
 grim -g "$GEOM" "$TMP_IMG"
+unfreeze
 
 # satty-logged.sh records runs and freezes in ~/.local/state/satty/satty.log
 SATTY_CMD="$HOME/.config/hypr/scripts/satty-logged.sh --filename $TMP_IMG --early-exit --copy-command wl-copy --output-filename ~/Pictures/Screenshots/satty-$(date '+%Y%m%d-%H%M%S').png"
