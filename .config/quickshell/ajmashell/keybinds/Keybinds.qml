@@ -16,6 +16,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import qs.look
 import qs.singletons.theme
 import qs.singletons.look
 import "keybinds.mjs" as Logic
@@ -99,7 +100,8 @@ Scope {
                 width: Theme.keybinds.width
                 height: field.height + Theme.keybinds.padding + Theme.keybinds.rows * Theme.keybinds.rowHeight + 2 * Theme.keybinds.padding
                 radius: Theme.keybinds.radius
-                color: Look.background(Theme.keybinds)
+                color: Theme.transparent // LookBackground draws the look's background
+                LookBackground {}
                 border.width: Theme.keybinds.borderWidth
                 border.color: Theme.keybinds.border
 

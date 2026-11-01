@@ -62,6 +62,13 @@ hl.window_rule({
     match   = { class = "^(obsidian|Logseq)$" },
     opacity = "0.98 override 0.94 override",
 })
+-- Ajmashell Theme Center (strojenie palety, faza E, ADR 0019; osobne repo, poza dotfiles): pełne krycie także bez
+-- fokusu, bo inactive_opacity 0.8 przekłamuje próbki kolorów.
+hl.window_rule({
+    name    = "theme-center-opaque",
+    match   = { class = "^(ajmashell-theme-center)$" },
+    opacity = "1.0 override 1.0 override",
+})
 
 -- === WARSTWY ===
 hl.layer_rule({ name = "layerrule-5", match = { namespace = "flameshot" }, blur = true, ignore_alpha = 0 })
@@ -70,16 +77,16 @@ hl.layer_rule({ name = "layerrule-5", match = { namespace = "flameshot" }, blur 
 hl.layer_rule({ name = "layerrule-6", match = { namespace = "ajmashell-launcher" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-03 (ticket 12): blur_popups — blur także pod popupami Bara (Orbita, dymki, menu traya); tło Orbity alfa 0.8.
 hl.layer_rule({ name = "layerrule-7", match = { namespace = "ajmashell-bar" }, blur = true, blur_popups = true, ignore_alpha = 0.5 })
--- 2026-10-07 (ticket 14): blur pod Centrum sterowania (tło jak Orbita, alfa 0.8); w wyglądzie „fancy2” zdejmuje go ajmashellBlurOff.
+-- 2026-10-07 (ticket 14): blur pod Centrum sterowania (tło jak Orbita, alfa 0.8); przy alfie wyglądu 1 zdejmuje go ajmashellBlurOff.
 hl.layer_rule({ name = "layerrule-8", match = { namespace = "ajmashell-control" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-07 (ticket 15): blur pod OSD (wyspa jak na Barze, alfa 0.75); no_anim — OSD sam się wygasza (150 ms).
 hl.layer_rule({ name = "layerrule-9", match = { namespace = "ajmashell-osd" }, blur = true, ignore_alpha = 0.5, no_anim = true })
 -- 2026-10-09 (ticket 18): blur pod Panelem zasilania (pełny ekran, tło alfa 0.7) we wszystkich wyglądach.
 hl.layer_rule({ name = "layerrule-10", match = { namespace = "ajmashell-power" }, blur = true, ignore_alpha = 0.5 })
--- 2026-10-09 (ticket 20): blur pod oknem Keybinds (tło jak launcher, alfa 0.7); w wyglądzie „fancy2” zdejmuje go ajmashellBlurOff.
+-- 2026-10-09 (ticket 20): blur pod oknem Keybinds (tło jak launcher, alfa 0.7); przy alfie wyglądu 1 zdejmuje go ajmashellBlurOff.
 hl.layer_rule({ name = "layerrule-11", match = { namespace = "ajmashell-keybinds" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-07 (ticket 13): wygląd Ajmashella „fancy2” — Orbita i launcher z nieprzezroczystym tłem, bez bluru
--- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Reguły wyłączone; włącza je shell przez
+-- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Od 2026-10-30 (faza E tickety 13 i 14): każdy wygląd z alfą tła 1 albo z flagą `blur` wyłączoną. Reguły wyłączone; włącza je shell przez
 -- `hyprctl eval 'require("configs.functions").ajmashellBlurOff(true)'` (singletons/look/BlurOff.qml).
 -- Muszą być po layerrule-6/7/8/11: późniejsza reguła nadpisuje te same pola.
 require("configs.functions").ajmashellBlurOffRules()
@@ -124,5 +131,14 @@ hl.window_rule({
     match = { initial_title = "^(Open Files)$" },
     float = true,
     size  = "(monitor_w*0.7) (monitor_h*0.6)",
+})
+-- Okna wyboru pliku z portalu (każdy tytuł, np. migawki Theme Center, faza E ticket 18): jako kafelek były za wąskie
+-- na przycisk Save / Open w nagłówku
+hl.window_rule({
+    name   = "portal-file-dialog",
+    match  = { class = "^(xdg-desktop-portal-gtk)$" },
+    float  = true,
+    size   = "(monitor_w*0.5) (monitor_h*0.6)",
+    center = true,
 })
 hl.window_rule({ name = "windowrule-17", match = { class = ".*" }, suppress_event = "activate" })

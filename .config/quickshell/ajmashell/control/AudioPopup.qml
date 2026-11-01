@@ -10,9 +10,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import qs.look
 import qs.singletons.barpopups
 import qs.singletons.theme
-import qs.singletons.look
 
 PopupWindow {
     id: root
@@ -70,7 +70,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: Look.background(Theme.control)
+        color: Theme.transparent // LookBackground draws the look's background
+        LookBackground {}
 
         focus: true
         Keys.onEscapePressed: root.visible = false

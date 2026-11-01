@@ -22,11 +22,12 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import qs.look
 import qs.singletons.apps
+import qs.singletons.look // the look (faza E ticket 13), set in Ajmashell Theme Center
 import qs.singletons.theme
 import "launcher.mjs" as Logic
 import "../orbit" // OrbitBackdrop behind the list in the fancy look (ticket 13)
-import qs.singletons.look // look flags (ticket 13); switched in the Centrum sterowania (ticket 14)
 
 Scope {
     id: root
@@ -322,7 +323,8 @@ Scope {
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius
-                color: Look.background(Theme.launcher)
+                color: Theme.transparent // LookBackground draws the look's background
+                LookBackground {}
                 border.width: Theme.launcher.borderWidth
                 border.color: Theme.launcher.border
 
@@ -433,7 +435,7 @@ Scope {
                     }
                 }
 
-                // fancy and still looks (ticket 13, user 2026-10-06): the Orbita's lens flare behind the
+                // a look with `flare` (ticket 13, user 2026-10-06): the Orbita's lens flare behind the
                 // list; turns like the orbit while open, only in a look with motion
                 OrbitBackdrop {
                     visible: Look.current.flare

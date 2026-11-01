@@ -1,13 +1,18 @@
-// Look of the Orbita and the launcher (ticket 13, user 2026-10-06): set looks "basic", "fancy", "fancy2"
-// (fancy on an opaque background, user 2026-10-07) and "still" (fancy without motion, user 2026-10-06),
-// their picks in Theme.orbit.looks (`current`). A look with `opaque` also turns off Hyprland's blur under
-// the Orbita and the launcher (BlurOff.qml); `tinted` (still) keeps the blur under fancy2's colour. The developer's
-// "prototype" look with the keys B, C, P and S was removed after code review 2 (user, 2026-10-06: "for now").
-// Switched only in the Centrum sterowania (ticket 14, user 2026-10-07: one place, easier to keep): its look
-// buttons, F2 there for the next look, or
-// `qs -c ajmashell ipc call look cycle` / `qs -c ajmashell ipc call look set fancy`.
-// Decisions: ADR 0006 in ~/Projects/hyprland-lua-migration/docs/adr. How to change the default look or a
-// look's picks: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.
+// Look of Ajmashell's big popups (faza E tickets 13 and 14, ADR 0021; was four named looks, ADR 0006): a set of
+// parameters, not a name — background (a matugen role) and its alpha 0.5–1, motion, lens flare, glass core, soft pills,
+// blur (Hyprland's, under the popups; ticket 14),
+// and the background's gradient (one for every look, so not in the presets; drawn by look/LookBackground.qml). Read from
+// the live file ~/.local/state/ajmashell/look.json, which only Ajmashell Theme Center writes; a change applies at once.
+// No file = `defaults` of look-options.json (that file holds the roles, ranges, presets and defaults: the one source,
+// also for look_settings.py, which Theme Center imports); a bad field = its default, with a warning in `qs log`
+// (look.mjs, the same rules as look_settings.load()).
+// One background for the 7 big popups (Orbita, audio popup, calendar, media, Centrum sterowania, launcher, Keybinds):
+// `background`, drawn by look/LookBackground.qml. At alpha 1, or with
+// `blur` off, Hyprland's blur under them is off (BlurOff.qml; was the flag `opaque`).
+// IPC for tools/measure-gpu.sh: `qs -c ajmashell ipc call look set fancy` puts a preset on for the moment (with the
+// file's gradient), without writing the file; a change of the file or a shell restart takes it back. No other switch in the shell (the
+// Centrum sterowania's look buttons and F2 went with ticket 13).
+// How to change the defaults or add a preset: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.
 
 pragma Singleton
 
@@ -16,22 +21,56 @@ import Quickshell
 import Quickshell.Io
 import qs.singletons.theme
 import "../../orbit/orbit.mjs" as Logic
+import "look.mjs" as LookLogic
 
 Singleton {
     id: root
 
-    readonly property var modes: ["basic", "fancy", "fancy2", "still"]
-    property string mode: "fancy2" // a reload starts here (user, 2026-10-07; was "still")
-    readonly property var current: Theme.orbit.looks[mode] // flags: flare, glass, softPills, motion, opaque, tinted
+    readonly property var options: JSON.parse(optionsFile.text())
+    property var fileLook: options.defaults // the live file, read leniently
+    property var override: null // IPC `look set`: a preset until the file changes
+    // background, alpha, motion, flare, glass, softPills, blur, gradient {style, a, b, strength, angle, reachA, reachB}
+    readonly property var current: override ?? fileLook
+    // the background of every big popup
+    readonly property color background: Qt.alpha(Theme.colors[current.background], current.alpha)
 
-    // Background of a big popup in the current look; style: a Theme style with background,
-    // backgroundOpaque and backgroundTinted (Theme.orbit, Theme.control, Theme.launcher).
-    function background(style: var): color {
-        return current.opaque ? style.backgroundOpaque : current.tinted ? style.backgroundTinted : style.background;
+    // text = the file's text, null = no file
+    function read(text: var): void {
+        const r = LookLogic.resolve(root.options, text);
+        for (const w of r.warnings)
+            console.warn("Look: " + lookFile.path + ": " + w);
+        root.fileLook = r.look;
+        root.override = null;
+    }
+
+    // Singletons load lazily and FileView reads asynchronously: read the live file once, blocking, so the first
+    // frame already has the look instead of the defaults.
+    Component.onCompleted: lookFile.text()
+
+    FileView {
+        id: optionsFile
+        path: Quickshell.shellPath("singletons/look/look-options.json")
+        blockLoading: true
+    }
+
+    FileView {
+        id: lookFile
+        path: Quickshell.env("HOME") + "/.local/state/ajmashell/look.json"
+        blockLoading: true
+        printErrors: false // no file is the normal case: the defaults
+        // Also catches Theme Center's atomic replace: FileView watches the directory (it exists: colors.json is there)
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: root.read(text())
+        onLoadFailed: error => {
+            if (error !== FileViewError.FileNotFound)
+                console.warn("Look: cannot read " + path + ", using the defaults:", FileViewError.toString(error));
+            root.read(null);
+        }
     }
 
     BlurOff {
-        off: root.current.opaque
+        off: LookLogic.blurOff(root.current)
     }
 
     // One motion clock for the whole shell (ticket 28), Theme.orbit.fps steps a second, running only
@@ -55,20 +94,16 @@ Singleton {
         }
     }
 
-    function cycle(): void {
-        mode = modes[(modes.indexOf(mode) + 1) % modes.length];
-    }
-
     IpcHandler {
         target: "look"
 
-        function cycle(): void {
-            root.cycle();
-        }
-
-        function set(mode: string): void {
-            if (root.modes.includes(mode))
-                root.mode = mode;
+        // a preset for the moment, over the file's gradient (tools/measure-gpu.sh); an unknown name changes nothing
+        function set(name: string): void {
+            const look = LookLogic.preset(root.options, name, root.fileLook);
+            if (look)
+                root.override = look;
+            else
+                console.warn("Look: ipc look set: no preset " + JSON.stringify(name));
         }
     }
 }

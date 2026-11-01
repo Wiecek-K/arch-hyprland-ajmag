@@ -15,6 +15,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import qs.control
+import qs.look
 import qs.orbit
 import qs.singletons.barpopups
 import qs.singletons.look
@@ -100,7 +101,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: Look.background(Theme.control)
+        color: Theme.transparent // LookBackground draws the look's background
+        LookBackground {}
         clip: true // the flare reaches past the panel
 
         focus: true

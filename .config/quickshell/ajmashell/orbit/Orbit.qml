@@ -13,7 +13,7 @@
 // per device), logic in orbit.mjs; a click selects a node and the core offers its actions (serpantinum
 // connects on click, disconnects by holding the core); our Theme instead of its palette; the orbit turns
 // and the lightning flickers on one clock (Theme.orbit.fps, not every 25 ms), the orbit pauses under
-// the pointer, in a look without motion (Theme.orbit.looks) it stands
+// the pointer, in a look without motion (Look.qml) it stands
 // still with the connected nodes on top; profile switching added (serpantinum only shows it);
 // lightning to the connected nodes (serpantinum: to the info nodes of a connection), geometry in
 // orbit.mjs, colours from Theme.orbit, can be switched off (Theme.orbit.lightning).
@@ -29,6 +29,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Bluetooth as BT
+import qs.look
 import qs.singletons.apps
 import qs.singletons.barpopups
 import qs.singletons.theme
@@ -66,7 +67,7 @@ PopupWindow {
     property string hoverId: "" // node under the pointer; the orbit stops while set
     property real angle: 0 // turn of the whole orbit
     property real clock: 0 // s; drives each node's wobble, stops with the orbit
-    // Look buttons and F2 in the Centrum sterowania, IPC "look": basic, fancy, fancy2 or still, their picks in Theme.orbit.looks (Look.qml)
+    // The look's flags (Look.qml: the live file, set in Ajmashell Theme Center)
     readonly property var look: Look.current
     // the open Orbita in a look with motion: the orbit turns, nodes wobble and glide, colours fade
     readonly property bool animate: visible && look.motion
@@ -456,7 +457,8 @@ PopupWindow {
         id: panel
         anchors.fill: parent
         radius: Theme.radius.lg
-        color: Look.background(Theme.orbit)
+        color: Theme.transparent // LookBackground draws the look's background
+        LookBackground {}
 
         focus: true
         Keys.onEscapePressed: root.close()

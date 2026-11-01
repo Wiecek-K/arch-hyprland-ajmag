@@ -1,0 +1,49 @@
+{
+  "_comment": "Look of Ajmashell's big popups (faza E tickets 13 and 14, ADR 0021): the one source of the roles, ranges, presets, gradient styles and defaults. Read by Look.qml (look.mjs) and look_settings.py; Theme Center gets them from look_settings.options(). Live file: ~/.local/state/ajmashell/look.json (written by Theme Center only). Changing defaults or adding a preset: ~/Projects/hyprland-lua-migration/docs/wyglady-ajmashella.md.",
+  "roles": [
+    "surface_container_lowest",
+    "surface_container_low",
+    "surface_container",
+    "surface_container_high",
+    "surface_container_highest",
+    "on_primary_fixed",
+    "on_primary_fixed_variant",
+    "on_tertiary_fixed_variant",
+    "primary",
+    "primary_container",
+    "secondary",
+    "secondary_container",
+    "tertiary",
+    "tertiary_container"
+  ],
+  "alpha": { "min": 0.5, "max": 1, "step": 0.01 },
+  "flags": ["motion", "flare", "glass", "softPills", "blur"],
+  "gradient": {
+    "_comment": "Gradient of the popups' background (faza E ticket 14), one for every look, so not in the presets. styles: in the order Theme Center shows them (a list: QML sorts the keys of an object), each with the colours it uses (Theme Center shows only their selects) and the reaches it uses with their defaults (Theme Center sets them when the style is picked); angle: false = the style has no direction (Theme Center greys out its slider); group: none, line (along the angle) or circle (from a point), Theme Center shows each group in its own row; mirror, glow, conic, vignette and inverseVignette: ticket E16 (user, 2026-10-31); colours A and B are roles of the list above. angle: the direction in degrees, 0 = left to right, 90 = top to bottom. Geometry: look/gradient.mjs.",
+    "styles": [
+      { "name": "off", "group": "none", "uses": [], "reaches": {}, "angle": false },
+      { "name": "linear", "group": "line", "uses": ["a"], "reaches": { "reachA": 1 } },
+      { "name": "duo", "group": "line", "uses": ["a", "b"], "reaches": { "reachA": 0.5 } },
+      { "name": "bands", "group": "line", "uses": ["a", "b"], "reaches": { "reachA": 0.5, "reachB": 0.5 } },
+      { "name": "mirror", "group": "line", "uses": ["a", "b"], "reaches": { "reachA": 0.2 } },
+      { "name": "glow", "group": "circle", "uses": ["a"], "reaches": { "reachA": 1 }, "angle": false },
+      { "name": "corner", "group": "circle", "uses": ["a", "b"], "reaches": { "reachA": 0.9, "reachB": 0 } },
+      { "name": "conic", "group": "circle", "uses": ["a", "b"], "reaches": { "reachA": 0.5 } },
+      { "name": "vignette", "group": "circle", "uses": ["a"], "reaches": { "reachA": 0.5 }, "angle": false },
+      { "name": "inverseVignette", "group": "circle", "uses": ["a"], "reaches": { "reachA": 0.5 }, "angle": false }
+    ],
+    "strength": { "min": 0, "max": 1, "step": 0.01 },
+    "angle": { "min": 0, "max": 359, "step": 1 },
+    "reach": { "min": 0, "max": 1, "step": 0.01 }
+  },
+  "presets": {
+    "basic": { "background": "surface_container", "alpha": 0.8, "motion": false, "flare": false, "glass": false, "softPills": false, "blur": true },
+    "fancy": { "background": "surface_container", "alpha": 0.8, "motion": true, "flare": true, "glass": true, "softPills": true, "blur": true },
+    "fancy2": { "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true, "blur": true },
+    "still": { "background": "on_primary_fixed", "alpha": 0.9, "motion": false, "flare": true, "glass": true, "softPills": true, "blur": true }
+  },
+  "defaults": {
+    "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true, "blur": true,
+    "gradient": { "style": "off", "a": "primary_container", "b": "tertiary_container", "strength": 0.6, "angle": 45, "reachA": 1, "reachB": 0.5 }
+  }
+}
