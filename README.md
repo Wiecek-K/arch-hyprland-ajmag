@@ -20,6 +20,7 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 *   **Launcher** (`Super + D`): apps, open windows, calculator (`=`).
 *   **Wallpaper carousel** (`Super + W`): sets the wallpaper and the colors.
 *   **Power panel** (`Super + L`), **OSD** for volume and brightness keys, **Keybinds viewer** (`Super + K`).
+*   **Theme Center** (separate app, [ajmashell-theme-center](https://github.com/Wiecek-K/ajmashell-theme-center)): a window to tune the palette recipe for your wallpapers and the look of the big popups, with a live preview before you save.
 
 ### 🎨 Visual Identity
 *   **Dynamic Theming:** System-wide colors generated from your wallpaper using `Matugen`.
