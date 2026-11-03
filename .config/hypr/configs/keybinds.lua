@@ -19,18 +19,24 @@ local function exec(cmd, rules)
     return dsp.exec_cmd(cmd, rules)
 end
 
+-- Aplikacja z otwartym oknem: okno przychodzi na bieżący workspace i dostaje fokus, bez drugiej kopii;
+-- inaczej polecenie jak dotąd (ticket c22). desktopId = plik .desktop bez rozszerzenia albo "--browser".
+local function focusOrRun(desktopId, cmd)
+    return exec(v.scripts .. "/focus-or-run.sh " .. desktopId .. " " .. cmd)
+end
+
 -- === APLIKACJE I SESJA ===
 bind(M .. " + Return", "Terminal", exec(v.terminal))
 bind(M .. " + SHIFT + Return", "Floating terminal", exec(v.terminal, { float = true, size = { 800, 550 } }))
 bind(M .. " + Q", "Close window", dsp.window.close())
 bind("CTRL + ALT + Delete", "Exit Hyprland", dsp.exit())
-bind(M .. " + E", "File manager", exec(v.fileManager))
+bind(M .. " + E", "File manager", focusOrRun("org.gnome.Nautilus", v.fileManager))
 bind(M .. " + Space", "Toggle floating", dsp.window.float())
 bind(M .. " + D", "App launcher", exec(v.menu))
 bind(M .. " + O", "Toggle pseudotile", dsp.window.pseudo()) -- dwindle
 bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
 bind(M .. " + R", "Restart Ajmashell", exec("systemctl --user restart " .. v.shellService))
-bind(M .. " + B", "Web browser", exec('xdg-open "https://"')) -- domyślna przeglądarka
+bind(M .. " + B", "Web browser", focusOrRun("--browser", 'xdg-open "https://"')) -- domyślna przeglądarka
 bind(M .. " + L", "Power menu", exec(v.ipc .. "power toggle")) -- Ajmashell: Panel zasilania
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
 bind(M .. " + CTRL + S", "Screenshot", exec(v.scripts .. "/screenshot.sh"))

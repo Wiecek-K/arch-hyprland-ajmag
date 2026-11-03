@@ -1,6 +1,6 @@
-// Pure logic of the launcher (ticket 11): query kinds, app search and order, window list, focus dispatch,
-// list navigation, the calculator's guard and the qalc command. A JS module (not QML) so
-// tools/test-launcher.mjs can test it with node.
+// Pure logic of the launcher (ticket 11): query kinds, app search and order, window list, list navigation,
+// the calculator's guard and the qalc command (the focus dispatch moved to singletons/apps/apps.mjs in ticket c22).
+// A JS module (not QML) so tools/test-launcher.mjs can test it with node.
 // Match quality (exact > prefix > contained > description > subsequence) adapted from serpantinum
 // src/quickshell/launcher/Launcher.qml (executeFilter, isSubsequence):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
@@ -11,8 +11,6 @@
 // https://github.com/end-4/dots-hyprland/blob/547836f1b01a45445cfbbcd92b206d1b5ceee4d9/dots/.config/quickshell/ii/services/LauncherSearch.qml
 // Own: the allowlist guard (qalc's command() runs programs, export()/save() write files) and the qalc flags.
 // SPDX-License-Identifier: AGPL-3.0-or-later
-
-import { luaString } from "../bar/workspaces.mjs";
 
 export const CALC_PREFIX = "="; // user, 2026-10-01
 export const MODES = ["apps", "windows"]; // rofi drun + window; no run, no filebrowser (B09 §1)
@@ -98,11 +96,6 @@ export function filterWindows(windows, query) {
     }
     scored.sort((a, b) => b.score - a.score || recent(a.w) - recent(b.w));
     return scored.map(s => s.w);
-}
-
-// Argument for Hyprland.dispatch(); Hyprland switches the workspace and monitor itself.
-export function focusRequest(address) {
-    return `hl.dsp.focus({ window = ${luaString("address:" + address)} })`;
 }
 
 // rofi `cycle: true`: past the last row back to the first and the other way round.

@@ -50,18 +50,7 @@ Scope {
                 icon: e.icon,
                 entry: e
             }))
-    readonly property var windows: Hyprland.toplevels.values.map(t => {
-        const ipc = t.lastIpcObject;
-        const appId = ipc.class || t.wayland?.appId || "";
-        return {
-            address: t.address.startsWith("0x") ? t.address : "0x" + t.address,
-            title: t.title || appId,
-            appId: appId,
-            workspace: ipc.workspace?.name ?? "",
-            focusHistory: ipc.focusHistoryID ?? -1,
-            icon: DesktopEntries.heuristicLookup(appId)?.icon ?? appId
-        };
-    })
+    readonly property var windows: Apps.windows // shared with app shortcuts (ticket c22)
 
     IpcHandler {
         target: "launcher"
@@ -104,12 +93,15 @@ Scope {
             return;
         open = false; // first give the keyboard back, then Hyprland focuses the new or chosen window
         if (mode === "windows") {
-            Hyprland.dispatch(Logic.focusRequest(item.address));
+            Apps.focusWindow(item.address);
             return;
         }
         const e = item.entry;
-        const command = Array.from(e.command);
-        Apps.run(e.runInTerminal ? Logic.terminalCommand(command) : command, e.workingDirectory);
+        // an app with a window: go to it, no second copy (ticket c22); the pick still counts as a launch
+        if (!Apps.showApp(e, "goto")) {
+            const command = Array.from(e.command);
+            Apps.run(e.runInTerminal ? Logic.terminalCommand(command) : command, e.workingDirectory);
+        }
         usage = Logic.addLaunch(usage, e.id);
         usageFile.setText(Logic.formatUsage(usage));
     }
