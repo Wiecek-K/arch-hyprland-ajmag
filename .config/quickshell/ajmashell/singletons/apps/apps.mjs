@@ -1,4 +1,5 @@
-// Pure logic of Apps.qml: the Hyprland dispatch that starts a program for the shell.
+// Pure logic of Apps.qml: the Hyprland dispatches that start a program for the shell, focus a window, and show the
+// window of an app that already has one (ticket c22).
 // A JS module (not QML) so tools/test-apps.mjs can test it with node. Moved from launcher/launcher.mjs (ticket 23).
 
 import { luaString, luaValue } from "../../bar/workspaces.mjs";
@@ -15,8 +16,10 @@ export function execRequest(command, workingDirectory = "") {
 }
 
 // Argument for Hyprland.dispatch(): focus a window, on any workspace and monitor (launcher's Windows mode, ticket c22)
+const windowSelector = address => luaString("address:" + address);
+
 export function focusRequest(address) {
-    return `hl.dsp.focus({ window = ${luaString("address:" + address)} })`;
+    return `hl.dsp.focus({ window = ${windowSelector(address)} })`;
 }
 
 // A window of the .desktop entry: Quickshell's lookup for its class, or the class equal to the entry id or
@@ -40,8 +43,8 @@ export function showRequests(entry, windows, mode, workspace) {
     if (!w)
         return [];
     const focus = focusRequest(w.address);
-    if (mode !== "bring" || w.workspace === workspace)
+    if (mode !== "bring" || !workspace || w.workspace === workspace) // no focused workspace known: only focus
         return [focus];
-    const window = luaString("address:" + w.address);
+    const window = windowSelector(w.address);
     return [`hl.dsp.window.move({ workspace = ${luaValue(workspace)}, follow = false, window = ${window} })`, focus];
 }

@@ -46,12 +46,16 @@ Singleton {
     // shows the last used window of the entry's app; false = no window (not running or only in the tray), the
     // caller starts the program. mode: "goto" (the window's workspace) or "bring" (to the focused workspace)
     function showApp(entry: DesktopEntry, mode: string): bool {
-        const requests = Logic.showRequests({
-            id: entry.id,
-            startupClass: entry.startupClass
-        }, windows, mode, Hyprland.focusedWorkspace?.name ?? "");
+        const requests = Logic.showRequests(entryInfo(entry), windows, mode, Hyprland.focusedWorkspace?.name ?? "");
         requests.forEach(r => Hyprland.dispatch(r));
         return requests.length > 0;
+    }
+
+    function entryInfo(entry: DesktopEntry): var {
+        return {
+            id: entry.id,
+            startupClass: entry.startupClass
+        };
     }
 
     // the emergency Wi-Fi program (D2): enterprise / WEP networks the Orbita leaves to it
@@ -66,7 +70,22 @@ Singleton {
         // workspace; anything else (also no shell running) = focus-or-run.sh starts the program
         function bring(desktopId: string): string {
             const entry = DesktopEntries.byId(desktopId);
-            return entry && root.showApp(entry, "bring") ? "shown" : "none";
+            if (!entry || Logic.showRequests(root.entryInfo(entry), root.windows, "bring", "").length === 0)
+                return "none";
+            // focus order (lastIpcObject) is only as fresh as the last refresh (the launcher's opening): ask
+            // Hyprland again and pick the window once it has answered
+            Hyprland.refreshToplevels();
+            root.bringEntry = entry;
+            bringTimer.restart();
+            return "shown";
         }
+    }
+
+    property DesktopEntry bringEntry: null
+
+    Timer {
+        id: bringTimer
+        interval: 100 // a Hyprland IPC reply takes a few ms
+        onTriggered: root.showApp(root.bringEntry, "bring")
     }
 }
