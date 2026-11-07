@@ -57,10 +57,26 @@ Scope {
             return;
         open = false;
         const command = Logic.command(action, env);
+        if (Logic.waitsForClose(action)) {
+            later.command = command; // after the fade-out: see Theme.power.closeWait
+            later.start();
+        } else {
+            execute(command);
+        }
+    }
+
+    function execute(command: var): void {
         if (dryRun)
             console.log("power dry run:", JSON.stringify(command));
         else
             Apps.run(command, ""); // through Hyprland, as the launcher's apps
+    }
+
+    Timer {
+        id: later
+        property var command: []
+        interval: Theme.power.closeWait
+        onTriggered: root.execute(command)
     }
 
     IpcHandler {

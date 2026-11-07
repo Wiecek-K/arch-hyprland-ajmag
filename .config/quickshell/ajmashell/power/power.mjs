@@ -35,6 +35,13 @@ export function command(action, env) {
     return [];
 }
 
+// Suspend waits until the panel is off the screen (faza C ticket 16): Hyprland's clock stops in sleep, so a
+// suspend in the middle of the panel's fade-out froze it and the panel showed for 1–2 s after unlocking.
+// The others: the session ends, or hyprlock covers the screen while the fade finishes behind it.
+export function waitsForClose(action) {
+    return action?.id === "suspend";
+}
+
 // next button in the direction delta (±1), round the row; -1 = none selected yet
 export function step(index, count, delta) {
     return index < 0 ? (delta > 0 ? 0 : count - 1) : (index + delta + count) % count;

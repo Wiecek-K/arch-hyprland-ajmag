@@ -558,6 +558,9 @@ Singleton {
         readonly property int iconSize: 88
         readonly property int spacing: 32 // between the buttons
         readonly property int radius: 28
+        // ms from closing the panel to Suspend (faza C ticket 16): longer than Hyprland's fade-out of a layer,
+        // `fade` speed 5 = 500 ms in hypr/configs/animations.lua
+        readonly property int closeWait: 600
         property color backdrop
         property color text
     }
