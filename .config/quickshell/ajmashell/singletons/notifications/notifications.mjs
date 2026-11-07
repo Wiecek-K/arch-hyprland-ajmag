@@ -79,6 +79,31 @@ export function iconSource(icon) {
     return icon.startsWith("/") ? `file://${icon}` : `image://icon/${icon}`;
 }
 
+// Image source for the notification's image (image-data / image-path hint). Quickshell gives a path as
+// image://icon/<path>, and the icon provider draws its missing-icon checkerboard (status Ready) when the file is gone:
+// satty sends a temp file and deletes it at once. As file:// a missing file gives Image.Error, so the card shows
+// the app icon instead.
+export function imageSource(image) {
+    if (!image)
+        return "";
+    if (image.startsWith("image://icon//"))
+        return `file://${image.slice("image://icon/".length)}`;
+    return iconSource(image);
+}
+
+// Icon names to try for the app, in order: app_icon, the icon of the desktop-entry hint's entry, the icon of the
+// app name's entry, the app name itself (satty: no app_icon, desktop-entry com.gabm.satty has no file, satty.desktop
+// has Icon=satty). The caller keeps the first one the icon theme has.
+export function appIconCandidates({ appIcon, desktopEntryIcon, appNameEntryIcon, appName } = {}) {
+    const names = [];
+    [appIcon, desktopEntryIcon, appNameEntryIcon, appName].forEach(name => {
+        const trimmed = (name ?? "").trim();
+        if (trimmed && !names.includes(trimmed))
+            names.push(trimmed);
+    });
+    return names;
+}
+
 // How many of the oldest history entries to drop at `count` entries.
 export function overLimit(count) {
     return Math.max(0, count - HISTORY_LIMIT);

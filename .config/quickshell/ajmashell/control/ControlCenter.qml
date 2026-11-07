@@ -576,6 +576,7 @@ Scope {
                                 summary: row.model.summary
                                 body: row.model.body
                                 icon: row.model.icon
+                                fallbackIcon: row.model.fallbackIcon ?? ""
                                 urgency: row.model.urgency
                                 progress: row.model.progress
                                 actions: row.model.actions

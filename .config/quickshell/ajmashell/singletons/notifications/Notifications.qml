@@ -6,7 +6,7 @@
 // Copyright (C) 2026 Illia Miroshnichenko — AGPL-3.0-or-later
 // Changes: no 100 ms filter (every notification counts; README 2026-09-26), no startup grace timer
 // (lastGeneration says which ones came back after a reload), no grouping, no read state,
-// no app resolving via DesktopEntries; history only in memory (no history on disk), capped;
+// no app resolving via DesktopEntries except for the app icon (own code, 2026-11-07); history only in memory (no history on disk), capped;
 // transient notifications popup only; popups replaced by x-canonical-private-synchronous;
 // replaced notifications (same id) update their entry and show their popup again;
 // the D-Bus id is the uid; silent mode (DND) as a plain property saved in ~/.local/state/ajmashell/notifications.json;
@@ -29,7 +29,8 @@ Singleton {
     id: root
 
     // grouped per app (appKey): groups by their newest entry, newest first inside a group (ticket 16).
-    // roles: uid, appName, appKey, arrival, time (ms; arrival or last update), summary, body, icon, urgency, actions (identifier, text), progress (-1 = none)
+    // roles: uid, appName, appKey, arrival, time (ms; arrival or last update), summary, body, icon, fallbackIcon (app icon
+    // when icon is the notification's image, else ""), urgency, actions (identifier, text), progress (-1 = none)
     readonly property alias history: historyModel
     // newest first; history roles + timeout (ms, 0 = until clicked), syncKey, generation (bumped on update)
     readonly property alias popups: popupsModel
@@ -132,9 +133,31 @@ Singleton {
             time: Date.now(), // an update (replaces_id, progress) counts as new; a hot reload resets it
             summary: n.summary,
             body: n.body,
-            icon: Logic.iconSource(n.image || n.appIcon),
+            // the image may be a temp file already gone (satty): the card then shows fallbackIcon (2026-11-07)
+            icon: n.image ? Logic.imageSource(n.image) : root.appIconSource(n),
+            fallbackIcon: n.image ? root.appIconSource(n) : "",
             urgency: n.urgency
         };
+    }
+
+    // The app icon: the first candidate the icon theme has (iconPath(name, true) is "" for a missing name, which
+    // image://icon would draw as a checkerboard); a path or URL as it is (a missing file ends on the card's bell).
+    function appIconSource(n: Notification): string {
+        const entryIcon = id => id ? (DesktopEntries.heuristicLookup(id)?.icon ?? "") : "";
+        const names = Logic.appIconCandidates({
+            appIcon: n.appIcon,
+            desktopEntryIcon: entryIcon(n.desktopEntry),
+            appNameEntryIcon: entryIcon(n.appName),
+            appName: n.appName
+        });
+        for (const name of names) {
+            if (name.startsWith("/") || name.includes("://"))
+                return Logic.iconSource(name);
+            const path = Quickshell.iconPath(name, true);
+            if (path)
+                return path;
+        }
+        return "";
     }
 
     function showPopup(n: Notification): void {
