@@ -1,5 +1,5 @@
 // Pure logic of the Centrum sterowania (ticket 14, D1, D4) and of the audio popup under the Bar's volume islands:
-// PipeWire devices and per-app streams (B10 §1), slider ↔ volume, eDP-1 brightness through logind (B10 §2.1a),
+// PipeWire devices and per-app streams (B10 §1), slider ↔ volume, built-in panel brightness through logind (B10 §2.1a),
 // the Wi-Fi / BT rows. A JS module (not QML) so tools/test-control-center.mjs can test it with node.
 // Own implementation; device / stream split by the PwNode flags (isSink, isStream) after research B10 §1.2–1.3.
 // Nodes come in as plain objects: { id, name, description, nickname, isSink, isStream, audio (bool), properties }.
@@ -61,6 +61,17 @@ export function brightnessPercent(raw, max) {
 
 export function brightnessRaw(position, max) {
     return Math.round(clamp(position, MIN_BRIGHTNESS, 1) * max);
+}
+
+// Ticket c20: brightness only with an enabled built-in panel (eDP, LVDS, DSI) and a backlight device. Hyprland lists
+// enabled outputs only; their names change (DP-5 became DP-6), so match the type at the start of the name only.
+// Returns the first backlight device by name (the order of `ls /sys/class/backlight`), or "" for none.
+const BUILT_IN = /^(eDP|LVDS|DSI)-/;
+
+export function backlightDevice(monitorNames, devices) {
+    if (!monitorNames.some(name => BUILT_IN.test(name)))
+        return "";
+    return devices.filter(device => device).sort()[0] ?? "";
 }
 
 // logind lets the session's user set the backlight without the video group (B10 §2.1a, checked 2026-10-07)

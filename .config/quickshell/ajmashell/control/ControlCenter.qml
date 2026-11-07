@@ -1,6 +1,6 @@
 // Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
 // right edge, full height under the Bar. Top to bottom: date and the power button, Wiersze Wi-Fi / Bluetooth,
-// sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
+// sliders (speaker, microphone, brightness of the built-in panel), output device and app volumes, then the Centrum powiadomień
 // (ticket 16: groups per app, collapsed to the newest entry with a header to expand and clear the group; silent
 // mode switch; clear all; action buttons and progress bars on the cards).
 // Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.
@@ -10,7 +10,8 @@
 // Own implementation. Layout after caelestia's sidebar (B11 #09: full height at the right edge, slides in) and
 // end-4's right sidebar (B11 #12: header with the power button, toggles and sliders above the notifications),
 // ideas only; colours, buttons and lens flare (OrbitBackdrop) of our Orbita (Theme.control).
-// Brightness through logind SetBrightness (B10 §2.1a): no video group needed.
+// Brightness through logind SetBrightness (B10 §2.1a): no video group needed. Ticket c20: the slider shows only while
+// a built-in panel is enabled and /sys/class/backlight has a device (control.mjs backlightDevice), live.
 
 pragma ComponentBehavior: Bound
 
@@ -57,7 +58,30 @@ Scope {
     // a Wi-Fi / BT row asks for the Orbita; shell.qml passes it to the Bar of the same screen
     signal orbitRequested(string tab, string screenName)
 
-    readonly property string backlight: "intel_backlight" // eDP-1 (B10 §2.1)
+    // "" = no slider: no enabled built-in panel or no backlight device (desktop, lid closed; ticket c20)
+    readonly property string backlight: Logic.backlightDevice(Hyprland.monitors.values.map(m => m.name), backlightDevices)
+    property list<string> backlightDevices: []
+
+    // backlight devices (amdgpu_bl0, intel_backlight…); listed again when the outputs change, as a panel's device
+    // may come with its output
+    Process {
+        id: backlightList
+        running: true
+        command: ["ls", "-1", "/sys/class/backlight"]
+        stdout: StdioCollector {
+            onStreamFinished: root.backlightDevices = text.split("\n").filter(name => name)
+        }
+    }
+
+    Connections {
+        target: Hyprland.monitors
+        function onObjectInsertedPost(): void {
+            backlightList.running = true;
+        }
+        function onObjectRemovedPost(): void {
+            backlightList.running = true;
+        }
+    }
 
     function toggle(name: string): void {
         // a bell on another screen moves it there in one click (ticket 27, user 2026-10-10)
@@ -127,19 +151,19 @@ Scope {
 
     FileView {
         id: brightnessFile
-        path: "/sys/class/backlight/" + root.backlight + "/brightness"
+        path: root.backlight ? "/sys/class/backlight/" + root.backlight + "/brightness" : ""
         onLoaded: root.brightness = parseInt(text()) || 0
     }
 
     FileView {
         id: maxBrightnessFile
-        path: "/sys/class/backlight/" + root.backlight + "/max_brightness"
+        path: root.backlight ? "/sys/class/backlight/" + root.backlight + "/max_brightness" : ""
         onLoaded: root.maxBrightness = parseInt(text()) || 0
     }
 
     // sysfs sends no change events: re-read while open (keys change it too)
     Timer {
-        running: root.open
+        running: root.open && root.backlight !== ""
         repeat: true
         triggeredOnStart: true
         interval: Theme.control.poll
@@ -147,7 +171,7 @@ Scope {
     }
 
     function setBrightness(position: real): void {
-        if (maxBrightness <= 0)
+        if (maxBrightness <= 0 || !backlight)
             return;
         brightnessWanted = Logic.brightnessRaw(position, maxBrightness);
         brightness = brightnessWanted; // the slider follows at once
@@ -222,8 +246,10 @@ Scope {
                 // the grab refuses a window that is not mapped yet, so arm it after the window shows
                 Qt.callLater(() => grab.active = win.visible);
                 if (visible) {
-                    brightnessFile.reload();
-                    maxBrightnessFile.reload();
+                    if (root.backlight) {
+                        brightnessFile.reload();
+                        maxBrightnessFile.reload();
+                    }
                     panel.forceActiveFocus();
                 }
             }
@@ -328,8 +354,10 @@ Scope {
                         showStreams: false
                     }
 
+                    // only with the built-in panel (ticket c20); the Column closes the gap when hidden
                     ControlSlider {
                         width: parent.width
+                        visible: root.backlight !== ""
                         iconClickable: false
                         icon: "\u{f00df}" // brightness
                         position: root.maxBrightness > 0 ? root.brightness / root.maxBrightness : 0
