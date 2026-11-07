@@ -17,7 +17,7 @@ panel_enabled() {
 }
 
 # the first backlight device by name, as the Centrum sterowania's slider (control.mjs backlightDevice)
-device=$(brightnessctl --class=backlight -l -m 2>/dev/null | cut -d, -f1 | sort | head -n 1)
+device=$(brightnessctl --class=backlight -l -m 2>/dev/null | cut -d, -f1 | LC_ALL=C sort | head -n 1)
 if [[ -z "$device" ]] || ! panel_enabled; then
 	exit 0
 fi

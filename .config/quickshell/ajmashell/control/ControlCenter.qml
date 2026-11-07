@@ -60,12 +60,18 @@ Scope {
 
     // "" = no slider: no enabled built-in panel or no backlight device (desktop, lid closed; ticket c20)
     readonly property string backlight: Logic.backlightDevice(Hyprland.monitors.values.map(m => m.name), backlightDevices)
+    readonly property bool hasBacklight: backlight !== ""
     property list<string> backlightDevices: []
 
     // backlight devices (amdgpu_bl0, intel_backlight…); listed again when the outputs change, as a panel's device
     // may come with its output
+    function scanBacklight(): void {
+        backlightScan.running = false; // a change during a scan starts it again, not lost
+        backlightScan.running = true;
+    }
+
     Process {
-        id: backlightList
+        id: backlightScan
         running: true
         command: ["ls", "-1", "/sys/class/backlight"]
         stdout: StdioCollector {
@@ -76,10 +82,10 @@ Scope {
     Connections {
         target: Hyprland.monitors
         function onObjectInsertedPost(): void {
-            backlightList.running = true;
+            root.scanBacklight();
         }
         function onObjectRemovedPost(): void {
-            backlightList.running = true;
+            root.scanBacklight();
         }
     }
 
@@ -151,19 +157,19 @@ Scope {
 
     FileView {
         id: brightnessFile
-        path: root.backlight ? "/sys/class/backlight/" + root.backlight + "/brightness" : ""
+        path: root.hasBacklight ? "/sys/class/backlight/" + root.backlight + "/brightness" : ""
         onLoaded: root.brightness = parseInt(text()) || 0
     }
 
     FileView {
         id: maxBrightnessFile
-        path: root.backlight ? "/sys/class/backlight/" + root.backlight + "/max_brightness" : ""
+        path: root.hasBacklight ? "/sys/class/backlight/" + root.backlight + "/max_brightness" : ""
         onLoaded: root.maxBrightness = parseInt(text()) || 0
     }
 
     // sysfs sends no change events: re-read while open (keys change it too)
     Timer {
-        running: root.open && root.backlight !== ""
+        running: root.open && root.hasBacklight
         repeat: true
         triggeredOnStart: true
         interval: Theme.control.poll
@@ -171,7 +177,7 @@ Scope {
     }
 
     function setBrightness(position: real): void {
-        if (maxBrightness <= 0 || !backlight)
+        if (maxBrightness <= 0 || !hasBacklight)
             return;
         brightnessWanted = Logic.brightnessRaw(position, maxBrightness);
         brightness = brightnessWanted; // the slider follows at once
@@ -180,8 +186,10 @@ Scope {
     }
 
     function sendBrightness(): void {
-        if (brightnessWanted < 0)
+        if (brightnessWanted < 0 || !hasBacklight) { // the panel went away during a drag: drop the level
+            brightnessWanted = -1;
             return;
+        }
         brightnessProc.command = Logic.brightnessCommand(backlight, brightnessWanted);
         brightnessWanted = -1;
         brightnessProc.running = true;
@@ -246,7 +254,7 @@ Scope {
                 // the grab refuses a window that is not mapped yet, so arm it after the window shows
                 Qt.callLater(() => grab.active = win.visible);
                 if (visible) {
-                    if (root.backlight) {
+                    if (root.hasBacklight) {
                         brightnessFile.reload();
                         maxBrightnessFile.reload();
                     }
@@ -357,7 +365,7 @@ Scope {
                     // only with the built-in panel (ticket c20); the Column closes the gap when hidden
                     ControlSlider {
                         width: parent.width
-                        visible: root.backlight !== ""
+                        visible: root.hasBacklight
                         iconClickable: false
                         icon: "\u{f00df}" // brightness
                         position: root.maxBrightness > 0 ? root.brightness / root.maxBrightness : 0
