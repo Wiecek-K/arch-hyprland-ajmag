@@ -9,6 +9,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
+import qs.singletons.apps
 import "media.mjs" as Logic
 
 Singleton {
@@ -52,6 +53,13 @@ Singleton {
         function onTrackTitleChanged(): void {
             root.rememberLength();
         }
+    }
+
+    // Ticket c14: double click on the island / popup — go to the window of the shown player's app (Apps.goToApp);
+    // no window (Spotify in the tray): MPRIS Raise, which the app may or may not honour.
+    function focusApp(p: MprisPlayer): void {
+        if (p && !Apps.goToApp(Logic.appId(p)) && p.canRaise)
+            p.raise();
     }
 
     function select(p: MprisPlayer): void {

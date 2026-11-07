@@ -1,6 +1,7 @@
 // MediaPopup — the player popup, opened by a click on the media island's cover or title (ticket 17, D8, B11 #01
 // without the equaliser): cover, title, artist, album, the player choice when several play, a seek slider with
-// the position, and ⏮ ⏯ ⏭.
+// the position, and ⏮ ⏯ ⏭. Ticket c14: a double click on the cover, the texts or a player's pill goes to the window of
+// that player's app (Media.focusApp) and closes the popup.
 // A big popup: background and lens flare by the look like the Orbita and the Centrum sterowania (Look.qml), blur
 // from the ajmashell-bar layer rule (blur_popups). Hangs under its island; closes on a click outside
 // (HyprlandFocusGrab), on Esc and on a second click — grab as in control/AudioPopup.qml.
@@ -39,6 +40,12 @@ PopupWindow {
             player?.positionChanged();
         }
         visible = !visible;
+    }
+
+    // ticket c14: the shown player's app (user, 2026-11-07: the program in the popup, not the one making sound)
+    function goToApp(p: MprisPlayer): void {
+        Media.focusApp(p);
+        visible = false;
     }
 
     function seek(fraction: real): void {
@@ -129,10 +136,22 @@ PopupWindow {
                 width: parent.width
                 spacing: Theme.control.padding
 
-                CoverArt {
+                // the handler sits beside CoverArt: a ClippingRectangle's children get no pointer events
+                Item {
                     id: cover
-                    size: Theme.media.popupCover
-                    source: root.player?.trackArtUrl ?? ""
+                    implicitWidth: coverArt.implicitWidth
+                    implicitHeight: coverArt.implicitHeight
+
+                    CoverArt {
+                        id: coverArt
+                        size: Theme.media.popupCover
+                        source: root.player?.trackArtUrl ?? ""
+                    }
+
+                    // ticket c14, as on the texts; not on the whole row: the pills have their own double click
+                    TapHandler {
+                        onDoubleTapped: root.goToApp(root.player)
+                    }
                 }
 
                 Column {
@@ -146,6 +165,10 @@ PopupWindow {
                         font.pixelSize: Theme.font.sizeLarge
                         wrapMode: Text.Wrap
                         maximumLineCount: 2
+
+                        TapHandler {
+                            onDoubleTapped: root.goToApp(root.player)
+                        }
                     }
 
                     OrbitText {
@@ -153,6 +176,10 @@ PopupWindow {
                         visible: text !== ""
                         text: Logic.artist(root.player)
                         color: Theme.control.subtext
+
+                        TapHandler {
+                            onDoubleTapped: root.goToApp(root.player)
+                        }
                     }
 
                     OrbitText {
@@ -161,6 +188,10 @@ PopupWindow {
                         text: root.player?.trackAlbum ?? ""
                         font.pixelSize: Theme.font.sizeSmall
                         color: Theme.control.subtext
+
+                        TapHandler {
+                            onDoubleTapped: root.goToApp(root.player)
+                        }
                     }
 
                     // the player choice (ticket 17: "wybór aktywnego odtwarzacza przy kilku"); one player: its name
@@ -170,6 +201,10 @@ PopupWindow {
                         text: Media.label(root.player)
                         font.pixelSize: Theme.font.sizeSmall
                         color: Theme.control.subtext
+
+                        TapHandler {
+                            onDoubleTapped: root.goToApp(root.player)
+                        }
                     }
 
                     Flow {
@@ -186,6 +221,7 @@ PopupWindow {
                                 text: Media.label(modelData)
                                 active: modelData === root.player
                                 onClicked: Media.select(modelData)
+                                onDoubleClicked: root.goToApp(modelData) // picked by the first click
                             }
                         }
                     }

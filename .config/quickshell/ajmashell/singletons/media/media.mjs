@@ -37,6 +37,15 @@ function baseName(p) {
     return p.identity || p.desktopEntry || (p.dbusName ?? "").split(".")[3] || "";
 }
 
+// .desktop id of the player's app, whose window a double click focuses (ticket c14): MPRIS DesktopEntry ("spotify";
+// "zen" for Zen's org.mpris.MediaPlayer2.firefox… player), else the app part of the bus name. Apps.goToApp matches
+// it to the window class as the launcher does (apps.mjs showRequests).
+export function appId(p) {
+    if (!p)
+        return "";
+    return (p.desktopEntry || "").replace(/\.desktop$/, "") || (p.dbusName ?? "").split(".")[3] || "";
+}
+
 // Name in the player chooser; two players of one app (two browser tabs) are told apart by their track.
 export function label(p, all) {
     const name = baseName(p);
