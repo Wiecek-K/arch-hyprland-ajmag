@@ -63,13 +63,14 @@ Island {
             }
         }
 
-        // ticket c14: a double click goes to the window of the shown player's app; the first click opened the
-        // popup and the second closed it (user, 2026-11-07: the blink is fine), close it in any case
+        // ticket c14: a double click goes to the window of the shown player's app and closes the popup; the two
+        // clicks toggled it twice before (user, 2026-11-07: the blink is fine). Nothing done (no window, no
+        // Raise): the popup stays as the two clicks left it.
         TapHandler {
             onTapped: popup.toggle()
             onDoubleTapped: {
-                popup.visible = false;
-                Media.focusApp(root.player);
+                if (Media.focusApp(root.player))
+                    popup.visible = false;
             }
         }
     }

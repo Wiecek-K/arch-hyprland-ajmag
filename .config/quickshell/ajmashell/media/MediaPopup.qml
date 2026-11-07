@@ -43,9 +43,10 @@ PopupWindow {
     }
 
     // ticket c14: the shown player's app (user, 2026-11-07: the program in the popup, not the one making sound)
+    // stays open when nothing happened (no window, no Raise; user, 2026-11-07)
     function goToApp(p: MprisPlayer): void {
-        Media.focusApp(p);
-        visible = false;
+        if (Media.focusApp(p))
+            visible = false;
     }
 
     function seek(fraction: real): void {
@@ -133,25 +134,25 @@ PopupWindow {
             spacing: Theme.control.spacing
 
             Row {
+                id: header
                 width: parent.width
                 spacing: Theme.control.padding
 
-                // the handler sits beside CoverArt: a ClippingRectangle's children get no pointer events
-                Item {
+                // ticket c14: a double click on the cover or the texts goes to the shown player's app. One handler for
+                // the row (a ClippingRectangle's children get no pointer events); the pills have their own double
+                // click for their player, and nested TapHandlers both fire, so a tap on them is skipped here.
+                TapHandler {
+                    onDoubleTapped: eventPoint => {
+                        const inPills = pills.visible && pills.contains(pills.mapFromItem(header, eventPoint.position));
+                        if (!inPills)
+                            root.goToApp(root.player);
+                    }
+                }
+
+                CoverArt {
                     id: cover
-                    implicitWidth: coverArt.implicitWidth
-                    implicitHeight: coverArt.implicitHeight
-
-                    CoverArt {
-                        id: coverArt
-                        size: Theme.media.popupCover
-                        source: root.player?.trackArtUrl ?? ""
-                    }
-
-                    // ticket c14, as on the texts; not on the whole row: the pills have their own double click
-                    TapHandler {
-                        onDoubleTapped: root.goToApp(root.player)
-                    }
+                    size: Theme.media.popupCover
+                    source: root.player?.trackArtUrl ?? ""
                 }
 
                 Column {
@@ -165,10 +166,6 @@ PopupWindow {
                         font.pixelSize: Theme.font.sizeLarge
                         wrapMode: Text.Wrap
                         maximumLineCount: 2
-
-                        TapHandler {
-                            onDoubleTapped: root.goToApp(root.player)
-                        }
                     }
 
                     OrbitText {
@@ -176,10 +173,6 @@ PopupWindow {
                         visible: text !== ""
                         text: Logic.artist(root.player)
                         color: Theme.control.subtext
-
-                        TapHandler {
-                            onDoubleTapped: root.goToApp(root.player)
-                        }
                     }
 
                     OrbitText {
@@ -188,10 +181,6 @@ PopupWindow {
                         text: root.player?.trackAlbum ?? ""
                         font.pixelSize: Theme.font.sizeSmall
                         color: Theme.control.subtext
-
-                        TapHandler {
-                            onDoubleTapped: root.goToApp(root.player)
-                        }
                     }
 
                     // the player choice (ticket 17: "wybór aktywnego odtwarzacza przy kilku"); one player: its name
@@ -201,13 +190,10 @@ PopupWindow {
                         text: Media.label(root.player)
                         font.pixelSize: Theme.font.sizeSmall
                         color: Theme.control.subtext
-
-                        TapHandler {
-                            onDoubleTapped: root.goToApp(root.player)
-                        }
                     }
 
                     Flow {
+                        id: pills
                         width: parent.width
                         visible: Media.players.length > 1
                         spacing: Theme.spacing.sm
