@@ -33,8 +33,11 @@ PopupWindow {
 
     function toggle(): void {
         // here, not in a binding: mapToItem does not follow the island's position, which settles after start
-        if (!visible)
+        if (!visible) {
             shift = Math.max(0, Theme.control.margin + implicitWidth - source.mapToItem(null, source.width, 0).x);
+            // `time` still holds the position from the last close: refresh it before the first frame, not a poll later
+            player?.positionChanged();
+        }
         visible = !visible;
     }
 
@@ -76,6 +79,7 @@ PopupWindow {
     Timer {
         interval: Theme.media.poll
         repeat: true
+        triggeredOnStart: true // playback resumed with the popup open: no stale second
         running: root.visible && (root.player?.isPlaying ?? false)
         onTriggered: root.player?.positionChanged()
     }
