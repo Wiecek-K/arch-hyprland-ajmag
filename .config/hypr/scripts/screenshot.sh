@@ -53,19 +53,18 @@ if [ -z "$GEOM" ]; then
     exit 1
 fi
 
-# slurp prints "X,Y WxH" in layout coordinates. The monitor that holds the top-left corner gives satty's spot (width/height
-# in pixels, x/y in layout coordinates, hence / scale); the focused monitor only as a fallback.
-read -r MON_X MON_Y < <(jq -r --arg g "$GEOM" '
+# slurp prints "X,Y WxH" in layout coordinates. The monitor that holds the top-left corner (width/height in pixels, x/y in
+# layout coordinates, hence / scale; the focused monitor only as a fallback) gives satty's spot on that monitor and the
+# picture's scale: grim's default is the highest scale of all outputs, so next to a scale-1.5 laptop panel a selection on
+# a scale-1 monitor came out 1.5x larger (code review, ticket c27).
+read -r LOCAL_X LOCAL_Y MON_SCALE < <(jq -r --arg g "$GEOM" '
     ($g | capture("^(?<x>-?[0-9]+),(?<y>-?[0-9]+)") | map_values(tonumber)) as $s
     | (map(select($s.x >= .x and $s.x < .x + .width / .scale and $s.y >= .y and $s.y < .y + .height / .scale))
        + map(select(.focused))) | first
-    | "\(.x) \(.y)"' <<<"$MONITORS")
-
-LOCAL_X=$(( ${GEOM%%,*} - MON_X ))
-LOCAL_Y=$(( $(cut -d',' -f2 <<<"${GEOM%% *}") - MON_Y ))
+    | "\($s.x - .x) \($s.y - .y) \(.scale)"' <<<"$MONITORS")
 
 TMP_IMG="/tmp/satty_capture.png"
-grim -g "$GEOM" "$TMP_IMG"
+grim -s "$MON_SCALE" -g "$GEOM" "$TMP_IMG"
 unfreeze
 
 # satty's Save does not create the directory ("Error while saving file: No such file or directory", ticket 23 faza C),
