@@ -82,6 +82,17 @@ else
 fi
 unfreeze
 
+# satty's Save does not create the directory ("Error while saving file: No such file or directory", ticket 23 faza C),
+# so make it here. Pictures folder from xdg-user-dir; without the command or a PICTURES entry it prints nothing or the
+# home directory, then ~/Pictures.
+PICTURES_DIR=$(xdg-user-dir PICTURES 2>/dev/null)
+if [ -z "$PICTURES_DIR" ] || [ "${PICTURES_DIR%/}" = "$HOME" ]; then
+    PICTURES_DIR="$HOME/Pictures"
+fi
+SHOT_DIR="$PICTURES_DIR/Screenshots"
+mkdir -p "$SHOT_DIR"
+
 # satty-logged.sh records runs and freezes in ~/.local/state/satty/satty.log
-SATTY_CMD="$HOME/.config/hypr/scripts/satty-logged.sh --filename $TMP_IMG --early-exit --copy-command wl-copy --output-filename ~/Pictures/Screenshots/satty-$(date '+%Y%m%d-%H%M%S').png"
+# exec_cmd runs the command through a shell: %q keeps a path with spaces as one argument.
+SATTY_CMD="$HOME/.config/hypr/scripts/satty-logged.sh --filename $TMP_IMG --early-exit --copy-command wl-copy --output-filename $(printf '%q' "$SHOT_DIR/satty-$(date '+%Y%m%d-%H%M%S').png")"
 hyprctl dispatch "hl.dsp.exec_cmd([[$SATTY_CMD]], { float = true, move = { $LOCAL_X, $LOCAL_Y } })"
