@@ -85,6 +85,14 @@ done
 mkdir -p "$HOME/.local/state/ajmashell" "$HOME/.local/share/applications"
 cp .local/share/applications/ajmashell-keybinds.desktop "$HOME/.local/share/applications/"
 
+# Screenshot folder: satty's Save (SUPER+CTRL+S, hypr/scripts/screenshot.sh) fails when it is missing. screenshot.sh also
+# creates it on every screenshot; same path rule as there (xdg-user-dir, else ~/Pictures).
+PICTURES_DIR=$(xdg-user-dir PICTURES 2>/dev/null)
+if [ -z "$PICTURES_DIR" ] || [ "${PICTURES_DIR%/}" = "$HOME" ]; then
+    PICTURES_DIR="$HOME/Pictures"
+fi
+mkdir -p "$PICTURES_DIR/Screenshots"
+
 # Ajmashell runs as a systemd user service (started by hypr/configs/autostart.lua, restarted on failure);
 # nm-applet and blueman-applet stay out of the session: the Bar's Orbita does their job.
 mkdir -p "$CONFIG_DIR/systemd/user" "$CONFIG_DIR/autostart"
