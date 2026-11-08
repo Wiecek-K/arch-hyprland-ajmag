@@ -12,7 +12,7 @@
 # from the Przepis palety (palette_recipe.py, faza E ticket 02), and an entry made with another recipe is redone
 # (Seed, primary, bucket; the thumbnail stays); the Seed-choice flag (most dominant Kandydat or a --prefer rule)
 # from the Przepis palety too, instead of a fixed --source-color-index 0 (faza E ticket 03); an old-paper white
-# primary (warm, OKLCH chroma below PAPER_CHROMA_MAX) goes to Monochrome instead of Amber (faza C ticket 18).
+# primary (warm, OKLCH chroma below PAPER_CHROMA_MAX) goes to Gray instead of Amber (faza C ticket 18).
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # Usage: indexer.py [wallpaper_dir] [cache_dir]   prints the index JSON on stdout
@@ -54,7 +54,7 @@ HUE_BUCKETS = [
 ]
 
 
-# "Old paper" white: a warm primary with almost no colour goes to Monochrome instead of Amber (faza C ticket 18,
+# "Old paper" white: a warm primary with almost no colour goes to Gray instead of Amber (faza C ticket 18,
 # user, 2026-11-08). The user's gray wallpapers are ink sketches on cream paper; matugen gives them a dirty-white
 # primary (#c8c2b0, #e2dec3, #fef4e2: OKLCH chroma 0.026-0.036, hue in the Amber range). Chroma is OKLCH, not HSV
 # saturation: HSV inflates the saturation of light colours (#fef4e2 is HSV s 0.11). Only Amber hues: cool near-whites
@@ -84,14 +84,14 @@ def oklch_chroma(hex_str):
 
 
 def hue_bucket(hex_str):
-    """Bucket by HSV hue alone (serpantinum thresholds); Monochrome for grey, near-black and garbage."""
+    """Bucket by HSV hue alone (serpantinum thresholds); Gray for grey, near-black and garbage."""
     try:
         r, g, b = _rgb(hex_str)
     except (ValueError, TypeError):
-        return "Monochrome"
+        return "Gray"
     hue, sat, val = colorsys.rgb_to_hsv(r, g, b)
     if sat < 0.05 or val < 0.08:
-        return "Monochrome"
+        return "Gray"
     deg = hue * 360.0
     for lo, hi, name in HUE_BUCKETS:
         if lo <= deg < hi:
@@ -100,10 +100,10 @@ def hue_bucket(hex_str):
 
 
 def color_bucket(hex_str):
-    """Bucket name for a #rrggbb colour: the hue bucket, except old-paper white goes to Monochrome."""
+    """Bucket name for a #rrggbb colour: the hue bucket, except old-paper white goes to Gray."""
     name = hue_bucket(hex_str)
     if name in PAPER_BUCKETS and oklch_chroma(hex_str) < PAPER_CHROMA_MAX:
-        return "Monochrome"
+        return "Gray"
     return name
 
 

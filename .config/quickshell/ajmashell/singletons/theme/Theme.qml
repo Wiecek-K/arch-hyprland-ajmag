@@ -371,7 +371,7 @@ Singleton {
                 Blue: "#1e90ff",
                 Purple: "#8a2be2",
                 Pink: "#ff69b4",
-                Monochrome: "#a9a9a9"
+                Gray: "#a9a9a9"
             })
         property color backdrop
         property color panel
