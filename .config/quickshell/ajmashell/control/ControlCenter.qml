@@ -361,6 +361,13 @@ Scope {
                         onOpened: root.openOrbit("bt")
                     }
 
+                    // between Wi-Fi / BT and the sliders, like the one above the notifications (faza C ticket 17)
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Theme.control.separator
+                    }
+
                     AudioSection {
                         width: parent.width
                         showDevices: false
@@ -385,13 +392,13 @@ Scope {
                         onMoved: position => root.setBrightness(position)
                     }
 
-                    // output device and app volumes (B10 §1.2–1.3); hidden while there is nothing to choose
+                    // output device (B10 §1.2); hidden while there is nothing to choose. App volumes only in the audio
+                    // popup (faza C ticket 17, user 2026-11-08: the mixer made the Centrum too crowded)
                     AudioSection {
                         width: parent.width
                         showSlider: false
+                        showStreams: false
                         active: win.visible
-                        streamsFoldable: true
-                        streamsOpen: false // folded after start; stays as the user left it
                     }
 
                     Rectangle {

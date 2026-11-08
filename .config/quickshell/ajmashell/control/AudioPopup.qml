@@ -86,7 +86,6 @@ PopupWindow {
 
         focus: true
         Keys.onEscapePressed: root.visible = false
-
         AudioSection {
             id: section
             x: Theme.control.padding

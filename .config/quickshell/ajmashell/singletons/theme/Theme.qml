@@ -167,6 +167,9 @@ Singleton {
         fillText: root.orbit.tabText
         muted: root.bar.muted // filled part of a muted slider, like the Bar's muted volume island
         separator: Qt.alpha(root.orbit.text, 0.12)
+        card: Qt.alpha(root.colors.surface_container_highest, 0.55) // faza C ticket 17, values of the prototype
+        circle: Qt.alpha(root.orbit.text, 0.1)
+        accent: root.colors.primary
     }
 
     // OSD of the volume and brightness keys (osd/Osd.qml, ticket 15): an island like the Bar's at the bottom
@@ -231,6 +234,7 @@ Singleton {
         readonly property int size: 16 // px, about Waybar's 98% of the 12 pt GTK font
         readonly property int sizeSmall: 13
         readonly property int sizeLarge: 20
+        readonly property int sizeTiny: 11 // second line under a name (audio device, app's tab title; faza C ticket 17)
     }
 
     component Spacing: QtObject {
@@ -527,6 +531,11 @@ Singleton {
         readonly property int rowHeight: 52 // Wi-Fi / BT row
         readonly property int sliderHeight: 36
         readonly property int itemHeight: 34 // device row, stream name
+        // audio section (faza C ticket 17, user 2026-11-08: device field from variant C, app card from variant A)
+        readonly property int fieldHeight: 52 // field with the current device; opens the device list
+        readonly property int deviceHeight: 48 // device row in the open list (short name + what it is)
+        readonly property int circleSize: 34 // icon circle of a device
+        readonly property int appIconSize: 28 // app icon over its slider
         readonly property int slide: 250 // ms; slides in from the right edge (like the notification popups)
         readonly property int poll: 1000 // ms; brightness re-read while open (sysfs has no change events)
         property color text
@@ -537,6 +546,9 @@ Singleton {
         property color fillText
         property color muted
         property color separator
+        property color card // card of the apps in the audio popup
+        property color circle // icon circle of a device that is not chosen
+        property color accent // check of the chosen device, glyph of a card header
     }
 
     component CalendarStyle: QtObject {
