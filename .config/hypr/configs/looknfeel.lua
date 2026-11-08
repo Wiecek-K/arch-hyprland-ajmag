@@ -39,7 +39,7 @@ hl.config({
         -- Hyprlanda nie dostają (layer_rule nie ma pola cienia); ich cień rysuje shell (ticket C13).
         shadow = {
             enabled      = true,
-            range        = 24,
+            range        = 32,
             offset       = { 0, 2 },
             render_power = 4,
             color        = "rgba(00000040)",
