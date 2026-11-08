@@ -73,6 +73,7 @@ def _rgb(hex_str):
 
 def oklch_chroma(hex_str):
     """OKLCH chroma of a #rrggbb colour (Björn Ottosson's OKLab, sRGB D65): 0 for grey, ~0.26 for pure red."""
+    # sRGB to OKLab matrices copied from https://bottosson.github.io/posts/oklab/ (Björn Ottosson, public domain)
     r, g, b = (c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in _rgb(hex_str))
     l_ = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
     m_ = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)

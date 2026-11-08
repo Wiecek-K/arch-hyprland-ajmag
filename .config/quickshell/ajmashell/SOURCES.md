@@ -22,6 +22,7 @@ changes.
 | Source | License | Our files |
 |---|---|---|
 | [ilyamiro/serpantinum](https://github.com/ilyamiro/serpantinum)@`c34fb82`, Copyright (C) 2026 Illia Miroshnichenko | AGPL-3.0-or-later | `shell.qml`, `bar/Bar.qml`, `notifications/NotificationPopups.qml`, `singletons/notifications/Notifications.qml`, `launcher/Launcher.qml`, `launcher/launcher.mjs`, `orbit/Orbit.qml`, `orbit/orbit.mjs`, `wallpaper/WallpaperPicker.qml`, `wallpaper/carousel.mjs`, `wallpaper/indexer.py` |
+| [Björn Ottosson, "A perceptual color space for image processing"](https://bottosson.github.io/posts/oklab/) (OKLab formulas) | public domain (the post: "The code is available in public domain"; MIT offered as an alternative) | `wallpaper/indexer.py` (`oklch_chroma`) |
 | [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)@`9dc5b2c`, Copyright (c) 2025 Avenge Media LLC | MIT (notice below) | `bar/workspaces.mjs` (`luaString`, `luaValue`) |
 
 ## Ideas only (own implementation, no code copied)
