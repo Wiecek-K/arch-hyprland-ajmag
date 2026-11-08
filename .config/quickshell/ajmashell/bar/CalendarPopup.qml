@@ -91,18 +91,29 @@ PopupWindow {
     anchor.rect.x: Math.round((source.width - implicitWidth) / 2)
     anchor.rect.y: 0
     anchor.rect.width: source.width
-    anchor.rect.height: source.height + Theme.bar.tooltip.gap
+    anchor.rect.height: source.height + Theme.bar.tooltip.gap - Theme.shadow.margin // the box stays where it was
     // qmltypes give these as Edges::Flags, which qmllint cannot resolve
     anchor.edges: Edges.Bottom | Edges.Left // qmllint disable missing-type
     anchor.gravity: Edges.Bottom | Edges.Right // qmllint disable missing-type
+    // ticket C13: the shadow's band may stick out of the screen; sliding the window back would move the box
+    anchor.adjustment: PopupAdjustment.None // qmllint disable missing-type
 
-    implicitWidth: content.implicitWidth + 2 * Theme.control.padding
-    implicitHeight: content.implicitHeight + 2 * Theme.control.padding
+    // the box plus the shadow's band (ticket C13); clicks in the band pass through
+    implicitWidth: content.implicitWidth + 2 * Theme.control.padding + 2 * Theme.shadow.margin
+    implicitHeight: content.implicitHeight + 2 * Theme.control.padding + 2 * Theme.shadow.margin
     color: Theme.transparent // only the rounded box below is drawn
+    mask: Region {
+        item: panel
+    }
+
+    LookShadow {
+        target: panel
+    }
 
     Rectangle {
         id: panel
         anchors.fill: parent
+        anchors.margins: Theme.shadow.margin
         radius: Theme.radius.lg
         color: Theme.transparent // LookBackground draws the look's background
         LookBackground {}

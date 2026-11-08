@@ -237,14 +237,18 @@ Scope {
                 bottom: true
                 right: true
             }
+            // Ticket C13: the window also holds the shadow's band around the panel. Right and bottom it reaches the
+            // screen's edge (the band is cut there); on top it reaches over the Bar, so it ignores the Bar's zone
+            // and keeps the panel Theme.control.margin under it. Clicks in the band pass through (mask).
             margins { // qmllint disable unqualified unresolved-type
-                top: Theme.control.margin
-                bottom: Theme.control.margin
-                right: Theme.control.margin
+                top: Theme.bar.height + Theme.control.margin - Theme.shadow.margin
             }
-            implicitWidth: Theme.control.width
+            implicitWidth: Theme.control.width + Theme.shadow.margin + Theme.control.margin
             color: Theme.transparent // the panel has rounded corners
-            exclusionMode: ExclusionMode.Normal // under the Bar, reserves nothing itself
+            exclusionMode: ExclusionMode.Ignore // reserves nothing itself
+            mask: Region {
+                item: panel
+            }
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "ajmashell-control"
             // OnDemand + focus grab, as the launcher: Exclusive would break the grab's click beside the panel
@@ -276,12 +280,18 @@ Scope {
                 }
             }
 
+            LookShadow {
+                target: panel
+            }
+
             Rectangle {
                 id: panel
 
-                x: Math.round((1 - root.shown) * width) // slides in from the right edge
-                width: parent.width
-                height: parent.height
+                // slides in from the right edge (with its shadow)
+                x: Theme.shadow.margin + Math.round((1 - root.shown) * (width + Theme.shadow.margin))
+                y: Theme.shadow.margin
+                width: Theme.control.width
+                height: parent.height - Theme.shadow.margin - Theme.control.margin
                 radius: Theme.radius.lg
                 color: Theme.transparent // LookBackground draws the look's background
                 LookBackground {}

@@ -236,8 +236,12 @@ Scope {
             // surface sent the whole screen as changed on every frame of the flare, under live blur
             // (ticket 13, research B12: Hyprland ~57% of the iGPU while open). A click beside it closes
             // through the focus grab.
-            implicitWidth: box.width
-            implicitHeight: box.height
+            // the box plus the shadow's band (ticket C13); clicks in the band pass through
+            implicitWidth: box.width + 2 * Theme.shadow.margin
+            implicitHeight: box.height + 2 * Theme.shadow.margin
+            mask: Region {
+                item: box
+            }
             color: Theme.transparent // the box has rounded corners
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
@@ -310,8 +314,14 @@ Scope {
                 onCleared: root.open = false
             }
 
+            LookShadow {
+                target: box
+            }
+
             ClippingRectangle {
                 id: box
+                x: Theme.shadow.margin
+                y: Theme.shadow.margin
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius

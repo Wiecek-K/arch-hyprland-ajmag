@@ -216,6 +216,14 @@ Singleton {
         chord: root.colors.primary // the key column, so it reads apart from the description
     }
 
+    // Shadow under the 7 big popups (look/LookShadow.qml, faza C ticket 13): the values of the floating windows'
+    // shadow in Hyprland (~/.config/hypr/configs/looknfeel.lua decoration.shadow, picked by the user 2026-11-08:
+    // range 22, offset 0 4, colour rgba(00000080)). Hyprland's render_power has no counterpart in RectangularShadow.
+    // Drawn only outside the box, like Hyprland's: a translucent look keeps its background colour.
+    readonly property ShadowStyle shadow: ShadowStyle {
+        color: Qt.alpha(root.colors.shadow, 0.5)
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkynsonMono Nerd Font" // same as Waybar
@@ -563,6 +571,15 @@ Singleton {
         readonly property int closeWait: 600
         property color backdrop
         property color text
+    }
+
+    component ShadowStyle: QtObject {
+        readonly property int blur: 22 // Hyprland `range`
+        readonly property int offsetX: 0
+        readonly property int offsetY: 4
+        // transparent band around the popup's box that the shadow draws into (the popup windows grow by it)
+        readonly property int margin: blur + Math.max(Math.abs(offsetX), Math.abs(offsetY))
+        property color color
     }
 
     component KeybindsStyle: QtObject {

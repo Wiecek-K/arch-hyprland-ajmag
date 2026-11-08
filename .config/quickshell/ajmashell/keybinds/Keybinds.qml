@@ -59,8 +59,12 @@ Scope {
             screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? null
             // only the box (no anchors: Hyprland centres it), like the launcher — a full-screen surface
             // would send the whole screen as changed on every frame of the flare
-            implicitWidth: box.width
-            implicitHeight: box.height
+            // the box plus the shadow's band (ticket C13); clicks in the band pass through
+            implicitWidth: box.width + 2 * Theme.shadow.margin
+            implicitHeight: box.height + 2 * Theme.shadow.margin
+            mask: Region {
+                item: box
+            }
             color: Theme.transparent // the box has rounded corners
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
@@ -95,8 +99,14 @@ Scope {
                 onCleared: root.open = false
             }
 
+            LookShadow {
+                target: box
+            }
+
             ClippingRectangle {
                 id: box
+                x: Theme.shadow.margin
+                y: Theme.shadow.margin
                 width: Theme.keybinds.width
                 height: field.height + Theme.keybinds.padding + Theme.keybinds.rows * Theme.keybinds.rowHeight + 2 * Theme.keybinds.padding
                 radius: Theme.keybinds.radius

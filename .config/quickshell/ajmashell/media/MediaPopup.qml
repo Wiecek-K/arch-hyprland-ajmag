@@ -35,7 +35,7 @@ PopupWindow {
     function toggle(): void {
         // here, not in a binding: mapToItem does not follow the island's position, which settles after start
         if (!visible) {
-            shift = Math.max(0, Theme.control.margin + implicitWidth - source.mapToItem(null, source.width, 0).x);
+            shift = Math.max(0, Theme.control.margin + Theme.media.popupWidth - source.mapToItem(null, source.width, 0).x);
             // `time` still holds the position from the last close: refresh it before the first frame, not a poll later
             player?.positionChanged();
         }
@@ -97,21 +97,32 @@ PopupWindow {
     // Under the island's right edge, growing left: that edge touches the clock and stays put, while the left one
     // moves with the title's length (a new track would shift an open popup). Moved right when it would stick out
     // of the screen's left edge (Hyprland does not slide it).
-    anchor.rect.x: shift
+    anchor.rect.x: shift + Theme.shadow.margin // the box stays where it was (ticket C13: the shadow's band around it)
     anchor.rect.y: 0
     anchor.rect.width: source.width
-    anchor.rect.height: source.height + Theme.bar.tooltip.gap
+    anchor.rect.height: source.height + Theme.bar.tooltip.gap - Theme.shadow.margin
     // qmltypes give these as Edges::Flags, which qmllint cannot resolve
     anchor.edges: Edges.Bottom | Edges.Right // qmllint disable missing-type
     anchor.gravity: Edges.Bottom | Edges.Left // qmllint disable missing-type
+    // ticket C13: the shadow's band may stick out of the screen; sliding the window back would move the box
+    anchor.adjustment: PopupAdjustment.None // qmllint disable missing-type
 
-    implicitWidth: Theme.media.popupWidth
-    implicitHeight: content.implicitHeight + 2 * Theme.control.padding
+    // the box plus the shadow's band (ticket C13); clicks in the band pass through
+    implicitWidth: Theme.media.popupWidth + 2 * Theme.shadow.margin
+    implicitHeight: content.implicitHeight + 2 * Theme.control.padding + 2 * Theme.shadow.margin
     color: Theme.transparent // only the rounded box below is drawn
+    mask: Region {
+        item: panel
+    }
+
+    LookShadow {
+        target: panel
+    }
 
     Rectangle {
         id: panel
         anchors.fill: parent
+        anchors.margins: Theme.shadow.margin
         radius: Theme.radius.lg
         color: Theme.transparent // LookBackground draws the look's background
         LookBackground {}

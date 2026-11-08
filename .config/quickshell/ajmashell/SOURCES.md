@@ -33,7 +33,7 @@ The file headers name the exact source file and commit.
 |---|---|---|
 | [ilyamiro/serpantinum](https://github.com/ilyamiro/serpantinum) | AGPL-3.0-or-later | tray click mapping, Wi-Fi signal steps, notification card, media island, media popup and player choice, workspaces |
 | [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) | MIT | audio volume clamp and device icons, tray submenus, wheel accumulator |
-| [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) | GPL-3.0 | theme loader (`FileView` on matugen JSON), unread badge on the bell, control centre sliders, OSD, calculator through `qalc` |
+| [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) | GPL-3.0 | theme loader (`FileView` on matugen JSON), unread badge on the bell, control centre sliders, OSD, calculator through `qalc`, shadow under the big popups (`RectangularShadow`) |
 | [caelestia-dots/shell](https://github.com/caelestia-dots/shell) | GPL-3.0 | control centre panel layout, power panel buttons, calendar month wheel |
 | [basecamp/omarchy](https://github.com/basecamp/omarchy) | MIT | keybinds viewer |
 
