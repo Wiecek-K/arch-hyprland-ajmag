@@ -244,7 +244,7 @@ Scope {
             margins { // qmllint disable unqualified unresolved-type
                 top: (BarPopups.barShown ? Theme.bar.height : 0) + Theme.control.panelTop - Theme.shadow.margin
             }
-            implicitWidth: Theme.control.width + Theme.shadow.margin + Theme.control.panelEdge
+            implicitWidth: Theme.control.width + Theme.shadow.margin + Theme.bar.popupEdge
             color: Theme.transparent // the panel has rounded corners
             exclusionMode: ExclusionMode.Ignore // reserves nothing itself
             mask: Region {

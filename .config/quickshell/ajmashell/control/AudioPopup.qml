@@ -26,7 +26,7 @@ PopupWindow {
         // here, not in a binding: mapToItem does not follow the island's position, which settles after start
         // (the volume islands moved to the right edge on 2026-10-07, where a stale value pushes it off screen)
         if (!visible)
-            shift = Math.min(0, source.Window.width - Theme.control.margin - Theme.control.popupWidth - source.mapToItem(null, 0, 0).x);
+            shift = Math.min(0, source.Window.width - Theme.bar.popupEdge - Theme.control.popupWidth - source.mapToItem(null, 0, 0).x);
         visible = !visible;
     }
 

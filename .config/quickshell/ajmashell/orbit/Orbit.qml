@@ -431,7 +431,7 @@ PopupWindow {
         if (!source)
             return 0;
         const center = source.mapToItem(null, source.width / 2, 0).x;
-        const half = Theme.orbit.width / 2 + Theme.orbit.padding;
+        const half = Theme.orbit.width / 2 + Theme.bar.popupEdge; // ticket C13: 2 px from the edge, as under the Bar
         return Math.max(half, Math.min(source.Window.width - half, center)) - center;
     }
     anchor.rect.y: 0

@@ -261,6 +261,9 @@ Singleton {
         // island to its big popup (Orbita, audio, calendar, media): the Bar's bottom edge, 2 px above the windows'
         // top border (user, 2026-11-08, ticket C13; was the tooltips' 4 px)
         readonly property int popupGap: 2
+        // right-hand popups (Orbita, audio, Centrum sterowania) to the screen's right edge: the same 2 px as their
+        // gap under the Bar (user, 2026-11-08, ticket C13)
+        readonly property int popupEdge: 2
         readonly property int edgePadding: 4 // Waybar: padding of .modules-left / .modules-right
         readonly property int ringWidth: 2 // state ring inside an island's edge (Island.ring; user, 2026-10-01)
         readonly property int trayIconSize: 20 // Waybar tray "icon-size"
@@ -518,7 +521,7 @@ Singleton {
         // Centrum sterowania only (user, 2026-11-08: the windows' borders showed beside it): its gaps are within
         // Hyprland's gaps_out (looknfeel.lua: top 2, right 6, bottom 4), so the panel covers the windows' borders
         readonly property int panelTop: 2 // under the Bar (or the screen's top edge while the Bar is hidden)
-        readonly property int panelEdge: 4 // to the right and bottom screen edges
+        readonly property int panelEdge: 4 // to the bottom screen edge (the right one: Theme.bar.popupEdge)
         readonly property int padding: 16
         readonly property int spacing: 12 // between sections
         readonly property int rowHeight: 52 // Wi-Fi / BT row
