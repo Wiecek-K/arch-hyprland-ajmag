@@ -92,6 +92,8 @@ hl.layer_rule({ name = "layerrule-11", match = { namespace = "ajmashell-keybinds
 require("configs.functions").ajmashellBlurOffRules()
 
 -- === PŁYWAJĄCE I ROZMIARY ===
+-- Cień (looknfeel.lua) tylko pod oknami pływającymi (faza C ticket 09, za end-4 rules.lua: „No shadow for tiled windows”)
+hl.window_rule({ name = "no-shadow-tiled", match = { float = false }, no_shadow = true })
 hl.window_rule({ name = "windowrule-12", match = { tag = "viewer*" }, float = true })
 
 -- Ignoruj żądania maksymalizacji (poza Steamem i grami)

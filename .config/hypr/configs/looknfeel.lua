@@ -33,11 +33,16 @@ hl.config({
         rounding_power   = 2,
         active_opacity   = 1.0,
         inactive_opacity = 0.8,
+        -- Faza C ticket 09 (B11 wpis 10, end-4 dots-hyprland@2f0c8bf general.lua): duży, miękki, prawie
+        -- przezroczysty cień, tylko pod oknami pływającymi (kafelkowe: reguła no-shadow-tiled w rules.lua).
+        -- render_power 4 = maksimum Hyprlanda 0.57 (end-4 ma 10, odrzucane). Warstwy i popupy Ajmashella cienia
+        -- Hyprlanda nie dostają (layer_rule nie ma pola cienia); ich cień rysuje shell (ticket C13).
         shadow = {
-            enabled      = false,
-            range        = 4,
-            render_power = 3,
-            color        = "rgba(1a1a1aee)",
+            enabled      = true,
+            range        = 20,
+            offset       = { 0, 2 },
+            render_power = 4,
+            color        = "rgba(00000020)",
         },
         blur = {
             enabled           = true,
