@@ -20,6 +20,7 @@ Singleton {
     id: root
 
     property list<QtObject> bars: [] // the Bar's PanelWindows on all screens (Bar.qml)
+    property bool barShown: true // SUPER+H hides the Bar on all screens (Bar.qml); the Centrum sterowania follows it
 
     // open elements (BarElement counts itself). While > 0 the Bar windows take the keyboard on demand: with the
     // pointer over a Bar popup Hyprland gives the keyboard to the popup's parent, the Bar's layer, and with

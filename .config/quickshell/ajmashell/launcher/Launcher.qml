@@ -316,6 +316,7 @@ Scope {
 
             LookShadow {
                 target: box
+                radius: Theme.launcher.radius // box is a ClippingRectangle, not a Rectangle
             }
 
             ClippingRectangle {

@@ -239,9 +239,10 @@ Scope {
             }
             // Ticket C13: the window also holds the shadow's band around the panel. Right and bottom it reaches the
             // screen's edge (the band is cut there); on top it reaches over the Bar, so it ignores the Bar's zone
-            // and keeps the panel Theme.control.margin under it. Clicks in the band pass through (mask).
+            // and keeps the panel Theme.control.margin under it (under the screen's top edge while the Bar is
+            // hidden: a negative margin, the band sticks out). Clicks in the band pass through (mask).
             margins { // qmllint disable unqualified unresolved-type
-                top: Theme.bar.height + Theme.control.margin - Theme.shadow.margin
+                top: (BarPopups.barShown ? Theme.bar.height : 0) + Theme.control.margin - Theme.shadow.margin
             }
             implicitWidth: Theme.control.width + Theme.shadow.margin + Theme.control.margin
             color: Theme.transparent // the panel has rounded corners
@@ -288,7 +289,8 @@ Scope {
                 id: panel
 
                 // slides in from the right edge (with its shadow)
-                x: Theme.shadow.margin + Math.round((1 - root.shown) * (width + Theme.shadow.margin))
+                // hidden: the shadow starts at the window's right edge, so no fringe shows before the panel
+                x: Theme.shadow.margin + Math.round((1 - root.shown) * win.width)
                 y: Theme.shadow.margin
                 width: Theme.control.width
                 height: parent.height - Theme.shadow.margin - Theme.control.margin

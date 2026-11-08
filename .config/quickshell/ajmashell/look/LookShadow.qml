@@ -17,7 +17,8 @@ Item {
     id: root
 
     required property Item target // the popup's rounded box
-    readonly property real radius: (target as Rectangle)?.radius ?? 0
+    // a Rectangle gives its own; a ClippingRectangle (launcher, Keybinds) is an Item: set it there
+    property real radius: (target as Rectangle)?.radius ?? 0
     readonly property int margin: Theme.shadow.margin
 
     x: target.x - margin

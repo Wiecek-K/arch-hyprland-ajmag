@@ -33,6 +33,7 @@ Scope {
     id: root
 
     property bool shown: true
+    onShownChanged: BarPopups.barShown = shown
 
     signal orbitRequested(string tab, string screenName)
     signal controlRequested(string screenName)

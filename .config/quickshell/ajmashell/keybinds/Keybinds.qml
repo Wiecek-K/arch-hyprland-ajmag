@@ -101,6 +101,7 @@ Scope {
 
             LookShadow {
                 target: box
+                radius: Theme.keybinds.radius // box is a ClippingRectangle, not a Rectangle
             }
 
             ClippingRectangle {
