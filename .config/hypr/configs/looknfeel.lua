@@ -41,14 +41,17 @@ hl.config({
         },
         blur = {
             enabled           = true,
-            size              = 8,
+            size              = 10,
             passes            = 2,
+            noise             = 0.02,
+            contrast          = 0.6,
             ignore_opacity    = true,
             new_optimizations = true,
             special           = false,
             popups            = true,
             xray              = false,
-            vibrancy          = 0.1696,
+            vibrancy          = 0.42,
+            vibrancy_darkness = 0.13,
         },
     },
 
@@ -80,8 +83,6 @@ hl.config({
     },
 
     cursor = {
-        no_hardware_cursors = true,
-        use_cpu_buffer      = true,
         inactive_timeout    = 10,
     },
 })
