@@ -91,7 +91,7 @@ PopupWindow {
     anchor.rect.x: Math.round((source.width - implicitWidth) / 2)
     anchor.rect.y: 0
     anchor.rect.width: source.width
-    anchor.rect.height: source.height + Theme.bar.tooltip.gap - Theme.shadow.margin // the box stays where it was
+    anchor.rect.height: source.height + Theme.bar.popupGap - Theme.shadow.margin // the box stays where it was
     // qmltypes give these as Edges::Flags, which qmllint cannot resolve
     anchor.edges: Edges.Bottom | Edges.Left // qmllint disable missing-type
     anchor.gravity: Edges.Bottom | Edges.Right // qmllint disable missing-type

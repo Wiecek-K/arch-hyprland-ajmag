@@ -57,7 +57,7 @@ PopupWindow {
     anchor.rect.x: shift - Theme.shadow.margin // the box stays where it was (ticket C13: the shadow's band around it)
     anchor.rect.y: 0
     anchor.rect.width: source.width
-    anchor.rect.height: source.height + Theme.bar.tooltip.gap - Theme.shadow.margin
+    anchor.rect.height: source.height + Theme.bar.popupGap - Theme.shadow.margin
     // qmltypes give these as Edges::Flags, which qmllint cannot resolve
     anchor.edges: Edges.Bottom | Edges.Left // qmllint disable missing-type
     anchor.gravity: Edges.Bottom | Edges.Right // qmllint disable missing-type

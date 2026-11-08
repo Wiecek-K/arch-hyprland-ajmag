@@ -239,12 +239,12 @@ Scope {
             }
             // Ticket C13: the window also holds the shadow's band around the panel. Right and bottom it reaches the
             // screen's edge (the band is cut there); on top it reaches over the Bar, so it ignores the Bar's zone
-            // and keeps the panel Theme.control.margin under it (under the screen's top edge while the Bar is
+            // and keeps the panel Theme.control.panelTop under it (under the screen's top edge while the Bar is
             // hidden: a negative margin, the band sticks out). Clicks in the band pass through (mask).
             margins { // qmllint disable unqualified unresolved-type
-                top: (BarPopups.barShown ? Theme.bar.height : 0) + Theme.control.margin - Theme.shadow.margin
+                top: (BarPopups.barShown ? Theme.bar.height : 0) + Theme.control.panelTop - Theme.shadow.margin
             }
-            implicitWidth: Theme.control.width + Theme.shadow.margin + Theme.control.margin
+            implicitWidth: Theme.control.width + Theme.shadow.margin + Theme.control.panelEdge
             color: Theme.transparent // the panel has rounded corners
             exclusionMode: ExclusionMode.Ignore // reserves nothing itself
             mask: Region {
@@ -293,7 +293,7 @@ Scope {
                 x: Theme.shadow.margin + Math.round((1 - root.shown) * win.width)
                 y: Theme.shadow.margin
                 width: Theme.control.width
-                height: parent.height - Theme.shadow.margin - Theme.control.margin
+                height: parent.height - Theme.shadow.margin - Theme.control.panelEdge
                 radius: Theme.radius.lg
                 color: Theme.transparent // LookBackground draws the look's background
                 LookBackground {}
