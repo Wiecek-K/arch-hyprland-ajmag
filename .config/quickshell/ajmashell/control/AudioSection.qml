@@ -53,6 +53,11 @@ Column {
     spacing: Theme.spacing.md
 
     onActiveChanged: devicesOpen = false
+    // the field hides with one device left; without this the list came back open with the second device
+    onDevicesChanged: {
+        if (devices.length <= 1)
+            devicesOpen = false;
+    }
 
     // without a tracker PwNodeAudio and properties stay empty
     PwObjectTracker {
@@ -112,149 +117,96 @@ Column {
     }
 
     // the current device; a click opens the list (one device: nothing to choose, no field)
-    Rectangle {
+    Column {
         visible: root.devices.length > 1
         width: root.width
-        height: Theme.control.fieldHeight
-        radius: Theme.radius.lg
-        color: fieldHover.hovered ? Theme.control.hover : Theme.control.track
+        spacing: Theme.spacing.sm
 
         Rectangle {
-            id: fieldCircle
-            x: Theme.spacing.md
-            anchors.verticalCenter: parent.verticalCenter
-            width: Theme.control.circleSize
-            height: width
-            radius: width / 2
-            color: Theme.control.fill
+            width: root.width
+            height: Theme.control.fieldHeight
+            radius: Theme.radius.lg
+            color: fieldHover.hovered ? Theme.control.hover : Theme.control.track
 
-            Text {
-                anchors.centerIn: parent
-                text: root.current?.icon ?? (root.microphone ? Logic.AUDIO_ICON.mic : Logic.AUDIO_ICON.speaker)
-                font.family: Theme.font.family
-                font.pixelSize: Theme.font.size
-                color: Theme.control.fillText
+            AudioLine {
+                anchors.left: parent.left
+                anchors.leftMargin: Theme.spacing.md
+                anchors.right: fieldArrow.left
+                anchors.rightMargin: Theme.spacing.md
+                anchors.verticalCenter: parent.verticalCenter
+                glyph: root.current?.icon ?? (root.microphone ? Logic.AUDIO_ICON.mic : Logic.AUDIO_ICON.speaker)
+                chosen: true
+                overline: root.microphone ? "Input" : "Output"
+                title: root.current?.title ?? "--"
+            }
+
+            OrbitText {
+                id: fieldArrow
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacing.lg
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.devicesOpen ? Logic.AUDIO_ICON.open : Logic.AUDIO_ICON.closed
+                color: Theme.control.subtext
+            }
+
+            HoverHandler {
+                id: fieldHover
+            }
+
+            TapHandler {
+                onTapped: root.devicesOpen = !root.devicesOpen
             }
         }
 
         Column {
-            anchors.left: fieldCircle.right
-            anchors.leftMargin: Theme.spacing.md
-            anchors.right: fieldArrow.left
-            anchors.rightMargin: Theme.spacing.md
-            anchors.verticalCenter: parent.verticalCenter
+            visible: root.devicesOpen
+            width: root.width
 
-            OrbitText {
-                width: parent.width
-                text: root.microphone ? "Input" : "Output"
-                font.pixelSize: Theme.font.sizeTiny
-                font.weight: Font.Normal
-                color: Theme.control.subtext
-            }
-
-            OrbitText {
-                width: parent.width
-                text: root.current?.title ?? "--"
-                font.pixelSize: Theme.font.sizeSmall
-                color: Theme.control.text
-            }
-        }
-
-        OrbitText {
-            id: fieldArrow
-            anchors.right: parent.right
-            anchors.rightMargin: Theme.spacing.lg
-            anchors.verticalCenter: parent.verticalCenter
-            text: root.devicesOpen ? Logic.AUDIO_ICON.open : Logic.AUDIO_ICON.closed
-            color: Theme.control.subtext
-        }
-
-        HoverHandler {
-            id: fieldHover
-        }
-
-        TapHandler {
-            onTapped: root.devicesOpen = !root.devicesOpen
-        }
-    }
-
-    Column {
-        visible: root.devicesOpen && root.devices.length > 1
-        width: root.width
-
-        Repeater {
-            model: root.devicesOpen ? root.devices : []
-
-            Rectangle {
-                id: device
-
-                required property var modelData
-                readonly property bool chosen: modelData.node === root.node
-
-                width: root.width
-                height: Theme.control.deviceHeight
-                radius: Theme.radius.sm
-                color: deviceHover.hovered ? Theme.control.hover : Theme.transparent
+            Repeater {
+                model: root.devicesOpen ? root.devices : []
 
                 Rectangle {
-                    id: deviceCircle
-                    x: Theme.spacing.md
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: Theme.control.circleSize
-                    height: width
-                    radius: width / 2
-                    color: device.chosen ? Theme.control.fill : Theme.control.circle
+                    id: device
+
+                    required property var modelData
+                    readonly property bool chosen: modelData.node === root.node
+
+                    width: root.width
+                    height: Theme.control.deviceHeight
+                    radius: Theme.radius.sm
+                    color: deviceHover.hovered ? Theme.control.hover : Theme.transparent
+
+                    AudioLine {
+                        anchors.left: parent.left
+                        anchors.leftMargin: Theme.spacing.md
+                        anchors.right: deviceCheck.left
+                        anchors.rightMargin: Theme.spacing.md
+                        anchors.verticalCenter: parent.verticalCenter
+                        glyph: device.modelData.icon
+                        chosen: device.chosen
+                        title: device.modelData.title
+                        subtitle: device.modelData.subtitle
+                    }
 
                     Text {
-                        anchors.centerIn: parent
-                        text: device.modelData.icon
+                        id: deviceCheck
+                        anchors.right: parent.right
+                        anchors.rightMargin: Theme.spacing.lg
+                        anchors.verticalCenter: parent.verticalCenter
+                        opacity: device.chosen ? 1 : 0 // keeps its width, so the names do not move
+                        text: Logic.AUDIO_ICON.check
                         font.family: Theme.font.family
                         font.pixelSize: Theme.font.size
-                        color: device.chosen ? Theme.control.fillText : Theme.control.text
-                    }
-                }
-
-                Column {
-                    anchors.left: deviceCircle.right
-                    anchors.leftMargin: Theme.spacing.md
-                    anchors.right: deviceCheck.left
-                    anchors.rightMargin: Theme.spacing.md
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    OrbitText {
-                        width: parent.width
-                        text: device.modelData.title
-                        font.pixelSize: Theme.font.sizeSmall
-                        color: Theme.control.text
+                        color: Theme.control.accent
                     }
 
-                    OrbitText {
-                        width: parent.width
-                        text: device.modelData.subtitle
-                        font.pixelSize: Theme.font.sizeTiny
-                        font.weight: Font.Normal
-                        color: Theme.control.subtext
+                    HoverHandler {
+                        id: deviceHover
                     }
-                }
 
-                Text {
-                    id: deviceCheck
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.spacing.lg
-                    anchors.verticalCenter: parent.verticalCenter
-                    opacity: device.chosen ? 1 : 0 // keeps its width, so the names do not move
-                    text: Logic.AUDIO_ICON.check
-                    font.family: Theme.font.family
-                    font.pixelSize: Theme.font.size
-                    color: Theme.control.accent
-                }
-
-                HoverHandler {
-                    id: deviceHover
-                }
-
-                TapHandler {
-                    onTapped: root.choose(device.modelData)
+                    TapHandler {
+                        onTapped: root.choose(device.modelData)
+                    }
                 }
             }
         }
@@ -306,52 +258,13 @@ Column {
                     width: apps.width
                     spacing: Theme.spacing.sm
 
-                    Item {
+                    AudioLine {
                         width: parent.width
-                        height: Theme.control.appIconSize
-
-                        Image {
-                            id: appIcon
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: Theme.control.appIconSize
-                            height: width
-                            visible: stream.iconSource !== ""
-                            source: stream.iconSource
-                            sourceSize.width: width * 2
-                            sourceSize.height: height * 2
-                        }
-
-                        Text {
-                            anchors.centerIn: appIcon
-                            visible: stream.iconSource === ""
-                            text: Logic.AUDIO_ICON.app
-                            font.family: Theme.font.family
-                            font.pixelSize: Theme.font.sizeLarge
-                            color: Theme.control.subtext
-                        }
-
-                        Column {
-                            anchors.left: appIcon.right
-                            anchors.leftMargin: Theme.spacing.md
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            OrbitText {
-                                width: parent.width
-                                text: stream.names.label
-                                font.pixelSize: Theme.font.sizeSmall
-                                color: Theme.control.text
-                            }
-
-                            OrbitText {
-                                width: parent.width
-                                visible: text !== ""
-                                text: stream.names.detail
-                                font.pixelSize: Theme.font.sizeTiny
-                                font.weight: Font.Normal
-                                color: Theme.control.subtext
-                            }
-                        }
+                        glyph: Logic.AUDIO_ICON.app
+                        iconSource: stream.iconSource
+                        circle: false
+                        title: stream.names.label
+                        subtitle: stream.names.detail
                     }
 
                     ControlSlider {

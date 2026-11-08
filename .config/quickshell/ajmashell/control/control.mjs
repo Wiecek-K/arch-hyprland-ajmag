@@ -67,6 +67,13 @@ export function deviceKind(n, microphone) {
         return { icon: AUDIO_ICON.webcam, title: nick || chipName(description), subtitle: "Webcam" };
     if (HEADPHONES.includes(formFactor))
         return { icon: AUDIO_ICON.headphones, title: nick || chipName(description), subtitle: chipName(description) };
+    // USB audio (a podcast mic with a headphone jack, a USB DAC): its own name; the onboard jack keeps "Jack …"
+    if (p["device.bus"] === "usb") {
+        const onMic = formFactor === "microphone";
+        return { icon: microphone ? AUDIO_ICON.mic : onMic ? AUDIO_ICON.headphones : AUDIO_ICON.speaker,
+            title: nick || chipName(description),
+            subtitle: microphone || !onMic ? "USB" : "USB · headphone output" };
+    }
     const codec = nick.replace(/\s+Analog$/i, "");
     return { icon: microphone ? AUDIO_ICON.mic : AUDIO_ICON.speaker,
         title: microphone ? "Jack input" : "Jack output (speakers)",

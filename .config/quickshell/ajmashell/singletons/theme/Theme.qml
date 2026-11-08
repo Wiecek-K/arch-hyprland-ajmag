@@ -530,7 +530,6 @@ Singleton {
         readonly property int spacing: 12 // between sections
         readonly property int rowHeight: 52 // Wi-Fi / BT row
         readonly property int sliderHeight: 36
-        readonly property int itemHeight: 34 // device row, stream name
         // audio section (faza C ticket 17, user 2026-11-08: device field from variant C, app card from variant A)
         readonly property int fieldHeight: 52 // field with the current device; opens the device list
         readonly property int deviceHeight: 48 // device row in the open list (short name + what it is)
