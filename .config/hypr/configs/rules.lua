@@ -44,16 +44,17 @@ hl.window_rule({
     match   = { class = "^(firefox|org.mozilla.firefox|[Cc]hromium|[Gg]oogle-chrome|brave-browser|zen)$" },
     opacity = "1.0 override 0.95 override",
 })
--- Edytory kodu
+-- Edytory kodu. VS Code (visual-studio-code-bin, natywny Wayland od Electrona 38) ma klasę com.microsoft.VSCode
+-- (app_id z pliku .desktop); stare code/vscode nie pasowały (ticket 51, 2026-11-09)
 hl.window_rule({
     name    = "windowrule-9",
-    match   = { class = "^(code-oss|vscode|code|jetbrains-.*|Alacritty|gedit)$" },
+    match   = { class = "^(code-oss|vscode|code|com.microsoft.VSCode|jetbrains-.*|Alacritty|gedit)$" },
     opacity = "0.97 override 0.91 override",
 })
--- Komunikatory
+-- Komunikatory. Slack na natywnym Waylandzie ma klasę „slack” małą literą (ticket 51, 2026-11-09)
 hl.window_rule({
     name    = "windowrule-10",
-    match   = { class = "^(vesktop|discord|org.telegram.desktop|Slack)$" },
+    match   = { class = "^(vesktop|discord|org.telegram.desktop|[Ss]lack)$" },
     opacity = "1.0 override 0.95 override",
 })
 -- Notatki
