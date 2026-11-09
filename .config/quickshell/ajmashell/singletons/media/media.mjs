@@ -191,11 +191,11 @@ export function repeats(action) {
 
 // Faza C ticket 31: XF86Audio keys (hypr/scripts/media-key.sh → IPC `media key <verb>`, verbs as in playerctl)
 // control the shown player, the one on the Bar and in the popup, not the one playerctl would pick.
-// Verb → [MprisPlayer method, the flag that allows it].
+// Verb → the MprisPlayer method and the flag that allows it.
 const MEDIA_KEYS = {
-    "play-pause": ["togglePlaying", "canTogglePlaying"],
-    next: ["next", "canGoNext"],
-    previous: ["previous", "canGoPrevious"],
+    "play-pause": { method: "togglePlaying", can: "canTogglePlaying" },
+    next: { method: "next", can: "canGoNext" },
+    previous: { method: "previous", can: "canGoPrevious" },
 };
 
 // `answer` goes back to the script: "done" = the shell handled the key (even when the shown player cannot do it
@@ -205,5 +205,5 @@ export function mediaKey(p, verb) {
     const entry = Object.prototype.hasOwnProperty.call(MEDIA_KEYS, verb) ? MEDIA_KEYS[verb] : null;
     if (!p || !entry)
         return { answer: "none", method: null };
-    return { answer: "done", method: p[entry[1]] ? entry[0] : null };
+    return { answer: "done", method: p[entry.can] ? entry.method : null };
 }
