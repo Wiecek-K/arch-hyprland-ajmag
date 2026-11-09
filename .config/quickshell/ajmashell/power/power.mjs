@@ -1,16 +1,17 @@
 // Pure logic of the Panel zasilania (power/PowerPanel.qml, ticket 18, D10): the actions of the wlogout it replaces
-// (wlogout/layout, dotfiles tag fallback-set-before-23: same commands and keys) and moves between the buttons. No Hibernate: the kernel has it
+// (wlogout/layout, dotfiles tag fallback-set-before-23: same commands; keys were wlogout's l e u r s until faza C
+// ticket 26, now S suspends and Q shuts down, user 2026-11-03) and moves between the buttons. No Hibernate: the kernel has it
 // off on this laptop (/sys/power/disk = [disabled], logind CanHibernate = "na"), user 2026-10-09: remove the button.
 // Tests: ~/Projects/hyprland-lua-migration/tools/test-power.mjs
 // Own implementation; keyboard moves after caelestia modules/session/Content.qml (idea only, see PowerPanel.qml).
 
-// least to most disruptive, as in the ticket; key = wlogout's keybind
+// least to most disruptive, as in the ticket; key runs the action at once (ticket 26: Suspend u → s, Shutdown s → q)
 export const ACTIONS = [
     { id: "lock", label: "Lock", key: "l", icon: "\u{f033e}" }, // nf-md-lock
     { id: "logout", label: "Logout", key: "e", icon: "\u{f0343}" }, // nf-md-logout
-    { id: "suspend", label: "Suspend", key: "u", icon: "\u{f0904}" }, // nf-md-power_sleep
+    { id: "suspend", label: "Suspend", key: "s", icon: "\u{f0904}" }, // nf-md-power_sleep
     { id: "reboot", label: "Reboot", key: "r", icon: "\u{f0709}" }, // nf-md-restart
-    { id: "shutdown", label: "Shutdown", key: "s", icon: "\u{f0425}" }, // nf-md-power
+    { id: "shutdown", label: "Shutdown", key: "q", icon: "\u{f0425}" }, // nf-md-power
 ];
 
 export function actionForKey(text) {
