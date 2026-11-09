@@ -44,8 +44,8 @@ hl.window_rule({
     match   = { class = "^(firefox|org.mozilla.firefox|[Cc]hromium|[Gg]oogle-chrome|brave-browser|zen)$" },
     opacity = "1.0 override 0.95 override",
 })
--- Edytory kodu. VS Code (visual-studio-code-bin, natywny Wayland od Electrona 38) ma klasę com.microsoft.VSCode
--- (app_id z pliku .desktop); stare code/vscode nie pasowały (ticket 51, 2026-11-09)
+-- Edytory kodu. VS Code z visual-studio-code-bin na natywnym Waylandzie ma klasę com.microsoft.VSCode (ticket 51,
+-- 2026-11-09); code/vscode/code-oss zostają dla innych pakietów VS Code
 hl.window_rule({
     name    = "windowrule-9",
     match   = { class = "^(code-oss|vscode|code|com.microsoft.VSCode|jetbrains-.*|Alacritty|gedit)$" },
