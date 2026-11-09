@@ -159,13 +159,49 @@ div[data-testid="dark-mode-bg"],
     background-color: var(--spice-main) !important;
 }
 
-/* ajmag 2026-10-14 (Spotify 1.3.4): header background layers (cover/radio image and a noise gradient,
-   hashed classes) sit in .before-scroll-node behind the scroll area. With the transparent theme they
-   showed under the track list and ended in a hard strip. Keep them only under the entity header (mask
-   fades out by its bottom edge) and fade them out once Spotify shows the sticky top bar. --scroll on
-   the wrapper is not updated on scroll in 1.3.4, so the top bar opacity is the signal. */
-.main-view-container .before-scroll-node {
-    transition: opacity 150ms ease;
+/* ajmag 2026-11-10 (Spotify 1.3.4, ticket C15): on pages with an entity header (playlist, album, artist)
+   the sticky top bar takes the header colour, as in Spotify without the theme. Spotify sets
+   --background-base inline on the bar; where it is missing the root value is transparent, so the
+   theme background stays underneath. */
+.Root__main-view:has(.main-entityHeader-container) .main-topBar-container .main-topBar-background {
+    background-image: linear-gradient(var(--background-base), var(--background-base)) !important;
+}
+
+/* ajmag 2026-10-14, changed 2026-11-10 (Spotify 1.3.4, ticket C15): header background layers (cover/radio
+   image and a noise gradient, hashed classes) sit in .before-scroll-node behind the scroll area, so they
+   stand still while the list scrolls. Spotify hides them under the opaque playlist content; the theme
+   keeps the content transparent, so:
+   - the layers move up with the content (scroll timeline --main-view-scroll, defined by Spotify on the
+     main view) and the mask on ".before-scroll-node > div > div" (after the home header rules) ends them
+     at the bottom edge of the header, so no image shows under the rows;
+   - Spotify's own overlay on the noise gradient (::after, driven by --scroll on the wrapper) darkens the
+     image to the header colour while scrolling, as without the theme;
+   - the empty full-height colour layer (inline rgba of the header colour, visible only before the first
+     scrolled pixel) is hidden: under transparent rows it tinted the whole list and vanished on scroll.
+   Before C15 the layers faded out once the sticky top bar appeared, which removed the gradient after a
+   few pixels of scrolling. */
+.main-view-container .before-scroll-node > div:empty {
+    display: none !important;
+}
+
+.main-view-container .before-scroll-node > div:not(:empty) {
+    animation: ajmag-header-follow-scroll linear both;
+    animation-timeline: --main-view-scroll;
+    animation-range: 0px 1000px;
+}
+
+@keyframes ajmag-header-follow-scroll {
+    from { transform: translateY(0); }
+    to { transform: translateY(-1000px); }
+}
+
+/* ajmag 2026-11-10 (Spotify 1.3.4, ticket C15): the gradient strip behind the play button row and the
+   column headers (header colour at 70% fading out), as in Spotify without the theme. It lives in the
+   scrolled content, so it stays right under the header and ends under the column headers. Spotify fades
+   it to the opaque --spice-main; here it fades to transparent, the theme background of the rows. It
+   matches ".main-entityHeader-container + div > div" in the transparent list above. */
+.main-entityHeader-container + div > .playlist-playlist-actionBarBackground-background {
+    background-image: linear-gradient(var(--background-base-70), transparent) !important;
 }
 
 /* ajmag 2026-10-15 (Spotify 1.3.4): a collapsed Now Playing panel keeps a 51px peek strip, and the panel
@@ -203,10 +239,6 @@ div[data-testid="dark-mode-bg"],
 .main-view-container .before-scroll-node > div > div {
     -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 25%, transparent 46%) !important;
     mask-image: linear-gradient(to bottom, #000 0, #000 25%, transparent 46%) !important;
-}
-
-.Root__main-view:has(.main-topBar-background:not([style*="opacity: 0;"])) .before-scroll-node {
-    opacity: 0;
 }
 
 .main-topBar-overlay,
