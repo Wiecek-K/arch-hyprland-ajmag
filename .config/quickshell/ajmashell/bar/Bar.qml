@@ -12,6 +12,7 @@
 // Ticket 12: one Orbita per screen under the Wi-Fi / BT island; IpcHandler "orbit" opens it on the focused screen.
 // Ticket 14: the bell asks for the Centrum sterowania (controlRequested, handled in shell.qml); its rows open the Orbita.
 // Ticket 17: media island left of the clock; IpcHandler "media" opens its popup on the focused screen.
+// Faza C ticket 31: IpcHandler "media" `key` — the XF86Audio keys control the player shown on the Bar.
 // Ticket 27: every press on the Bar goes to BarPopups, so one click on another island switches the open element.
 // Ticket 52: a change of the focused workspace closes an open element (it followed the focused monitor until then).
 // Ticket 42: a click on the clock opens the calendar popup; IpcHandler "calendar" opens it on the focused screen.
@@ -27,6 +28,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.orbit
 import qs.singletons.barpopups
+import qs.singletons.media
 import qs.singletons.theme
 
 Scope {
@@ -64,6 +66,12 @@ Scope {
 
         function toggle(): void {
             root.mediaRequested(Hyprland.focusedMonitor?.name ?? "");
+        }
+
+        // qs -c ajmashell ipc call media key play-pause|next|previous — XF86Audio keys through
+        // hypr/scripts/media-key.sh (faza C ticket 31): the player shown on the Bar; "none" = no player, use playerctl
+        function key(verb: string): string {
+            return Media.key(verb);
         }
     }
 

@@ -110,8 +110,9 @@ bind("XF86AudioMicMute", "Mute microphone", exec("wpctl set-mute @DEFAULT_AUDIO_
 bind("XF86MonBrightnessUp", "Brightness up", exec(v.scripts .. "/brightness.sh --inc"), media)
 bind("XF86MonBrightnessDown", "Brightness down", exec(v.scripts .. "/brightness.sh --dec"), media)
 
--- playerctl
-bind("XF86AudioNext", "Next track", exec("playerctl next"), { locked = true })
-bind("XF86AudioPause", "Play/pause", exec("playerctl play-pause"), { locked = true })
-bind("XF86AudioPlay", "Play/pause", exec("playerctl play-pause"), { locked = true })
-bind("XF86AudioPrev", "Previous track", exec("playerctl previous"), { locked = true })
+-- odtwarzacz z Bara (Ajmashell, IPC `media key`), bez shella zwykły playerctl (ticket c31)
+local mediaKey = v.scripts .. "/media-key.sh "
+bind("XF86AudioNext", "Next track", exec(mediaKey .. "next"), { locked = true })
+bind("XF86AudioPause", "Play/pause", exec(mediaKey .. "play-pause"), { locked = true })
+bind("XF86AudioPlay", "Play/pause", exec(mediaKey .. "play-pause"), { locked = true })
+bind("XF86AudioPrev", "Previous track", exec(mediaKey .. "previous"), { locked = true })

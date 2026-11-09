@@ -69,6 +69,16 @@ Singleton {
         return true;
     }
 
+    // Faza C ticket 31: an XF86Audio key (IPC `media key <verb>`, Bar.qml) on the shown player; the answer
+    // ("done" / "none") tells hypr/scripts/media-key.sh whether to fall back to playerctl. Rules: media.mjs `mediaKey`.
+    function key(verb: string): string {
+        const p = player;
+        const action = Logic.mediaKey(p, verb);
+        if (action.method)
+            p[action.method]();
+        return action.answer;
+    }
+
     function select(p: MprisPlayer): void {
         chosen = p?.dbusName ?? "";
     }
