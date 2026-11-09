@@ -57,10 +57,11 @@ hl.window_rule({
     match   = { class = "^(vesktop|discord|org.telegram.desktop|[Ss]lack)$" },
     opacity = "1.0 override 0.95 override",
 })
--- Notatki
+-- Notatki. Obsidian (pakiet obsidian, electron43) na natywnym Waylandzie ma klasę md.obsidian.Obsidian (ticket 51,
+-- 2026-11-09); obsidian zostaje dla innych pakietów
 hl.window_rule({
     name    = "windowrule-11",
-    match   = { class = "^(obsidian|Logseq)$" },
+    match   = { class = "^(obsidian|md.obsidian.Obsidian|Logseq)$" },
     opacity = "0.98 override 0.94 override",
 })
 -- Ajmashell Theme Center (strojenie palety, faza E, ADR 0019; osobne repo, poza dotfiles): pełne krycie także bez
