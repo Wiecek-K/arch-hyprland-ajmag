@@ -23,7 +23,6 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 import "notifications.mjs" as Logic
-import "../../launcher/launcher.mjs" as Launch
 
 Singleton {
     id: root
@@ -263,10 +262,8 @@ Singleton {
             };
         });
         // the sender's own terminal window first (claude-notify), else a window of the app by its name
-        const address = Logic.senderWindow(windows, root.senders[n.id] ?? [])
-            || Logic.appWindow(windows, { desktopEntry: n.desktopEntry, appName: n.appName });
-        if (address)
-            Hyprland.dispatch(Launch.focusRequest(address));
+        Logic.focusRequests(windows, root.senders[n.id] ?? [], { desktopEntry: n.desktopEntry, appName: n.appName })
+            .forEach(r => Hyprland.dispatch(r));
     }
 
     function toggleSilent(): void {

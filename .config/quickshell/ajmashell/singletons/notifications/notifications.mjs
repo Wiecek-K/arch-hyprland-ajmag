@@ -5,6 +5,8 @@
 // icon source rules from serpantinum notifications/types/Default.qml (idea only):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 
+import { focusRequest } from "../apps/apps.mjs";
+
 const LOW = 0; // NotificationUrgency.Low
 const CRITICAL = 2; // NotificationUrgency.Critical
 
@@ -252,4 +254,12 @@ export function senderWindow(windows, pids) {
             return window.address;
     }
     return "";
+}
+
+// Click on a card: the dispatches for Hyprland.dispatch(). The sender's own terminal window first (claude-notify),
+// else a window of the app by its name; [] = no window. Built here and not in QML, so the tests catch a
+// missing function (ticket c32: QML still called launcher.mjs focusRequest after ticket c22 moved it to apps.mjs).
+export function focusRequests(windows, pids, app) {
+    const address = senderWindow(windows, pids) || appWindow(windows, app);
+    return address ? [focusRequest(address)] : [];
 }
