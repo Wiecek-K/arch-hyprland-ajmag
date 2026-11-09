@@ -2,6 +2,10 @@
 // without the equaliser): cover, title, artist, album, the player choice when several play, a seek slider with
 // the position, and ⏮ ⏯ ⏭. Ticket c14: a double click on the cover, the texts or a player's pill goes to the window of
 // that player's app (Media.focusApp) and closes the popup.
+// Faza C ticket 29: keyboard control (map: user, 2026-11-09; media.mjs keyAction): space play / pause, Tab / Shift+Tab
+// next / previous player, ← / → seek 10 s, Shift+← / Shift+→ and , / . previous / next track, ↑ / ↓ the player's own
+// volume, Enter its app, Esc close. Each control shows its key after a long hover (KeyHint). SUPER+M opens the popup
+// on the focused monitor (IpcHandler "media" in bar/Bar.qml); keyboard focus is in the popup while it is open.
 // A big popup: background and lens flare by the look like the Orbita and the Centrum sterowania (Look.qml), blur
 // from the ajmashell-bar layer rule (blur_popups). Hangs under its island; closes on a click outside
 // (HyprlandFocusGrab), on Esc and on a second click — grab as in control/AudioPopup.qml.
@@ -50,10 +54,62 @@ PopupWindow {
     }
 
     function seek(fraction: real): void {
-        if (!time.seekable)
-            return;
-        player.position = Logic.seekPosition(fraction, time.length);
+        if (time.seekable)
+            seekTo(Logic.seekPosition(fraction, time.length));
+    }
+
+    function seekTo(position: real): void {
+        player.position = position;
         player.positionChanged();
+    }
+
+    // ticket 29: one key's action (media.mjs keyAction); an action the player cannot do does nothing
+    function run(action: string): void {
+        const p = player;
+        switch (action) {
+        case "togglePlaying":
+            if (p?.canTogglePlaying)
+                p.togglePlaying();
+            break;
+        case "nextPlayer":
+        case "previousPlayer":
+            {
+                const other = Logic.cyclePlayer(Media.players, p, action === "nextPlayer" ? 1 : -1);
+                if (other)
+                    Media.select(other);
+                break;
+            }
+        case "seekBack":
+        case "seekForward":
+            {
+                const target = Logic.seekBy(time, action === "seekForward" ? 1 : -1);
+                if (target !== null)
+                    seekTo(target);
+                break;
+            }
+        case "previous":
+            if (p?.canGoPrevious)
+                p.previous();
+            break;
+        case "next":
+            if (p?.canGoNext)
+                p.next();
+            break;
+        case "volumeUp":
+        case "volumeDown":
+            {
+                const volume = Logic.volumeBy(p, action === "volumeUp" ? 1 : -1);
+                if (volume !== null)
+                    p.volume = volume;
+                break;
+            }
+        case "goToApp":
+            goToApp(p);
+            break;
+        case "close":
+            visible = false;
+            break;
+        }
     }
 
     // the grab refuses a window that is not mapped yet, so arm it after the popup shows (as the Orbita)
@@ -129,7 +185,14 @@ PopupWindow {
         clip: true // the flare reaches past the panel
 
         focus: true
-        Keys.onEscapePressed: root.visible = false
+        Keys.onPressed: event => {
+            const action = Logic.keyAction(event.key, (event.modifiers & Qt.ShiftModifier) !== 0);
+            if (!action)
+                return; // not ours: let it through
+            event.accepted = true;
+            if (!event.isAutoRepeat || Logic.repeats(action))
+                root.run(action);
+        }
 
         OrbitBackdrop {
             anchors.fill: parent
@@ -164,6 +227,16 @@ PopupWindow {
                     id: cover
                     size: Theme.media.popupCover
                     source: root.player?.trackArtUrl ?? ""
+
+                    HoverHandler {
+                        id: coverHover
+                    }
+
+                    KeyHint {
+                        target: cover
+                        hovered: coverHover.hovered
+                        text: "Enter: go to the app (or double click)\n↑ ↓: player volume\nEsc: close"
+                    }
                 }
 
                 Column {
@@ -209,6 +282,16 @@ PopupWindow {
                         visible: Media.players.length > 1
                         spacing: Theme.spacing.sm
 
+                        HoverHandler {
+                            id: pillsHover
+                        }
+
+                        KeyHint {
+                            target: pills
+                            hovered: pillsHover.hovered
+                            text: "Next / previous player: Tab / Shift+Tab"
+                        }
+
                         Repeater {
                             model: Media.players
 
@@ -250,6 +333,16 @@ PopupWindow {
                     root.seek(pending);
                     pending = -1;
                 }
+
+                HoverHandler {
+                    id: seekHover
+                }
+
+                KeyHint {
+                    target: seekSlider
+                    hovered: seekHover.hovered
+                    text: "Seek 10 s: ← / →"
+                }
             }
 
             Row {
@@ -257,28 +350,61 @@ PopupWindow {
                 spacing: Theme.control.spacing
 
                 Pill {
+                    id: previousButton
                     width: Theme.media.popupButtonWidth
                     fontSize: Theme.font.sizeLarge
                     text: Logic.ICONS.previous
                     enabled: root.player?.canGoPrevious ?? false
                     onClicked: root.player?.previous()
+
+                    HoverHandler {
+                        id: previousHover
+                    }
+
+                    KeyHint {
+                        target: previousButton
+                        hovered: previousHover.hovered
+                        text: "Previous track: Shift+← or ,"
+                    }
                 }
 
                 Pill {
+                    id: playButton
                     width: Theme.media.popupButtonWidth
                     fontSize: Theme.font.sizeLarge
                     active: true
                     text: Logic.playIcon(root.player?.isPlaying ?? false)
                     enabled: root.player?.canTogglePlaying ?? false
                     onClicked: root.player?.togglePlaying()
+
+                    HoverHandler {
+                        id: playHover
+                    }
+
+                    KeyHint {
+                        target: playButton
+                        hovered: playHover.hovered
+                        text: "Play / pause: Space"
+                    }
                 }
 
                 Pill {
+                    id: nextButton
                     width: Theme.media.popupButtonWidth
                     fontSize: Theme.font.sizeLarge
                     text: Logic.ICONS.next
                     enabled: root.player?.canGoNext ?? false
                     onClicked: root.player?.next()
+
+                    HoverHandler {
+                        id: nextHover
+                    }
+
+                    KeyHint {
+                        target: nextButton
+                        hovered: nextHover.hovered
+                        text: "Next track: Shift+→ or ."
+                    }
                 }
             }
         }

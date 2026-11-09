@@ -41,6 +41,7 @@ bind(M .. " + L", "Power menu", exec(v.ipc .. "power toggle")) -- Ajmashell: Pan
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
 bind(M .. " + CTRL + S", "Screenshot", exec(v.scripts .. "/screenshot.sh"))
 bind(M .. " + W", "Change wallpaper", exec(v.ipc .. "wallpaper toggle")) -- karuzela tapet (ticket 19)
+bind(M .. " + M", "Media player popup", exec(v.ipc .. "media toggle")) -- Ajmashell: popup mediów na monitorze z fokusem (ticket c29)
 bind(M .. " + K", "Keybinds", exec(v.ipc .. "keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
 bind(M .. " + SHIFT + Q", "Kill active window process", exec(v.scripts .. "/KillActiveProcess.sh"))
 bind(M .. " + C", "Color picker", exec("hyprpicker -a"))

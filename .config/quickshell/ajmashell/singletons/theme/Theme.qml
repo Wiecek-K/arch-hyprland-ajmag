@@ -576,6 +576,7 @@ Singleton {
         readonly property int popupCover: 128
         readonly property int popupButtonWidth: 56 // ⏮ ⏯ ⏭ in the popup; fixed, so ⏯ keeps its width
         readonly property int poll: 1000 // ms; position re-read while the popup is open and playing
+        readonly property int keyHintDelay: 10000 // ms; pointer rest before a popup control shows its key (media/KeyHint.qml); user, 2026-11-09: "dłuższy hover, 10 s czy coś"
         property color text
         property color buttonHover
         property color cover
