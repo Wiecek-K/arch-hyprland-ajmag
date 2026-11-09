@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # List of applications that don't track workspaces correctly (e.g., Electron apps)
-APPS=("spotify" "discord" "obsidian" "com.microsoft.VSCode" "steam")
+APPS=("spotify" "discord" "obsidian" "com.microsoft.VSCode" "steam" "slack")
 SRC="/usr/share/applications"
 DEST="${DEST:-$HOME/.local/share/applications}"
 HELPER="$HOME/.config/hypr/scripts/exec-on-active-workspace.sh"
