@@ -1,8 +1,8 @@
 // Panel zasilania (ticket 18, D10): replaces wlogout. Like wlogout it covers the screen with a translucent, blurred
 // backdrop (our colours) and a row of large buttons in the middle of every monitor (user, 2026-10-09; one selection
 // shared by all): Lock, Logout, Suspend, Reboot, Shutdown,
-// with wlogout's commands; keys l e s r q run at once, as in wlogout (wlogout's l e u r s until faza C ticket 26:
-// S suspends, Q shuts down, user 2026-11-03). No Hibernate: the kernel has it off here
+// with wlogout's commands; keys l e s r q run at once, without a confirmation (wlogout's l e u r s until faza C
+// ticket 26: S suspends, Q shuts down, user 2026-11-03). No Hibernate: the kernel has it off here
 // (user, 2026-10-09: remove the button). Arrows / Tab move, Enter or Space runs the selected one; Esc or a click
 // on the backdrop closes.
 // Opened by SUPER+L (keybinds.lua) and the power button of the
