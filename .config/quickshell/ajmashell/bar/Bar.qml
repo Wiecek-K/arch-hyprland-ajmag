@@ -141,6 +141,10 @@ Scope {
             Item {
                 focus: true
                 Keys.onEscapePressed: BarPopups.escaped()
+                Keys.onPressed: event => {
+                    if (event.key !== Qt.Key_Escape) // Esc: escaped() above, for every open element
+                        BarPopups.keyPressed(event);
+                }
             }
 
             // Every island; the press catcher below stays out of it, so deepestAt finds the island under the pointer.

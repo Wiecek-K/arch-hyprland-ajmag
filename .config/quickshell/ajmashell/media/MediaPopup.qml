@@ -4,7 +4,7 @@
 // that player's app (Media.focusApp) and closes the popup.
 // Faza C ticket 29: keyboard control (map: user, 2026-11-09; media.mjs keyAction): space play / pause, Tab / Shift+Tab
 // next / previous player, ← / → seek 10 s, Shift+← / Shift+→ and , / . previous / next track, ↑ / ↓ the player's own
-// volume, Enter its app, Esc close. Each control shows its key after a long hover (KeyHint). SUPER+M opens the popup
+// volume, Enter its app, Esc close. Each control shows its key after a long hover (KeyHint). SUPER+P opens the popup
 // on the focused monitor (IpcHandler "media" in bar/Bar.qml); keyboard focus is in the popup while it is open.
 // A big popup: background and lens flare by the look like the Orbita and the Centrum sterowania (Look.qml), blur
 // from the ajmashell-bar layer rule (blur_popups). Hangs under its island; closes on a click outside
@@ -61,6 +61,26 @@ PopupWindow {
     function seekTo(position: real): void {
         player.position = position;
         player.positionChanged();
+    }
+
+    // ticket 29: a key pressed in the popup, or on the Bar while the popup is open (BarPopups.keyPressed: opened from
+    // the keyboard, the focus grab gives the keyboard to a Bar until the pointer enters the popup)
+    function key(event: KeyEvent): void {
+        const action = Logic.keyAction(event.key, (event.modifiers & Qt.ShiftModifier) !== 0);
+        if (!action)
+            return; // not ours: let it through
+        event.accepted = true;
+        if (!event.isAutoRepeat || Logic.repeats(action))
+            run(action);
+    }
+
+    Connections {
+        target: BarPopups
+        enabled: root.visible
+
+        function onKeyPressed(event: KeyEvent): void {
+            root.key(event);
+        }
     }
 
     // ticket 29: one key's action (media.mjs keyAction); an action the player cannot do does nothing
@@ -185,14 +205,7 @@ PopupWindow {
         clip: true // the flare reaches past the panel
 
         focus: true
-        Keys.onPressed: event => {
-            const action = Logic.keyAction(event.key, (event.modifiers & Qt.ShiftModifier) !== 0);
-            if (!action)
-                return; // not ours: let it through
-            event.accepted = true;
-            if (!event.isAutoRepeat || Logic.repeats(action))
-                root.run(action);
-        }
+        Keys.onPressed: event => root.key(event)
 
         OrbitBackdrop {
             anchors.fill: parent

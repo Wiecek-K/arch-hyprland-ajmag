@@ -28,6 +28,9 @@ Singleton {
     property int openCount: 0
 
     signal escaped // Esc on a Bar window (it has the keyboard while an element is open): open elements close
+    // any key but Esc on a Bar window (faza C ticket 29): with the pointer over a Bar popup the keyboard is on the
+    // popup's parent, the Bar; an open element that takes keys (media popup) handles it and sets event.accepted
+    signal keyPressed(var event)
     signal pressed(var hit) // a press on a Bar; hit = the deepest item under the pointer, null = none
     signal focusSettled(int workspace) // the focused workspace changed (id), read after Hyprland's events settle
 
