@@ -205,9 +205,9 @@ Singleton {
     // "bardziej taki czerwony Rec z kamery - obecny jest zbyt blady"; was root.colors.error)
     readonly property PrivacyStyle privacy: PrivacyStyle {
         dot: "#ff3b30"
-        // "Rec" next to the dot: white on the dark Bar, black on the light one, like the islands' main text
-        // (user, 2026-11-10; was the dot's red)
-        label: root.colors.on_surface
+        // "Rec" and the recording's time: the colour of every other letter on the Bar (user, 2026-11-10; was
+        // on_surface — white on the dark Bar, black on the light one — and before that the dot's red)
+        label: root.bar.text
         labelSize: root.font.sizeTiny
         // the recording's time instead of "Rec" (faza C ticket cb40; user, 2026-11-10: bigger than "Rec")
         timeSize: root.font.sizeSmall
