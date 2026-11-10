@@ -19,7 +19,8 @@ Column {
 
     property bool active: false // the Centrum is shown: read the list, follow udisks
     property var drives: []
-    property string ejecting: "" // device path of the drive being ejected
+    property string ejecting: "" // device path of the drive being ejected; "" = none
+    property string ejectTarget: "" // the same path, kept for the eject's stderr, which may end after the process
     property var errors: ({}) // device path → text of the last failed eject; cleared on each opening
 
     signal opened(string mountpoint)
@@ -39,6 +40,7 @@ Column {
         delete next[drive.path];
         errors = next;
         ejecting = drive.path;
+        ejectTarget = drive.path;
         ejectProc.command = Logic.ejectCommand(drive);
         ejectProc.running = true;
     }
@@ -55,11 +57,13 @@ Column {
         command: Logic.LSBLK_COMMAND
         stdout: StdioCollector {
             onStreamFinished: {
+                let next = [];
                 try {
-                    root.drives = Logic.removableDrives(JSON.parse(text));
-                } catch (e) {
-                    root.drives = [];
-                }
+                    next = Logic.removableDrives(JSON.parse(text));
+                } catch (e) {}
+                // a new array makes the Repeater build every row again (hover lost): only on a real change
+                if (JSON.stringify(next) !== JSON.stringify(root.drives))
+                    root.drives = next;
             }
         }
     }
@@ -84,17 +88,17 @@ Column {
         // udisksctl writes to stderr only when it fails
         stderr: StdioCollector {
             onStreamFinished: {
-                if (text.trim() === "" || root.ejecting === "")
+                if (text.trim() === "")
                     return;
                 const next = Object.assign({}, root.errors);
-                next[root.ejecting] = Logic.ejectError(text);
+                next[root.ejectTarget] = Logic.ejectError(text);
                 root.errors = next;
             }
         }
         onRunningChanged: {
             if (running)
                 return;
-            Qt.callLater(() => root.ejecting = ""); // after stderr's text, which names the drive by ejecting
+            root.ejecting = "";
             root.refresh();
         }
     }

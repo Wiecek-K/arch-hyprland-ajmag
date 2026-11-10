@@ -86,7 +86,7 @@ Rectangle {
         height: width
         radius: width / 2
         color: root.ejectHot ? Theme.control.hover : Theme.transparent
-        opacity: root.canEject || root.ejecting ? 1 : 0.4
+        opacity: root.canEject || root.ejecting ? 1 : Theme.orbit.dimmed // as a disabled Pill
 
         Text {
             anchors.centerIn: parent
