@@ -1,6 +1,6 @@
 // Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
 // right edge, full height under the Bar. Top to bottom: date and the power button, Wiersze Wi-Fi / Bluetooth,
-// sliders (speaker, microphone, brightness of the built-in panel), output device and app volumes, then the Centrum powiadomień
+// the Dyski section (faza C ticket 06: removable drives, only while one is plugged in; DriveSection.qml), sliders (speaker, microphone, brightness of the built-in panel), output device and app volumes, then the Centrum powiadomień
 // (ticket 16: groups per app, collapsed to the newest entry with a header to expand and clear the group; silent
 // mode switch; clear all; action buttons and progress bars on the cards).
 // Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.
@@ -25,6 +25,7 @@ import Quickshell.Wayland
 import qs.look
 import qs.notifications
 import qs.orbit
+import qs.singletons.apps
 import qs.singletons.barpopups
 import qs.singletons.look
 import qs.singletons.notifications
@@ -123,6 +124,13 @@ Scope {
         open = false; // its focus grab would close the Orbita at once
         const name = screenName;
         Qt.callLater(() => root.orbitRequested(tab, name));
+    }
+
+    // a drive's row in the Dyski section: its mount point in the GUI file manager (user 2026-11-10: the Centrum is
+    // for the mouse, so Nautilus, not the default yazi in kitty)
+    function openFiles(mountpoint: string): void {
+        open = false;
+        Apps.run(["nautilus", "--new-window", mountpoint], "");
     }
 
     Behavior on shown {
@@ -359,6 +367,13 @@ Scope {
                                 root.adapter.enabled = !root.adapter.enabled;
                         }
                         onOpened: root.openOrbit("bt")
+                    }
+
+                    // removable drives (faza C ticket 06); the Column closes the gap while none is plugged in
+                    DriveSection {
+                        width: parent.width
+                        active: win.visible
+                        onOpened: mountpoint => root.openFiles(mountpoint)
                     }
 
                     // between Wi-Fi / BT and the sliders, like the one above the notifications (faza C ticket 17)
