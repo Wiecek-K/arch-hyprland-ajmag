@@ -4,7 +4,7 @@
 // that player's app (Media.focusApp) and closes the popup.
 // Faza C ticket 29: keyboard control (map: user, 2026-11-09; media.mjs keyAction): space play / pause, Tab / Shift+Tab
 // next / previous player, ← / → seek 10 s, Shift+← / Shift+→ and , / . previous / next track, ↑ / ↓ the player's own
-// volume, Enter its app, Esc close. Each control shows its key after a long hover (KeyHint). SUPER+P opens the popup
+// volume, Enter its app, Esc close. Each control shows its key after a long hover (control/HoverHint.qml). SUPER+P opens the popup
 // on the focused monitor (IpcHandler "media" in bar/Bar.qml); keyboard focus is in the popup while it is open.
 // A big popup: background and lens flare by the look like the Orbita and the Centrum sterowania (Look.qml), blur
 // from the ajmashell-bar layer rule (blur_popups). Hangs under its island; closes on a click outside
@@ -245,7 +245,8 @@ PopupWindow {
                         id: coverHover
                     }
 
-                    KeyHint {
+                    HoverHint {
+                        delay: Theme.media.keyHintDelay
                         target: cover
                         hovered: coverHover.hovered
                         text: "Enter: go to the app (or double click)\n↑ ↓: player volume\nEsc: close"
@@ -299,7 +300,8 @@ PopupWindow {
                             id: pillsHover
                         }
 
-                        KeyHint {
+                        HoverHint {
+                            delay: Theme.media.keyHintDelay
                             target: pills
                             hovered: pillsHover.hovered
                             text: "Next / previous player: Tab / Shift+Tab"
@@ -351,7 +353,8 @@ PopupWindow {
                     id: seekHover
                 }
 
-                KeyHint {
+                HoverHint {
+                    delay: Theme.media.keyHintDelay
                     target: seekSlider
                     hovered: seekHover.hovered
                     text: "Seek 10 s: ← / →"
@@ -374,7 +377,8 @@ PopupWindow {
                         id: previousHover
                     }
 
-                    KeyHint {
+                    HoverHint {
+                        delay: Theme.media.keyHintDelay
                         target: previousButton
                         hovered: previousHover.hovered
                         text: "Previous track: Shift+← or ,"
@@ -394,7 +398,8 @@ PopupWindow {
                         id: playHover
                     }
 
-                    KeyHint {
+                    HoverHint {
+                        delay: Theme.media.keyHintDelay
                         target: playButton
                         hovered: playHover.hovered
                         text: "Play / pause: Space"
@@ -413,7 +418,8 @@ PopupWindow {
                         id: nextHover
                     }
 
-                    KeyHint {
+                    HoverHint {
+                        delay: Theme.media.keyHintDelay
                         target: nextButton
                         hovered: nextHover.hovered
                         text: "Next track: Shift+→ or ."

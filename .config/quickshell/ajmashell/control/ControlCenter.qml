@@ -1,8 +1,9 @@
 // Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
 // right edge, full height under the Bar. Top to bottom: date and the power button, Wiersze Wi-Fi / Bluetooth,
-// the Dyski section (faza C ticket 06: removable drives, only while one is plugged in; DriveSection.qml), sliders (speaker, microphone, brightness of the built-in panel), output device and app volumes, then the Centrum powiadomień
+// sliders (speaker, microphone, brightness of the built-in panel), output device and app volumes, then the Centrum powiadomień
 // (ticket 16: groups per app, collapsed to the newest entry with a header to expand and clear the group; silent
-// mode switch; clear all; action buttons and progress bars on the cards).
+// mode switch; clear all; action buttons and progress bars on the cards). At the bottom edge: the Sekcja Dyski
+// (faza C ticket 06: removable drives, only while one is plugged in; DriveSection.qml; user 2026-11-10: at the bottom).
 // Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.
 // The look (background, flare, pills) is set only in Ajmashell Theme Center (faza E ticket 13; the look buttons and
 // F2 that were here went with it).
@@ -129,6 +130,8 @@ Scope {
     // a drive's row in the Dyski section: its mount point in the GUI file manager (user 2026-11-10: the Centrum is
     // for the mouse, so Nautilus, not the default yazi in kitty)
     function openFiles(mountpoint: string): void {
+        if (!open)
+            return; // the second click of a double click lands on the panel sliding out: one window only
         open = false;
         Apps.run(["nautilus", "--new-window", mountpoint], "");
     }
@@ -369,13 +372,6 @@ Scope {
                         onOpened: root.openOrbit("bt")
                     }
 
-                    // removable drives (faza C ticket 06); the Column closes the gap while none is plugged in
-                    DriveSection {
-                        width: parent.width
-                        active: win.visible
-                        onOpened: mountpoint => root.openFiles(mountpoint)
-                    }
-
                     // between Wi-Fi / BT and the sliders, like the one above the notifications (faza C ticket 17)
                     Rectangle {
                         width: parent.width
@@ -455,14 +451,28 @@ Scope {
                     }
                 }
 
+                // removable drives (faza C ticket 06), stuck to the panel's bottom edge (user 2026-11-10); hidden
+                // while none is plugged in, then the notifications reach the bottom
+                DriveSection {
+                    id: drives
+
+                    x: Theme.control.padding
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: Theme.control.padding
+                    width: topSection.width
+                    active: win.visible
+                    onOpened: mountpoint => root.openFiles(mountpoint)
+                }
+
                 ListView {
                     id: list
 
                     x: Theme.control.padding
                     anchors.top: topSection.bottom
                     anchors.topMargin: Theme.control.spacing
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Theme.control.padding
+                    // ends above the Sekcja Dyski while it shows
+                    anchors.bottom: drives.visible ? drives.top : parent.bottom
+                    anchors.bottomMargin: drives.visible ? Theme.control.spacing : Theme.control.padding
                     width: topSection.width
                     clip: true
                     model: Notifications.history

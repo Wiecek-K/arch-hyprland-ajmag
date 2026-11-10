@@ -16,8 +16,9 @@ function usage(used, size) {
 }
 
 // lsblk: parsed JSON of LSBLK_COMMAND's output
-// → [{ path, title, text, mountpoint, mounted }]: mountpoint "" while nothing is mounted (the row opens nothing),
-// mounted = device paths of the mounted filesystems (ejectCommand unmounts them)
+// → [{ path, title, text, mountpoint, mounted, unmounted, mountable }]: mountpoint "" while nothing is mounted (the
+// row opens nothing), mounted = device paths of the mounted filesystems (ejectCommand unmounts them), unmounted =
+// those that could be mounted (not swap; mountCommand), mountable = nothing mounted yet and something to mount
 export function removableDrives(lsblk) {
     return (lsblk?.blockdevices ?? [])
         .filter(d => d.type === "disk" && (d.rm || d.hotplug))
@@ -25,6 +26,7 @@ export function removableDrives(lsblk) {
             // filesystems: the partitions, or the disk itself (a stick formatted without a partition table)
             const volumes = [d, ...(d.children ?? [])].filter(v => v.fstype);
             const mounted = volumes.filter(v => v.mountpoint?.startsWith("/")); // not "[SWAP]"
+            const unmounted = volumes.filter(v => !v.mountpoint && v.fstype !== "swap");
             const used = mounted.reduce((sum, v) => sum + (v.fsused ?? 0), 0);
             const size = mounted.reduce((sum, v) => sum + (v.fssize ?? 0), 0);
             const name = [d.vendor, d.model].map(s => (s ?? "").trim()).filter(s => s).join(" ");
@@ -33,7 +35,9 @@ export function removableDrives(lsblk) {
                 title: volumes.find(v => v.label)?.label ?? (name || d.path.replace("/dev/", "")),
                 text: mounted.length ? usage(used, size) : "Not mounted",
                 mountpoint: mounted[0]?.mountpoint ?? "",
-                mounted: mounted.map(v => v.path)
+                mounted: mounted.map(v => v.path),
+                unmounted: unmounted.map(v => v.path),
+                mountable: mounted.length === 0 && unmounted.length > 0
             };
         });
 }
@@ -50,3 +54,13 @@ export function ejectCommand(drive) {
 export function ejectError(stderr) {
     return /busy/i.test(stderr) ? "In use: close its files" : "Eject failed";
 }
+
+// Mount of a drive with nothing mounted (a click on its row): every filesystem it has, as udiskie does on plug-in;
+// stops at the first error. Paths go in as arguments.
+export function mountCommand(drive) {
+    const script = 'for p; do udisksctl mount -b "$p" || exit; done';
+    return ["sh", "-c", script, "mount", ...drive.unmounted];
+}
+
+// the row's text after a failed mountCommand
+export const MOUNT_FAILED = "Mount failed";

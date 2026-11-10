@@ -1,6 +1,6 @@
-// DriveRow — one removable drive in the Dyski section of the Centrum sterowania (faza C ticket 06): the drive's
-// icon, its name and use (or the eject state) under it, the eject button at the right. A click on the rest of the
-// row opens the drive in the file manager (only while something on it is mounted).
+// DriveRow — one removable drive in the Sekcja Dyski of the Centrum sterowania (faza C ticket 06): the drive's
+// icon, its name and use (or what is going on) under it, the eject button at the right with a hint above it. A click
+// on the rest of the row asks the section to act (open the drive, or mount it first; DriveSection.activate).
 // Own implementation; the look of the Wi-Fi / BT rows (ConnectionRow.qml).
 
 import QtQuick
@@ -12,30 +12,31 @@ Rectangle {
 
     property string title
     property string text
-    property bool openable: false // something is mounted: the row opens it
-    property bool ejecting: false
-    property bool canEject: true // false while another drive is being ejected
+    property bool clickable: false // the row opens or mounts the drive
+    property string busy: "" // "Ejecting…" / "Mounting…" while that runs on this drive
+    property bool canEject: true // false while an eject or a mount runs
 
-    signal opened
+    signal activated
     signal ejected
 
-    readonly property bool ejectHot: ejectHover.hovered && canEject && !ejecting
+    readonly property bool ejectHot: ejectHover.hovered && canEject
 
     implicitHeight: Theme.control.rowHeight
     radius: height / 2
-    color: rowHover.hovered && openable && !ejectHover.hovered ? Theme.control.hover : Theme.control.track
+    color: rowHover.hovered && clickable && !ejectHover.hovered ? Theme.control.hover : Theme.control.track
 
     HoverHandler {
         id: rowHover
     }
 
-    // the eject button has its own TapHandler, but this one fires too: a tap on it must not open the drive
+    // the eject button has its own TapHandler, but this one fires too: a tap on it must not act on the row.
+    // Every tap of a double click comes here (the second one opens a drive the first one is mounting)
     TapHandler {
-        enabled: root.openable
+        enabled: root.clickable
         onTapped: eventPoint => {
             const p = ejectButton.mapFromItem(root, eventPoint.position);
             if (!ejectButton.contains(p))
-                root.opened();
+                root.activated();
         }
     }
 
@@ -70,7 +71,7 @@ Rectangle {
 
         OrbitText {
             width: parent.width
-            text: root.ejecting ? "Ejecting…" : root.text
+            text: root.busy || root.text
             font.pixelSize: Theme.font.sizeSmall
             color: Theme.control.subtext
         }
@@ -86,7 +87,7 @@ Rectangle {
         height: width
         radius: width / 2
         color: root.ejectHot ? Theme.control.hover : Theme.transparent
-        opacity: root.canEject || root.ejecting ? 1 : Theme.orbit.dimmed // as a disabled Pill
+        opacity: root.canEject || root.busy !== "" ? 1 : Theme.orbit.dimmed // as a disabled Pill
 
         Text {
             anchors.centerIn: parent
@@ -101,8 +102,17 @@ Rectangle {
         }
 
         TapHandler {
-            enabled: root.canEject && !root.ejecting
+            enabled: root.canEject
             onTapped: root.ejected()
+        }
+
+        // above: the section sits at the screen's bottom edge (user 2026-11-10: a tooltip on this button)
+        HoverHint {
+            target: ejectButton
+            hovered: ejectHover.hovered
+            delay: Theme.motion.tooltipDelay
+            above: true
+            text: "Safely eject"
         }
     }
 }
