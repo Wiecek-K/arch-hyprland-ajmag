@@ -70,4 +70,15 @@ Island {
         id: popup
         source: root
     }
+
+    // no list while recording (user, 2026-11-10): one open when the recording starts closes, since a click on the dot
+    // now stops the recording and could not close it
+    Connections {
+        target: Recording
+
+        function onActiveChanged(): void {
+            if (Recording.active)
+                popup.visible = false;
+        }
+    }
 }

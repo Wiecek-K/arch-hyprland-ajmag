@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Screen recording with sound (faza C ticket cb40), instead of OBS: SUPER+R starts recording the focused monitor to
-# ~/Videos/nagranie_DATE.mp4 with the system sound (the default output's monitor, no microphone), the next SUPER+R
-# ends it; a click on the Bar's privacy dot runs `stop`. Replaces record_gif.sh (hardcoded laptop monitor).
+# ~/Videos/nagranie_DATE.mp4 with the system sound (the default output's monitor, no microphone; no default output =
+# no sound, never the default source, which may be the microphone), the next SUPER+R ends it; a click on the Bar's
+# privacy dot runs `stop`. Replaces record_gif.sh (hardcoded laptop monitor).
 # While recording, the state file holds "recorder pid<TAB>start (s since the epoch)<TAB>file"; Ajmashell reads it on
 # start and on `qs -c ajmashell ipc call recording refresh` (singletons/recording) and shows the time in the dot.
 # This run waits for the recorder, so the end (also a failure) always clears the state and sends a notification:
-# a click shows the file in the file manager, "Odtwórz" plays it.
+# a click shows the file in the file manager (only that; user, 2026-11-10). A state file whose recorder is gone
+# (killed) is removed by the next `stop` or toggle, so a click on a stuck dot clears it.
 # Encoding: VA-API on an amdgpu card (RX 6600 XT, /dev/dri/renderD129 next to the iGPU's renderD128, where VA-API
 # fails), else wf-recorder's software default.
 # Usage: screen-record.sh [toggle | stop]   (default toggle)
@@ -51,13 +53,11 @@ file_uri() {
 
 finished() { # finished <file>: the notification; waits for a click
     local file="$1" action
-    action="$(notify-send -a "$APP" -i video-x-generic -A "default=Pokaż w folderze" -A "play=Odtwórz" --wait \
+    action="$(notify-send -a "$APP" -i video-x-generic -A "default=Pokaż w folderze" --wait \
         "Nagranie zapisane" "$file")"
-    case "$action" in
-        default) gdbus call --session --dest org.freedesktop.FileManager1 --object-path /org/freedesktop/FileManager1 \
-            --method org.freedesktop.FileManager1.ShowItems "['$(file_uri "$file")']" "" >/dev/null ;;
-        play) xdg-open "$file" ;;
-    esac
+    [[ "$action" == default ]] && gdbus call --session --dest org.freedesktop.FileManager1 \
+        --object-path /org/freedesktop/FileManager1 --method org.freedesktop.FileManager1.ShowItems \
+        "['$(file_uri "$file")']" "" >/dev/null
 }
 
 start() {
@@ -72,14 +72,15 @@ start() {
     file="$dir/nagranie_$(date +%Y-%m-%d_%H-%M-%S).mp4"
 
     args=(-y -o "$monitor")
-    if [[ -n "$sink" ]]; then args+=("--audio=$sink.monitor"); else args+=(--audio); fi
+    [[ -n "$sink" ]] && args+=("--audio=$sink.monitor")
     device="$(vaapi_device)"
     [[ -n "$device" ]] && args+=(-c h264_vaapi -d "$device")
     args+=(-f "$file")
 
-    wf-recorder "${args[@]}" >"$LOG_FILE" 2>&1 &
+    wf-recorder "${args[@]}" >"$LOG_FILE" 2>&1 9>&- & # 9>&-: the recorder must not hold the start lock
     pid=$!
     printf '%s\t%s\t%s\n' "$pid" "$(date +%s)" "$file" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+    exec 9>&- # the state is there: the next toggle stops this recording
     tell_bar
 
     # the session ends or this run is killed: end the recording cleanly (the file stays playable)
@@ -100,7 +101,16 @@ start() {
     fi
 }
 
+# One decision at a time: a second SUPER+R while a start is still writing the state is dropped, not a second
+# recorder. The lock is released once the state file is written (start) or when this run ends.
+exec 9>"$STATE_DIR/screen-record.lock"
+flock -n 9 || exit 0
+
 pid="$(running_pid)"
+if [[ -z "$pid" && -e "$STATE_FILE" ]]; then # stale: the recorder was killed and nothing cleared the state
+    rm -f "$STATE_FILE"
+    tell_bar
+fi
 case "${1:-toggle}" in
     stop) [[ -n "$pid" ]] && kill -INT "$pid" ;;
     toggle) if [[ -n "$pid" ]]; then kill -INT "$pid"; else start; fi ;;
