@@ -1,7 +1,8 @@
 // PrivacyPopup — a click on the Bar's privacy dot (faza C ticket 05): one row per app using the microphone, the
 // camera or the screen, "Firefox — mikrofon, kamera" (user, 2026-11-10: a small list under the dot).
-// A click on a row focuses that app's window and closes the list (user, 2026-11-10); a row without a window is
-// dimmed. The window: privacy.mjs windowFor, from the process table read when the list opens.
+// A click on a row focuses that app's window and closes the list (user, 2026-11-10); an app without a window but
+// with a tray icon (Discord closed to the tray) shows its window on the focused workspace; a row with neither is
+// dimmed. Window and icon: privacy.mjs windowFor / trayFor, from processes.sh read when the list opens.
 // Dressed and placed like the tray menu (bar/TrayMenu.qml, Theme.bar.menu). Closes on a click outside
 // (HyprlandFocusGrab), on Esc (BarPopups), on a second click on the dot and when nothing records any more.
 // Own implementation.
@@ -22,7 +23,7 @@ PopupWindow {
     id: root
 
     required property Item source // the privacy island
-    property string processes: "" // Privacy.processesCommand's text, read when the list opens and when its rows change
+    property string processes: "" // processes.sh's text, read when the list opens and when its rows change
 
     function toggle(): void {
         visible = !visible;
@@ -112,17 +113,19 @@ PopupWindow {
                     id: row
                     required property var modelData
                     readonly property string window: Privacy.windowOf(modelData, root.processes, Apps.windows)
+                    readonly property var tray: window === "" ? Privacy.trayOf(modelData, root.processes) : null
+                    readonly property bool usable: window !== "" || tray !== null
 
                     // a row of the tray menu: its height, padding, hover and dimmed look
                     Layout.fillWidth: true
                     implicitWidth: Math.max(Theme.bar.menu.minWidth, Math.ceil(label.implicitWidth))
                     implicitHeight: Theme.bar.menu.rowHeight
-                    opacity: window !== "" ? 1 : Theme.bar.menu.disabledOpacity
+                    opacity: usable ? 1 : Theme.bar.menu.disabledOpacity
 
                     Rectangle {
                         anchors.fill: parent
                         radius: Theme.radius.sm
-                        color: hover.hovered && row.window !== "" ? Theme.bar.menu.hover : Theme.transparent
+                        color: hover.hovered && row.usable ? Theme.bar.menu.hover : Theme.transparent
                     }
 
                     Text {
@@ -142,9 +145,12 @@ PopupWindow {
                     }
 
                     TapHandler {
-                        enabled: row.window !== ""
+                        enabled: row.usable
                         onTapped: {
-                            Apps.focusWindow(row.window);
+                            if (row.window !== "")
+                                Apps.focusWindow(row.window);
+                            else
+                                Privacy.showFromTray(row.modelData, root.processes);
                             root.visible = false;
                         }
                     }

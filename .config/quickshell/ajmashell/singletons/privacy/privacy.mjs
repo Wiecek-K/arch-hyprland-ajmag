@@ -75,22 +75,27 @@ export function cameraApps(line) {
     }).filter(c => c.pid > 0 && c.app !== "");
 }
 
-// The process table Privacy.qml reads when the list opens: `ps -e -o pid=,ppid=`, a line "clients", then
-// "client-id pid" per PipeWire client (its application.process.id, else pipewire.sec.pid)
-// → { parent: Map pid → parent pid, clientPid: Map client id → pid }
+// The process table Privacy.qml reads when the list opens (processes.sh): `ps -e -o pid=,ppid=`, a line
+// "clients", "client-id pid" per PipeWire client (its application.process.id, else pipewire.sec.pid), a line
+// "tray", "pid bus-name object-path" per tray icon (StatusNotifierItem)
+// → { parent: Map pid → parent pid, clientPid: Map client id → pid, tray: [{ pid, service, path }] }
 export function parseProcesses(text) {
-    const parent = new Map(), clientPid = new Map();
-    let target = parent;
+    const parent = new Map(), clientPid = new Map(), tray = [];
+    let section = "ps";
     for (const line of text.split("\n")) {
-        if (line.trim() === "clients") {
-            target = clientPid;
-            continue;
+        const fields = line.trim().split(/\s+/);
+        if (fields.length === 1 && (fields[0] === "clients" || fields[0] === "tray")) {
+            section = fields[0];
+        } else if (section === "tray") {
+            if (Number(fields[0]) > 0 && fields.length === 3)
+                tray.push({ pid: Number(fields[0]), service: fields[1], path: fields[2] });
+        } else {
+            const [key, value] = fields.map(Number);
+            if (key > 0 && value >= 0)
+                (section === "ps" ? parent : clientPid).set(key, value);
         }
-        const [key, value] = line.trim().split(/\s+/).map(Number);
-        if (key > 0 && value >= 0)
-            target.set(key, value);
     }
-    return { parent, clientPid };
+    return { parent, clientPid, tray };
 }
 
 // The window a click on a row focuses (user, 2026-11-10): the nearest ancestor of one of the row's processes that
@@ -99,16 +104,9 @@ export function parseProcesses(text) {
 // "google-chrome"). processes: parseProcesses; windows: Apps.windows. "" = none.
 export function windowFor(row, processes, windows) {
     const lastUsed = list => list.sort((a, b) => rank(a) - rank(b))[0]?.address ?? "";
-    const pids = [...row.pids, ...row.clients.map(c => processes.clientPid.get(c) ?? 0)].filter(p => p > 0);
-    for (const start of pids) {
-        const seen = [];
-        for (let pid = start; pid > 0 && !seen.includes(pid); pid = processes.parent.get(pid)) {
-            seen.push(pid);
-            const own = windows.filter(w => w.pid === pid);
-            if (own.length > 0)
-                return lastUsed(own);
-        }
-    }
+    const own = nearest(row, processes, pid => windows.filter(w => w.pid === pid), list => list.length > 0);
+    if (own)
+        return lastUsed(own);
     const app = squash(row.app);
     if (app === "")
         return "";
@@ -116,6 +114,29 @@ export function windowFor(row, processes, windows) {
         const cls = squash(w.appId);
         return cls !== "" && (cls.includes(app) || app.includes(cls));
     }));
+}
+
+// The tray icon a click on a row without a window activates (user, 2026-11-10: Discord closed to the tray shows its
+// window on the focused workspace): the icon of the nearest ancestor of the row's processes. null = none.
+export function trayFor(row, processes) {
+    const item = nearest(row, processes, pid => processes.tray.find(t => t.pid === pid), found => !!found);
+    return item ? { service: item.service, path: item.path } : null;
+}
+
+// Walks up from each of the row's processes (its own pids, then its PipeWire clients' pids) and returns the first
+// lookup(pid) that hit() accepts; null = none.
+function nearest(row, processes, lookup, hit) {
+    const pids = [...row.pids, ...row.clients.map(c => processes.clientPid.get(c) ?? 0)].filter(p => p > 0);
+    for (const start of pids) {
+        const seen = [];
+        for (let pid = start; pid > 0 && !seen.includes(pid); pid = processes.parent.get(pid)) {
+            seen.push(pid);
+            const found = lookup(pid);
+            if (hit(found))
+                return found;
+        }
+    }
+    return null;
 }
 
 function rank(w) {
@@ -135,9 +156,16 @@ function pidOf(props) {
     return parseInt(props["application.process.id"] ?? "", 10) || 0;
 }
 
+const ENGINE_NAMES = [/^webrtc voiceengine$/i, /^alsa plug-in \[/i];
+
+// The app's name; an engine's name in place of it ("WEBRTC VoiceEngine" from Discord and other WebRTC apps, "ALSA
+// plug-in [x]") gives way to the binary (user, 2026-11-10: the list said "WEBRTC VoiceEngine" for Discord).
 function appName(props) {
-    return props["application.name"] || props["application.process.binary"] || props["node.description"]
-        || props["node.name"] || "";
+    const name = props["application.name"] ?? "";
+    const binary = props["application.process.binary"] ?? "";
+    if (binary !== "" && ENGINE_NAMES.some(re => re.test(name)))
+        return binary;
+    return name || binary || props["node.description"] || props["node.name"] || "";
 }
 
 // A screencast stream of the desktop portal (xdg-desktop-portal-hyprland: node xdph-streaming-N) or another

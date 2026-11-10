@@ -200,9 +200,11 @@ Singleton {
     }
 
     // Privacy dot (bar/PrivacyIsland.qml, faza C ticket 05): red while an app uses the microphone, the camera or the
-    // screen (user, 2026-11-10); its popup dressed like the tray menu (Theme.bar.menu)
+    // screen (user, 2026-11-10); its popup dressed like the tray menu (Theme.bar.menu).
+    // A fixed recording red, not a palette role: matugen's `error` is a pale pink in the dark scheme (user, 2026-11-10:
+    // "bardziej taki czerwony Rec z kamery - obecny jest zbyt blady"; was root.colors.error)
     readonly property PrivacyStyle privacy: PrivacyStyle {
-        dot: root.colors.error
+        dot: "#ff3b30"
     }
 
     // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent

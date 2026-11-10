@@ -9,8 +9,10 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Pipewire
+import qs.singletons.apps
 import "privacy.mjs" as Logic
 
 Singleton {
@@ -34,16 +36,52 @@ Singleton {
     }
 
     // address of the window a click on the row focuses, "" = none (privacy.mjs windowFor);
-    // processes = the text of `processesCommand`, windows = Apps.windows
+    // processes = processes.sh's text, windows = Apps.windows
     function windowOf(row: var, processes: string, windows: var): string {
         return Logic.windowFor(row, Logic.parseProcesses(processes), windows);
     }
 
-    // the process table and the pid of each PipeWire client (privacy.mjs parseProcesses); Quickshell has no
-    // PipeWire clients, and a native client's stream (pw-record, OBS) carries no pid of its own
-    readonly property list<string> processesCommand: ["sh", "-c", "ps -e -o pid=,ppid=; echo clients; "
-        + "pw-dump | jq -r '.[] | select(.type == \"PipeWire:Interface:Client\") | "
-        + "\"\\(.id) \\(.info.props[\"application.process.id\"] // .info.props[\"pipewire.sec.pid\"] // \"\")\"'"]
+    // the tray icon of a row without a window, { service, path } or null (privacy.mjs trayFor)
+    function trayOf(row: var, processes: string): var {
+        return Logic.trayFor(row, Logic.parseProcesses(processes));
+    }
+
+    // what the list reads when it opens: process table, PipeWire clients' and tray icons' pids
+    readonly property list<string> processesCommand: ["bash", Quickshell.shellDir + "/singletons/privacy/processes.sh"]
+
+    // An app closed to the tray (Discord): its icon's Activate shows the window; Hyprland opens it on the focused
+    // workspace, without focus (checked 2026-11-10), so focus it once it is there (user, 2026-11-10).
+    property var pending: null // { row, processes } while waiting for the window
+
+    function showFromTray(row: var, processes: string): void {
+        const tray = trayOf(row, processes);
+        if (!tray)
+            return;
+        Quickshell.execDetached(["busctl", "--user", "call", tray.service, tray.path, "org.kde.StatusNotifierItem",
+            "Activate", "ii", "0", "0"]);
+        pending = { row: row, processes: processes };
+        waitWindow.tries = 0;
+        waitWindow.restart();
+    }
+
+    // a new window's pid (lastIpcObject) comes only with a refresh: ask until it shows up, for 3 s at most
+    Timer {
+        id: waitWindow
+        property int tries: 0
+        interval: 200
+        repeat: true
+        onTriggered: {
+            const address = root.pending ? root.windowOf(root.pending.row, root.pending.processes, Apps.windows) : "";
+            if (address !== "" || ++tries >= 15) {
+                if (address !== "")
+                    Apps.focusWindow(address);
+                root.pending = null;
+                stop();
+                return;
+            }
+            Hyprland.refreshToplevels();
+        }
+    }
 
     // without a tracker the nodes' properties stay empty
     PwObjectTracker {
