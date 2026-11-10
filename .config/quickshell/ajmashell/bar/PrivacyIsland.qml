@@ -26,6 +26,7 @@ Island {
     onClicked: popup.toggle()
 
     Rectangle {
+        id: dot
         width: Theme.privacy.dotSize
         height: Theme.privacy.dotSize
         radius: width / 2
@@ -35,11 +36,20 @@ Island {
 
     Text {
         text: Theme.privacy.labelText
+        font: metrics.font
+        color: Theme.privacy.label
+        // the middle of the capitals (baseline to the top of "R") on the dot's middle, not the middle of the line
+        // box with its descent (user, 2026-11-10: centre it vertically): the baseline half the drawn "R" below the
+        // dot's centre, in whole pixels (Qt 6 FontMetrics has no capHeight; the drawn "R" is 8 px at 11 px)
+        anchors.baseline: dot.verticalCenter
+        anchors.baselineOffset: Math.round(metrics.tightBoundingRect("R").height / 2)
+    }
+
+    FontMetrics {
+        id: metrics
         font.family: Theme.font.family
         font.pixelSize: Theme.privacy.labelSize
         font.weight: Theme.privacy.labelWeight
-        color: Theme.privacy.label
-        anchors.verticalCenter: parent.verticalCenter
     }
 
     PrivacyPopup {

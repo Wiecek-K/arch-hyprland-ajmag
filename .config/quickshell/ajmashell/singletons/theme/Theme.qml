@@ -205,7 +205,9 @@ Singleton {
     // "bardziej taki czerwony Rec z kamery - obecny jest zbyt blady"; was root.colors.error)
     readonly property PrivacyStyle privacy: PrivacyStyle {
         dot: "#ff3b30"
-        label: dot // "Rec" next to the dot, in the same red like a camera's recording mark
+        // "Rec" next to the dot: white on the dark Bar, black on the light one, like the islands' main text
+        // (user, 2026-11-10; was the dot's red)
+        label: root.colors.on_surface
         labelSize: root.font.sizeTiny
     }
 
@@ -599,7 +601,7 @@ Singleton {
         readonly property string labelText: "Rec"
         property int labelSize
         readonly property int labelWeight: Font.Black
-        readonly property int labelGap: 6 // px, between the dot and "Rec"
+        readonly property int labelGap: 3 // px, between the dot and "Rec"; user, 2026-11-10: closer (was 6)
         // gap from the workspaces as a share of the clock island's width; user, 2026-11-10: further right (was the
         // media island's gap to the clock, 2/3)
         readonly property real workspacesGap: 4 / 3
