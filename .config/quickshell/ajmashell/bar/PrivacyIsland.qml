@@ -46,11 +46,16 @@ Island {
         // dot's centre, in whole pixels (Qt 6 FontMetrics has no capHeight; the drawn "R" is 8 px at 11 px)
         anchors.baseline: dot.verticalCenter
         anchors.baselineOffset: Math.round(metrics.tightBoundingRect("R").height / 2)
-        // as wide as the drawn letters: a monospace cell is wider than "c", and its empty end made the right padding
-        // 4 px bigger than the left one (user, 2026-11-10; measured 15 vs 19 px). The time is measured with every
-        // digit as 0, so the island keeps its width while the seconds run (ticket cb40) and changes only from "Rec"
-        // to the time and when the time gains a digit — then smoothly, in Theme.motion.fast.
-        width: Math.ceil(metrics.tightBoundingRect(Recording.widthTemplate(text)).right)
+        // "Rec": as wide as the drawn letters: a monospace cell is wider than "c", and its empty end made the right
+        // padding 4 px bigger than the left one (user, 2026-11-10; measured 15 vs 19 px).
+        // The time (ticket cb40): bigger (Theme.privacy.timeSize), as wide as "00:00" and right-aligned, so there is
+        // room left of it for the tens of minutes (user, 2026-11-10) and the island keeps its width from 0:00 to
+        // 59:59 (recording.mjs widthTemplate); the width changes only from "Rec" to the time and at one hour — then
+        // smoothly, in Theme.motion.fast. Cells, not drawn digits: right-aligned text ends at its last cell.
+        width: Recording.active ? Math.ceil(metrics.advanceWidth(Recording.widthTemplate(text)))
+            : Math.ceil(metrics.tightBoundingRect(text).right)
+        // only the time: "Rec" is as wide as its drawn letters, right-aligned its empty last cell would push it left
+        horizontalAlignment: Recording.active ? Text.AlignRight : Text.AlignLeft
 
         Behavior on width {
             NumberAnimation {
@@ -62,7 +67,7 @@ Island {
     FontMetrics {
         id: metrics
         font.family: Theme.font.family
-        font.pixelSize: Theme.privacy.labelSize
+        font.pixelSize: Recording.active ? Theme.privacy.timeSize : Theme.privacy.labelSize
         font.weight: Theme.privacy.labelWeight
     }
 

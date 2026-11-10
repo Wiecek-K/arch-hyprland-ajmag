@@ -209,6 +209,8 @@ Singleton {
         // (user, 2026-11-10; was the dot's red)
         label: root.colors.on_surface
         labelSize: root.font.sizeTiny
+        // the recording's time instead of "Rec" (faza C ticket cb40; user, 2026-11-10: bigger than "Rec")
+        timeSize: root.font.sizeSmall
     }
 
     // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent
@@ -600,6 +602,7 @@ Singleton {
         // "Rec" next to the dot (user, 2026-11-10: smaller font, heavy weight)
         readonly property string labelText: "Rec"
         property int labelSize
+        property int timeSize // the screen recording's time in place of "Rec" (ticket cb40)
         readonly property int labelWeight: Font.Black
         readonly property int labelGap: 3 // px, between the dot and "Rec"; user, 2026-11-10: closer (was 6)
         // gap from the workspaces as a share of the clock island's width; user, 2026-11-10: further right (was the

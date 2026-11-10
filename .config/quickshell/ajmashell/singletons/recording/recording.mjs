@@ -28,7 +28,9 @@ export function elapsedText(seconds) {
 }
 
 // the text whose width the label takes: every digit as 0 (tabular digits are all as wide), so the island does not
-// change its width every second, only when the time gains a digit
+// change its width every second; under an hour always room for the tens of minutes ("0:07" → "00:00", the time
+// right-aligned in it; user, 2026-11-10), so it changes only at one hour
 export function widthTemplate(text) {
-    return text.replace(/[0-9]/g, "0");
+    const zeros = text.replace(/[0-9]/g, "0");
+    return zeros === "0:00" ? "00:00" : zeros;
 }
