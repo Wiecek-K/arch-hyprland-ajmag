@@ -160,12 +160,12 @@ div[data-testid="dark-mode-bg"],
 }
 
 /* ajmag 2026-11-10 (Spotify 1.3.4, ticket C15): on pages with an entity header (playlist, album, artist)
-   the sticky top bar gets a tint of the matugen accent over the theme background. Spotify colours it with
+   the sticky top bar gets the matugen border-inactive colour (opaque). Spotify colours it with
    --background-base taken from the cover (e.g. purple from the Liked Songs icon), which did not match the
-   theme; user's choice from three palette variants. A background-image layer, so the opaque --spice-main
-   background-color of the sticky bar rule above stays underneath. */
+   theme; user's choice from three palette variants. A background-image layer on top of the --spice-main
+   background-color of the sticky bar rule above. */
 .Root__main-view:has(.main-entityHeader-container) .main-topBar-container .main-topBar-background {
-    background-image: linear-gradient(rgba(var(--spice-rgb-accent-active), 0.35), rgba(var(--spice-rgb-accent-active), 0.35)) !important;
+    background-image: linear-gradient(var(--spice-border-inactive), var(--spice-border-inactive)) !important;
 }
 
 /* ajmag 2026-10-14, changed 2026-11-10 (Spotify 1.3.4, ticket C15): header background layers (cover/radio
