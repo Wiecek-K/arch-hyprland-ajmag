@@ -29,6 +29,7 @@ Singleton {
             appId: appId,
             workspace: t.workspace?.name ?? ipc.workspace?.name ?? "",
             focusHistory: ipc.focusHistoryID ?? -1,
+            pid: ipc.pid ?? -1, // the privacy dot finds an app's window by its process (faza C ticket 05)
             entryId: entry?.id ?? "",
             icon: entry?.icon ?? appId
         };

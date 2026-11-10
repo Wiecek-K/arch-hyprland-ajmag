@@ -203,9 +203,6 @@ Singleton {
     // screen (user, 2026-11-10); its popup dressed like the tray menu (Theme.bar.menu)
     readonly property PrivacyStyle privacy: PrivacyStyle {
         dot: root.colors.error
-        // gap from the workspaces like the media island's gap to the clock (user, 2026-11-10: "w odległości
-        // podobnej do odstępu między zegarem a wyspą mediów"): the same share of the clock island's width
-        workspacesGap: root.media.clockGap
     }
 
     // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent
@@ -594,7 +591,9 @@ Singleton {
 
     component PrivacyStyle: QtObject {
         readonly property int dotSize: 10 // px
-        property real workspacesGap // share of the clock island's width
+        // gap from the workspaces as a share of the clock island's width; user, 2026-11-10: further right (was the
+        // media island's gap to the clock, 2/3)
+        readonly property real workspacesGap: 4 / 3
         property color dot
     }
 

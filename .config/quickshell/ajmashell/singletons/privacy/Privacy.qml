@@ -20,7 +20,7 @@ Singleton {
     // screencast reader) and "Stream/Input/Audio/Internal", so untracked nodes are read too; devices are not.
     readonly property var watched: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioInStream
         || n.type === PwNodeType.VideoSource || n.type === PwNodeType.Untracked)
-    property var cameraApps: [] // camera-users.sh
+    property var cameraApps: [] // camera-users.sh, [{ app, pid }]
 
     readonly property var rows: Logic.rows(
         watched.map(n => ({ id: n.id, props: n.properties })),
@@ -32,6 +32,18 @@ Singleton {
     function rowText(row: var): string {
         return Logic.rowText(row);
     }
+
+    // address of the window a click on the row focuses, "" = none (privacy.mjs windowFor);
+    // processes = the text of `processesCommand`, windows = Apps.windows
+    function windowOf(row: var, processes: string, windows: var): string {
+        return Logic.windowFor(row, Logic.parseProcesses(processes), windows);
+    }
+
+    // the process table and the pid of each PipeWire client (privacy.mjs parseProcesses); Quickshell has no
+    // PipeWire clients, and a native client's stream (pw-record, OBS) carries no pid of its own
+    readonly property list<string> processesCommand: ["sh", "-c", "ps -e -o pid=,ppid=; echo clients; "
+        + "pw-dump | jq -r '.[] | select(.type == \"PipeWire:Interface:Client\") | "
+        + "\"\\(.id) \\(.info.props[\"application.process.id\"] // .info.props[\"pipewire.sec.pid\"] // \"\")\"'"]
 
     // without a tracker the nodes' properties stay empty
     PwObjectTracker {
@@ -49,8 +61,9 @@ Singleton {
         }
         stdout: SplitParser {
             onRead: line => {
-                if (line.startsWith("users"))
-                    root.cameraApps = line.split("\t").slice(1);
+                const apps = Logic.cameraApps(line);
+                if (apps)
+                    root.cameraApps = apps;
             }
         }
     }

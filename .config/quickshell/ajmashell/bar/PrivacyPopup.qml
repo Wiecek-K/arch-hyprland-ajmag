@@ -1,5 +1,7 @@
 // PrivacyPopup — a click on the Bar's privacy dot (faza C ticket 05): one row per app using the microphone, the
-// camera or the screen, "Firefox — mikrofon, kamera" (user, 2026-11-10: a small list under the dot, no buttons).
+// camera or the screen, "Firefox — mikrofon, kamera" (user, 2026-11-10: a small list under the dot).
+// A click on a row focuses that app's window and closes the list (user, 2026-11-10); a row without a window is
+// dimmed. The window: privacy.mjs windowFor, from the process table read when the list opens.
 // Dressed and placed like the tray menu (bar/TrayMenu.qml, Theme.bar.menu). Closes on a click outside
 // (HyprlandFocusGrab), on Esc (BarPopups), on a second click on the dot and when nothing records any more.
 // Own implementation.
@@ -7,8 +9,11 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
+import qs.singletons.apps
 import qs.singletons.barpopups
 import qs.singletons.privacy
 import qs.singletons.theme
@@ -17,6 +22,7 @@ PopupWindow {
     id: root
 
     required property Item source // the privacy island
+    property string processes: "" // Privacy.processesCommand's text, read when the list opens and when its rows change
 
     function toggle(): void {
         visible = !visible;
@@ -43,14 +49,35 @@ PopupWindow {
             if (!Privacy.active)
                 root.visible = false;
         }
+
+        function onRowsChanged(): void {
+            if (root.visible)
+                root.readProcesses();
+        }
     }
 
     // The grab refuses a window that is not mapped yet, so arm it after the popup shows.
     onVisibleChanged: {
-        if (visible)
+        if (visible) {
             Qt.callLater(() => grab.active = visible);
-        else
+            readProcesses();
+        } else {
             grab.active = false;
+        }
+    }
+
+    // window pids (lastIpcObject) are only as fresh as the last refresh; the process table as fresh as the last read
+    function readProcesses(): void {
+        Hyprland.refreshToplevels();
+        reader.running = true;
+    }
+
+    Process {
+        id: reader
+        command: Privacy.processesCommand
+        stdout: StdioCollector {
+            onStreamFinished: root.processes = text
+        }
     }
 
     HyprlandFocusGrab {
@@ -72,26 +99,55 @@ PopupWindow {
         radius: Theme.radius.lg
         color: Theme.bar.menu.background
 
-        Column {
+        ColumnLayout {
             id: list
-            anchors.centerIn: parent
+            anchors.fill: parent
+            anchors.margins: Theme.bar.menu.padding
+            spacing: 0
 
             Repeater {
                 model: Privacy.rows
 
-                Text {
+                Item {
+                    id: row
                     required property var modelData
+                    readonly property string window: Privacy.windowOf(modelData, root.processes, Apps.windows)
 
-                    // a row of the tray menu's height, text with its padding
-                    height: Theme.bar.menu.rowHeight
-                    leftPadding: Theme.bar.menu.rowPadding
-                    rightPadding: Theme.bar.menu.rowPadding
-                    verticalAlignment: Text.AlignVCenter
-                    text: Privacy.rowText(modelData)
-                    font.family: Theme.font.family
-                    font.pixelSize: Theme.font.sizeSmall
-                    font.weight: Theme.font.weight
-                    color: Theme.bar.menu.text
+                    // a row of the tray menu: its height, padding, hover and dimmed look
+                    Layout.fillWidth: true
+                    implicitWidth: Math.max(Theme.bar.menu.minWidth, Math.ceil(label.implicitWidth))
+                    implicitHeight: Theme.bar.menu.rowHeight
+                    opacity: window !== "" ? 1 : Theme.bar.menu.disabledOpacity
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Theme.radius.sm
+                        color: hover.hovered && row.window !== "" ? Theme.bar.menu.hover : Theme.transparent
+                    }
+
+                    Text {
+                        id: label
+                        anchors.verticalCenter: parent.verticalCenter
+                        leftPadding: Theme.bar.menu.rowPadding
+                        rightPadding: Theme.bar.menu.rowPadding
+                        text: Privacy.rowText(row.modelData)
+                        font.family: Theme.font.family
+                        font.pixelSize: Theme.font.sizeSmall
+                        font.weight: Theme.font.weight
+                        color: Theme.bar.menu.text
+                    }
+
+                    HoverHandler {
+                        id: hover
+                    }
+
+                    TapHandler {
+                        enabled: row.window !== ""
+                        onTapped: {
+                            Apps.focusWindow(row.window);
+                            root.visible = false;
+                        }
+                    }
                 }
             }
         }
