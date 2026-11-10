@@ -43,6 +43,9 @@ Island {
         // dot's centre, in whole pixels (Qt 6 FontMetrics has no capHeight; the drawn "R" is 8 px at 11 px)
         anchors.baseline: dot.verticalCenter
         anchors.baselineOffset: Math.round(metrics.tightBoundingRect("R").height / 2)
+        // as wide as the drawn letters: a monospace cell is wider than "c", and its empty end made the right padding
+        // 4 px bigger than the left one (user, 2026-11-10; measured 15 vs 19 px)
+        width: Math.ceil(metrics.tightBoundingRect(text).right)
     }
 
     FontMetrics {
