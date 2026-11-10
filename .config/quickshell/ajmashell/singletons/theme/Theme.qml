@@ -199,6 +199,15 @@ Singleton {
         coverIcon: root.colors.on_surface_variant
     }
 
+    // Privacy dot (bar/PrivacyIsland.qml, faza C ticket 05): red while an app uses the microphone, the camera or the
+    // screen (user, 2026-11-10); its popup dressed like the tray menu (Theme.bar.menu)
+    readonly property PrivacyStyle privacy: PrivacyStyle {
+        dot: root.colors.error
+        // gap from the workspaces like the media island's gap to the clock (user, 2026-11-10: "w odległości
+        // podobnej do odstępu między zegarem a wyspą mediów"): the same share of the clock island's width
+        workspacesGap: root.media.clockGap
+    }
+
     // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent
     // backdrop in `on_primary_fixed` (the launcher's old colour; not the look's background), blurred (rules.lua layerrule-10, needs alpha ≥ 0.5); buttons coloured
     // like the Orbita's pills (Pill.qml) so the selected one reads at once.
@@ -581,6 +590,12 @@ Singleton {
         property color buttonHover
         property color cover
         property color coverIcon
+    }
+
+    component PrivacyStyle: QtObject {
+        readonly property int dotSize: 10 // px
+        property real workspacesGap // share of the clock island's width
+        property color dot
     }
 
     component PowerStyle: QtObject {

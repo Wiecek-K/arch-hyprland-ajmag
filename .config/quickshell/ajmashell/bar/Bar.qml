@@ -16,6 +16,7 @@
 // Ticket 27: every press on the Bar goes to BarPopups, so one click on another island switches the open element.
 // Ticket 52: a change of the focused workspace closes an open element (it followed the focused monitor until then).
 // Ticket 42: a click on the clock opens the calendar popup; IpcHandler "calendar" opens it on the focused screen.
+// Faza C ticket 05: the privacy dot right of the workspaces.
 // Tray and volume islands swapped (user, 2026-10-07): tray on the left edge, volume · microphone · separator before the pill.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -187,8 +188,17 @@ Scope {
                 }
 
                 Workspaces {
+                    id: workspaces
                     anchors.left: clock.right
                     anchors.leftMargin: Theme.bar.islandGap
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                // faza C ticket 05: the privacy dot right of the workspaces, as far from them as the media island
+                // is from the clock (user, 2026-11-10); shown only while something records
+                PrivacyIsland {
+                    anchors.left: workspaces.right
+                    anchors.leftMargin: Math.round(clock.width * Theme.privacy.workspacesGap)
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
