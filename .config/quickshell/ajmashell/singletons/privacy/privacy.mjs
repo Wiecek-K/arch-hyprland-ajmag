@@ -22,29 +22,31 @@ export function rows(nodes, links, cameraApps) {
     const byId = new Map(nodes.map(n => [n.id, n.props ?? {}]));
     const sources = id => links.filter(l => l.target === id).map(l => byId.get(l.source)).filter(p => p);
     const readers = id => links.filter(l => l.source === id).map(l => byId.get(l.target)).filter(p => p);
-    const found = []; // [app, kind, pid, client] in node order
+    const found = []; // { app, kind, pid, client } in node order; 0 = no pid / client
+    const add = (app, kind, pid = 0, client = 0) => found.push({ app, kind, pid, client });
     for (const n of nodes) {
         const props = n.props ?? {};
+        const stream = kind => add(appName(props), kind, pidOf(props), clientOf(props));
         if (isMicStream(props)) {
-            found.push([appName(props), "mic", pidOf(props), clientOf(props)]);
+            stream("mic");
         } else if (props["media.class"] === "Stream/Input/Video") {
             // a consumer reads either a camera or a screencast; unlinked = not capturing yet
             const from = sources(n.id);
             if (from.some(isScreencast))
-                found.push([appName(props), "screen", pidOf(props), clientOf(props)]);
+                stream("screen");
             else if (from.length > 0)
-                found.push([appName(props), "camera", pidOf(props), clientOf(props)]);
+                stream("camera");
         } else if (isScreencast(props) && readers(n.id).length === 0) {
             // the portal made the stream but no app reads it yet: share started, app unknown
-            found.push(["", "screen", 0, 0]);
+            add("", "screen");
         }
     }
     for (const c of cameraApps)
-        found.push([c.app, "camera", c.pid, 0]);
+        add(c.app, "camera", c.pid);
 
     // one row per app (case-insensitive: PipeWire says "Chromium", the process is "chromium")
     const out = [];
-    for (const [app, kind, pid, client] of found) {
+    for (const { app, kind, pid, client } of found) {
         let row = out.find(r => r.app.toLowerCase() === app.toLowerCase());
         if (!row)
             out.push(row = { app, kinds: [], pids: [], clients: [] });
@@ -123,8 +125,8 @@ export function trayFor(row, processes) {
     return item ? { service: item.service, path: item.path } : null;
 }
 
-// Walks up from each of the row's processes (its own pids, then its PipeWire clients' pids) and returns the first
-// lookup(pid) that hit() accepts; null = none.
+// The nearest ancestor hit: walks up from each of the row's processes (its own pids, then its PipeWire clients'
+// pids) and returns the first lookup(pid) that hit() accepts; null = none.
 function nearest(row, processes, lookup, hit) {
     const pids = [...row.pids, ...row.clients.map(c => processes.clientPid.get(c) ?? 0)].filter(p => p > 0);
     for (const start of pids) {

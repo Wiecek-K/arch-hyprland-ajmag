@@ -24,6 +24,7 @@ PopupWindow {
 
     required property Item source // the privacy island
     property string processes: "" // processes.sh's text, read when the list opens and when its rows change
+    readonly property var table: Privacy.parseProcesses(processes) // parsed once per read, for every row
 
     function toggle(): void {
         visible = !visible;
@@ -112,8 +113,8 @@ PopupWindow {
                 Item {
                     id: row
                     required property var modelData
-                    readonly property string window: Privacy.windowOf(modelData, root.processes, Apps.windows)
-                    readonly property var tray: window === "" ? Privacy.trayOf(modelData, root.processes) : null
+                    readonly property string window: Privacy.windowOf(modelData, root.table, Apps.windows)
+                    readonly property var tray: window === "" ? Privacy.trayOf(modelData, root.table) : null
                     readonly property bool usable: window !== "" || tray !== null
 
                     // a row of the tray menu: its height, padding, hover and dimmed look
@@ -150,7 +151,7 @@ PopupWindow {
                             if (row.window !== "")
                                 Apps.focusWindow(row.window);
                             else
-                                Privacy.showFromTray(row.modelData, root.processes);
+                                Privacy.showFromTray(row.modelData, root.table);
                             root.visible = false;
                         }
                     }

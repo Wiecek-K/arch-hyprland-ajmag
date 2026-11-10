@@ -35,15 +35,20 @@ Singleton {
         return Logic.rowText(row);
     }
 
-    // address of the window a click on the row focuses, "" = none (privacy.mjs windowFor);
-    // processes = processes.sh's text, windows = Apps.windows
-    function windowOf(row: var, processes: string, windows: var): string {
-        return Logic.windowFor(row, Logic.parseProcesses(processes), windows);
+    // processes.sh's text → the table windowOf / trayOf / showFromTray use (privacy.mjs parseProcesses); the list
+    // parses it once per read
+    function parseProcesses(text: string): var {
+        return Logic.parseProcesses(text);
+    }
+
+    // address of the window a click on the row focuses, "" = none (privacy.mjs windowFor); windows = Apps.windows
+    function windowOf(row: var, table: var, windows: var): string {
+        return Logic.windowFor(row, table, windows);
     }
 
     // the tray icon of a row without a window, { service, path } or null (privacy.mjs trayFor)
-    function trayOf(row: var, processes: string): var {
-        return Logic.trayFor(row, Logic.parseProcesses(processes));
+    function trayOf(row: var, table: var): var {
+        return Logic.trayFor(row, table);
     }
 
     // what the list reads when it opens: process table, PipeWire clients' and tray icons' pids
@@ -51,15 +56,15 @@ Singleton {
 
     // An app closed to the tray (Discord): its icon's Activate shows the window; Hyprland opens it on the focused
     // workspace, without focus (checked 2026-11-10), so focus it once it is there (user, 2026-11-10).
-    property var pending: null // { row, processes } while waiting for the window
+    property var pending: null // { row, table } while waiting for the window; a newer tray click replaces it
 
-    function showFromTray(row: var, processes: string): void {
-        const tray = trayOf(row, processes);
+    function showFromTray(row: var, table: var): void {
+        const tray = trayOf(row, table);
         if (!tray)
             return;
         Quickshell.execDetached(["busctl", "--user", "call", tray.service, tray.path, "org.kde.StatusNotifierItem",
             "Activate", "ii", "0", "0"]);
-        pending = { row: row, processes: processes };
+        pending = { row: row, table: table };
         waitWindow.tries = 0;
         waitWindow.restart();
     }
@@ -71,7 +76,7 @@ Singleton {
         interval: 200
         repeat: true
         onTriggered: {
-            const address = root.pending ? root.windowOf(root.pending.row, root.pending.processes, Apps.windows) : "";
+            const address = root.pending ? root.windowOf(root.pending.row, root.pending.table, Apps.windows) : "";
             if (address !== "" || ++tries >= 15) {
                 if (address !== "")
                     Apps.focusWindow(address);
