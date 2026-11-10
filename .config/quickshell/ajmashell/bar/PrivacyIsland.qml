@@ -1,5 +1,6 @@
-// PrivacyIsland — a red dot in a round island while an app uses the microphone, the camera or shares the screen,
-// like a phone's recording dot (faza C ticket 05; user, 2026-11-10: one dot, no separate icons). Hidden otherwise.
+// PrivacyIsland — a red dot and "Rec" in an island while an app uses the microphone, the camera or shares the
+// screen, like a camera's recording mark (faza C ticket 05; user, 2026-11-10: one dot, no separate icons; then
+// "Rec" next to it, small and heavy). Hidden otherwise.
 // Sits right of the workspaces (Bar.qml); nothing hangs off it, so showing it never moves another island.
 // Fades in and out in Theme.motion.fast. A click opens the list of apps (PrivacyPopup.qml).
 // Own implementation; idea after DankMaterialShell quickshell/Modules/DBar/Widgets/PrivacyIndicator.qml (MIT):
@@ -12,7 +13,7 @@ import qs.singletons.theme
 Island {
     id: root
 
-    circle: true
+    spacing: Theme.privacy.labelGap
     opacity: Privacy.active ? 1 : 0
     visible: opacity > 0 // no clicks on a hidden dot
 
@@ -29,6 +30,16 @@ Island {
         height: Theme.privacy.dotSize
         radius: width / 2
         color: Theme.privacy.dot
+        anchors.verticalCenter: parent.verticalCenter
+    }
+
+    Text {
+        text: Theme.privacy.labelText
+        font.family: Theme.font.family
+        font.pixelSize: Theme.privacy.labelSize
+        font.weight: Theme.privacy.labelWeight
+        color: Theme.privacy.label
+        anchors.verticalCenter: parent.verticalCenter
     }
 
     PrivacyPopup {

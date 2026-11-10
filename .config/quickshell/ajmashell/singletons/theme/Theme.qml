@@ -205,6 +205,8 @@ Singleton {
     // "bardziej taki czerwony Rec z kamery - obecny jest zbyt blady"; was root.colors.error)
     readonly property PrivacyStyle privacy: PrivacyStyle {
         dot: "#ff3b30"
+        label: dot // "Rec" next to the dot, in the same red like a camera's recording mark
+        labelSize: root.font.sizeTiny
     }
 
     // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent
@@ -593,10 +595,16 @@ Singleton {
 
     component PrivacyStyle: QtObject {
         readonly property int dotSize: 10 // px
+        // "Rec" next to the dot (user, 2026-11-10: smaller font, heavy weight)
+        readonly property string labelText: "Rec"
+        property int labelSize
+        readonly property int labelWeight: Font.Black
+        readonly property int labelGap: 6 // px, between the dot and "Rec"
         // gap from the workspaces as a share of the clock island's width; user, 2026-11-10: further right (was the
         // media island's gap to the clock, 2/3)
         readonly property real workspacesGap: 4 / 3
         property color dot
+        property color label
     }
 
     component PowerStyle: QtObject {
