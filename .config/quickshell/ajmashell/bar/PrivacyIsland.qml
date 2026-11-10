@@ -1,6 +1,8 @@
 // PrivacyIsland — a red dot and "Rec" in an island while an app uses the microphone, the camera or shares the
 // screen, like a camera's recording mark (faza C ticket 05; user, 2026-11-10: one dot, no separate icons; then
 // "Rec" next to it, small and heavy). Hidden otherwise.
+// Screen recording (faza C ticket cb40, SUPER+R, singletons/recording): while it runs the dot shows, with the
+// recording's time instead of "Rec", and a left click stops it (no list of apps then; user, 2026-11-10).
 // Sits right of the workspaces (Bar.qml); nothing hangs off it, so showing it never moves another island.
 // Fades in and out in Theme.motion.fast. A click opens the list of apps (PrivacyPopup.qml).
 // Own implementation; idea after DankMaterialShell quickshell/Modules/DBar/Widgets/PrivacyIndicator.qml (MIT):
@@ -8,13 +10,14 @@
 
 import QtQuick
 import qs.singletons.privacy
+import qs.singletons.recording
 import qs.singletons.theme
 
 Island {
     id: root
 
     spacing: Theme.privacy.labelGap
-    opacity: Privacy.active ? 1 : 0
+    opacity: Privacy.active || Recording.active ? 1 : 0
     visible: opacity > 0 // no clicks on a hidden dot
 
     Behavior on opacity {
@@ -23,7 +26,7 @@ Island {
         }
     }
 
-    onClicked: popup.toggle()
+    onClicked: Recording.active ? Recording.stop() : popup.toggle()
 
     Rectangle {
         id: dot
@@ -35,7 +38,7 @@ Island {
     }
 
     Text {
-        text: Theme.privacy.labelText
+        text: Recording.active ? Recording.elapsedText : Theme.privacy.labelText
         font: metrics.font
         color: Theme.privacy.label
         // the middle of the capitals (baseline to the top of "R") on the dot's middle, not the middle of the line
@@ -44,8 +47,16 @@ Island {
         anchors.baseline: dot.verticalCenter
         anchors.baselineOffset: Math.round(metrics.tightBoundingRect("R").height / 2)
         // as wide as the drawn letters: a monospace cell is wider than "c", and its empty end made the right padding
-        // 4 px bigger than the left one (user, 2026-11-10; measured 15 vs 19 px)
-        width: Math.ceil(metrics.tightBoundingRect(text).right)
+        // 4 px bigger than the left one (user, 2026-11-10; measured 15 vs 19 px). The time is measured with every
+        // digit as 0, so the island keeps its width while the seconds run (ticket cb40) and changes only from "Rec"
+        // to the time and when the time gains a digit — then smoothly, in Theme.motion.fast.
+        width: Math.ceil(metrics.tightBoundingRect(Recording.widthTemplate(text)).right)
+
+        Behavior on width {
+            NumberAnimation {
+                duration: Theme.motion.fast
+            }
+        }
     }
 
     FontMetrics {

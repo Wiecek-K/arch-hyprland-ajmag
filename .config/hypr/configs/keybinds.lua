@@ -35,7 +35,8 @@ bind(M .. " + Space", "Toggle floating", dsp.window.float())
 bind(M .. " + D", "App launcher", exec(v.menu))
 bind(M .. " + O", "Toggle pseudotile", dsp.window.pseudo()) -- dwindle
 bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
-bind(M .. " + R", "Restart Ajmashell", exec("systemctl --user restart " .. v.shellService))
+bind(M .. " + SHIFT + R", "Restart Ajmashell", exec("systemctl --user restart " .. v.shellService)) -- było SUPER+R (ticket cb40)
+bind(M .. " + R", "Screen recording", exec(v.scripts .. "/screen-record.sh")) -- start/stop, monitor z fokusem, dźwięk systemu (ticket cb40)
 bind(M .. " + B", "Web browser", focusOrRun("--browser", 'xdg-open "https://"')) -- domyślna przeglądarka
 bind(M .. " + L", "Power menu", exec(v.ipc .. "power toggle")) -- Ajmashell: Panel zasilania
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
