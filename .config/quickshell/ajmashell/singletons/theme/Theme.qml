@@ -241,6 +241,15 @@ Singleton {
         color: Qt.alpha(root.colors.shadow, 0.5)
     }
 
+    // Extras (singletons/extras, Theme Center's Fun tab; Theme Center 1.0.next ticket tc05). "Activate Linux"
+    // (extras/ActivateLinux.qml, Theme.activateLinux): the grey, half-transparent two lines of Windows' "Activate Windows" watermark in the
+    // bottom right corner, in our font; the colour follows the palette (on_surface: light in the dark scheme, like
+    // the original's grey on a dark desktop).
+    readonly property ActivateLinuxStyle activateLinux: ActivateLinuxStyle {
+        text: Qt.alpha(root.colors.on_surface, 0.5)
+        bodySize: root.font.sizeSmall
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkynsonMono Nerd Font" // same as Waybar
@@ -651,6 +660,16 @@ Singleton {
         property color subtext
         property color placeholder
         property color chord
+    }
+
+    component ActivateLinuxStyle: QtObject {
+        readonly property int titleSize: 24 // px; Windows: about twice the second line
+        property int bodySize
+        readonly property int weight: Font.Normal // Windows draws it thin, not in the Bar's bold
+        readonly property int lineGap: 2 // px between the two lines
+        readonly property int marginRight: 64 // px from the monitor's right edge
+        readonly property int marginBottom: 48 // px from the bottom edge (no taskbar under it here)
+        property color text
     }
 
     component OsdStyle: QtObject {

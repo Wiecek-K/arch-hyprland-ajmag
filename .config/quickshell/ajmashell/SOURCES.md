@@ -37,6 +37,7 @@ The file headers name the exact source file and commit.
 | [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) | GPL-3.0 | theme loader (`FileView` on matugen JSON), unread badge on the bell, control centre sliders, OSD, calculator through `qalc`, shadow under the big popups (`RectangularShadow`) |
 | [caelestia-dots/shell](https://github.com/caelestia-dots/shell) | GPL-3.0 | control centre panel layout, power panel buttons, calendar month wheel |
 | [basecamp/omarchy](https://github.com/basecamp/omarchy) | MIT | keybinds viewer |
+| [hthienloc/dms-plugins](https://github.com/hthienloc/dms-plugins) `activateLinux` and the `activate_linux` example of [quickshell-examples](https://git.outfoxxed.me/quickshell/quickshell-examples) | MIT (dms-plugins) | "Activate Linux" watermark (`extras/ActivateLinux.qml`) |
 
 ## MIT notice (DankMaterialShell)
 

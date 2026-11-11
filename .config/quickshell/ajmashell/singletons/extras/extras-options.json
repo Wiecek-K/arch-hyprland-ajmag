@@ -1,0 +1,10 @@
+{
+  "_comment": "Extras of Ajmashell (Theme Center 1.0.next ticket tc05): jokes and small add-ons, each a switch in Theme Center's Fun tab, all off by default. The live file ~/.local/state/ajmashell/extras.json holds {name: true|false}; no file or a missing name = off. The one list for Extras.qml (extras.mjs) and extras_settings.py (Theme Center).",
+  "extras": [
+    {
+      "name": "activateLinux",
+      "title": "Activate Linux",
+      "description": "A parody of the \"Activate Windows\" watermark: two lines in the bottom right corner of every monitor, always on top, even over a fullscreen window. Clicks go through it; it cannot be moved or closed, only switched off here."
+    }
+  ]
+}
