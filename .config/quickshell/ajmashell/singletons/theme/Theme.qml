@@ -246,7 +246,7 @@ Singleton {
     // bottom right corner, in our font; the colour follows the palette (on_surface: light in the dark scheme, like
     // the original's grey on a dark desktop).
     readonly property ActivateLinuxStyle activateLinux: ActivateLinuxStyle {
-        text: Qt.alpha(root.colors.on_surface, 0.5)
+        text: Qt.alpha(root.colors.on_surface, 0.7) // user, 2026-11-12: 70% (was 0.5)
         bodySize: root.font.sizeSmall
     }
 
@@ -667,8 +667,8 @@ Singleton {
         property int bodySize
         readonly property int weight: Font.Normal // Windows draws it thin, not in the Bar's bold
         readonly property int lineGap: 2 // px between the two lines
-        readonly property int marginRight: 64 // px from the monitor's right edge
-        readonly property int marginBottom: 48 // px from the bottom edge (no taskbar under it here)
+        readonly property int marginRight: 96 // px from the monitor's right edge; user, 2026-11-12: further (was 64)
+        readonly property int marginBottom: 72 // px from the bottom edge (no taskbar under it here); was 48
         property color text
     }
 
