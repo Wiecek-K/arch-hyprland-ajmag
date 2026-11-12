@@ -163,9 +163,15 @@ Singleton {
         subtext: root.orbit.subtext
         track: Qt.alpha(root.orbit.text, root.orbit.softPill.idle) // empty part of a slider, idle row
         hover: Qt.alpha(root.orbit.text, root.orbit.softPill.hover) // row under the pointer
-        fill: root.orbit.tab // filled part of a slider, module switch while on, chosen device
+        fill: root.orbit.tab // module switch while on, chosen device (a slider: slider)
         fillText: root.orbit.tabText
+        // filled part of a slider and what lies on it (faza C ticket 33, user 2026-11-12: calmer than the tab colour;
+        // a light glow around it, so the dark fill stands out from the track)
+        slider: root.colors.secondary_container
+        sliderText: root.colors.on_secondary_container
+        sliderGlow: Qt.alpha(root.colors.on_secondary_container, 0.35)
         muted: root.bar.muted // filled part of a muted slider, like the Bar's muted volume island
+        mutedText: root.colors.on_error // icon and text on a muted slider's fill
         separator: Qt.alpha(root.orbit.text, 0.12)
         card: Qt.alpha(root.colors.surface_container_highest, 0.55) // faza C ticket 17, values of the prototype
         circle: Qt.alpha(root.orbit.text, 0.1)
@@ -582,7 +588,13 @@ Singleton {
         property color hover
         property color fill
         property color fillText
+        readonly property int sliderGlowBlur: 10 // px, glow around a slider's fill (left, top, bottom)
+    	readonly property int sliderGlowRight: 8 // px the glow reaches past the fill's right end (user, 2026-11-12)
+        property color slider
+        property color sliderText
+        property color sliderGlow
         property color muted
+        property color mutedText
         property color separator
         property color card // card of the apps in the audio popup
         property color circle // icon circle of a device that is not chosen
