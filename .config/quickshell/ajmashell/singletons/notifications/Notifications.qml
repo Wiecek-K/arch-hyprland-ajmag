@@ -236,8 +236,19 @@ Singleton {
         }
         const wanted = identifier || "default";
         const action = Array.from(n.actions).find(a => a.identifier === wanted);
-        if (wanted === "default")
-            focusApp(n); // only the click on the card: an action button (Confirm, Deny) must not move the focus
+        if (wanted === "default") {
+            // satty's saved screenshot: the file's folder instead of the app's window, which is gone (ticket c34)
+            const open = Logic.savedFileRequests({
+                appName: n.appName,
+                desktopEntry: n.desktopEntry,
+                body: n.body,
+                actions: Array.from(n.actions).map(a => a.identifier)
+            });
+            if (open.length > 0)
+                open.forEach(r => Hyprland.dispatch(r));
+            else
+                focusApp(n); // only the click on the card: an action button (Confirm, Deny) must not move the focus
+        }
         if (action)
             action.invoke(); // dismisses a non-resident notification itself
         if (!root.live[uid])

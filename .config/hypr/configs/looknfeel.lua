@@ -72,7 +72,10 @@ hl.config({
         force_default_wallpaper    = 0,
         disable_hyprland_logo      = true,
         focus_on_activate          = true,
-        initial_workspace_tracking = 2,
+        -- 1, nie 2 (ticket c34 fazy C, decyzja użytkownika 2026-11-12): token workspace'u startu dostaje tylko
+        -- pierwsze okno procesu. Przy 2 każde nowe okno Nautilusa (jeden proces na wszystkie okna) szło po cichu na
+        -- workspace, na którym Nautilus kiedyś wystartował, także po kliku w powiadomienie satty.
+        initial_workspace_tracking = 1,
         -- kolor tła pod tapetą: ewentualny flash przy reloadzie nie będzie czarny
         background_color           = c.surface,
         -- awaryjne `hyprctl keyword misc:allow_session_lock_restore 1` nie działa pod Lua → na stałe

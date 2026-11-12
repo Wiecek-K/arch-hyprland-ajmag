@@ -5,7 +5,7 @@
 // icon source rules from serpantinum notifications/types/Default.qml (idea only):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 
-import { focusRequest } from "../apps/apps.mjs";
+import { execRequest, focusRequest } from "../apps/apps.mjs";
 
 const LOW = 0; // NotificationUrgency.Low
 const CRITICAL = 2; // NotificationUrgency.Critical
@@ -262,4 +262,19 @@ export function senderWindow(windows, pids) {
 export function focusRequests(windows, pids, app) {
     const address = senderWindow(windows, pids) || appWindow(windows, app);
     return address ? [focusRequest(address)] : [];
+}
+
+// Click on satty's "File saved to '<path>'." (ticket c34, faza C): satty 0.22 sends no action and has no option for
+// one, and its window is gone (--early-exit), so the click opens the folder of the saved file, also after "Save as"
+// to another folder: the path in the body is where the file really is. xdg-open, so the default file manager
+// (inode/directory in ~/.config/mimeapps.list, Nautilus) opens it. actions: the identifiers; an app's own "default"
+// action wins. [] = not such a notification: the click focuses the app as before (ticket 32).
+const SATTY_SAVED = /^File saved to '(\/[\s\S]*)'\.$/; // [\s\S], not the s flag: qmllint cannot parse it
+
+export function savedFileRequests({ appName, desktopEntry, body, actions }) {
+    const fromSatty = (appName ?? "").toLowerCase() === "satty" || desktopEntry === "com.gabm.satty";
+    const path = fromSatty && !(actions ?? []).includes("default") ? SATTY_SAVED.exec(body ?? "")?.[1] : undefined;
+    if (!path)
+        return [];
+    return [execRequest(["xdg-open", path.slice(0, path.lastIndexOf("/")) || "/"])];
 }
