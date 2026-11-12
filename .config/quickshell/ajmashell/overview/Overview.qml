@@ -280,9 +280,50 @@ Scope {
 
                                 // live only while the overview is shown
                                 ScreencopyView {
+                                    id: capture
+                                    property bool paused: false // a moment without a source makes a new capture
+                                    property int attempts: 0 // restarts since the last frame
+                                    readonly property bool wanted: win.visible && thumb.visible
+
+                                    // Hyprland ends the capture when the window's buffer changes size (a window moved
+                                    // in or out of a workspace resizes the others there): "Ending recording due to
+                                    // screencopy failure" in qs log, and Quickshell drops hasContent without `stopped`
+                                    // (user's manual test 2026-11-12). Start it again, a few times while it gets no frame.
+                                    function restart(): void {
+                                        if (!wanted || attempts >= Theme.overview.captureAttempts)
+                                            return;
+                                        attempts++;
+                                        paused = true;
+                                        retry.restart();
+                                    }
+
                                     anchors.fill: parent
-                                    captureSource: win.visible && thumb.visible ? thumb.modelData.wayland : null
+                                    captureSource: wanted && !paused ? thumb.modelData.wayland : null
                                     live: true
+                                    onHasContentChanged: {
+                                        if (hasContent)
+                                            attempts = 0;
+                                        else
+                                            restart();
+                                    }
+                                    onStopped: restart()
+                                    onWantedChanged: attempts = 0
+
+                                    Timer {
+                                        id: retry
+                                        interval: Theme.overview.captureRetry
+                                        onTriggered: {
+                                            capture.paused = false;
+                                            check.restart();
+                                        }
+                                    }
+
+                                    Timer {
+                                        id: check
+                                        interval: Theme.overview.captureCheck
+                                        onTriggered: if (!capture.hasContent)
+                                            capture.restart()
+                                    }
                                 }
 
                                 Rectangle {
