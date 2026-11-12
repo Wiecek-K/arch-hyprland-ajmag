@@ -833,21 +833,33 @@ form .main-topBar-searchBar:placeholder-shown {
     justify-content: center;
 }
 
-.playback-bar__progress-time-elapsed {
+/* Time labels over the bar (faza C ticket 35): Spotify 1.3 dropped the class names, data-testid stays.
+   Two colours, no blend or shadow: dark (main) over the fill, light (text) over the track; theme.js sets
+   --time-fill-x (px from the label's left edge to the fill edge). Without it the whole label stays light.
+   The old " /" after the elapsed time is gone: the time <span> has `contain: size layout` and takes its width
+   from the label's 50 px, so `width: unset` collapsed the label and ::after wrapped to a new line. */
+.playback-bar [data-testid="playback-position"] {
     pointer-events: none;
-    width: unset;
 }
 
-.playback-bar__progress-time-elapsed::after {
-    content: " /";
-}
-
-.playback-bar__progress-time-elapsed,
-.main-playbackBarRemainingTime-container {
+.playback-bar [data-testid="playback-position"],
+.playback-bar [data-testid="playback-duration"] {
     z-index: 9;
     padding-top: 2px;
-    mix-blend-mode: difference;
-    color: var(--spice-button-active);
+    color: var(--spice-text);
+}
+
+.playback-bar [data-testid="playback-position"][style*="--time-fill-x"],
+.playback-bar [data-testid="playback-duration"][style*="--time-fill-x"] {
+    background-image: linear-gradient(90deg, var(--spice-main) var(--time-fill-x), var(--spice-text) var(--time-fill-x));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.playback-bar [data-testid="playback-position"][style*="--time-fill-x"] > span,
+.playback-bar [data-testid="playback-duration"][style*="--time-fill-x"] > span {
+    color: transparent;
 }
 
 .playback-progressbar-container {
