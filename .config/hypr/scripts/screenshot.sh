@@ -67,6 +67,12 @@ TMP_IMG="/tmp/satty_capture.png"
 grim -s "$MON_SCALE" -g "$GEOM" "$TMP_IMG"
 unfreeze
 
+# Frame in $primary around the picture (ticket c24, faza C, user 2026-11-12: "dorysuj ramkę"). The frame users liked
+# was slurp's border caught by grim while slurp faded out; that race is gone (layer rule slurp-no-anim), so the frame is
+# drawn here on purpose: 2 logical px x the monitor scale, outside the picture so it hides no content.
+FRAME_PX=$(awk -v s="$MON_SCALE" 'BEGIN { printf "%d", 2 * s + 0.5 }')
+magick "$TMP_IMG" -bordercolor "#$PRIMARY" -border "$FRAME_PX" "$TMP_IMG"
+
 # satty's Save does not create the directory ("Error while saving file: No such file or directory", ticket 23 faza C),
 # so make it here. Pictures folder from xdg-user-dir; without the command or a PICTURES entry it prints nothing or the
 # home directory, then ~/Pictures. install.sh (dotfiles repo) creates the same folder with the same rule: change both.
