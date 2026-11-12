@@ -89,6 +89,10 @@ hl.layer_rule({ name = "layerrule-10", match = { namespace = "ajmashell-power" }
 hl.layer_rule({ name = "layerrule-11", match = { namespace = "ajmashell-keybinds" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-11-12 (faza C ticket cb44): blur pod podglądem workspace'ów (pudełko jak Keybinds); przy alfie wyglądu 1 zdejmuje go ajmashellBlurOff.
 hl.layer_rule({ name = "layerrule-12", match = { namespace = "ajmashell-overview" }, blur = true, ignore_alpha = 0.5 })
+-- 2026-11-12 (faza C ticket c24): slurp (namespace "selection") znika bez animacji. Z animacją fade jego nakładka
+-- wygasała jeszcze ~0,5 s po wyborze, a screenshot.sh robi grim od razu: na zrzut trafiała ramka slurpa i wypełnienie
+-- w kolorze $primary (kolorowy „backdrop” z ticketu c24).
+hl.layer_rule({ name = "slurp-no-anim", match = { namespace = "selection" }, no_anim = true })
 -- 2026-10-07 (ticket 13): wygląd Ajmashella „fancy2” — Orbita i launcher z nieprzezroczystym tłem, bez bluru
 -- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Od 2026-10-30 (faza E tickety 13 i 14): każdy wygląd z alfą tła 1 albo z flagą `blur` wyłączoną. Reguły wyłączone; włącza je shell przez
 -- `hyprctl eval 'require("configs.functions").ajmashellBlurOff(true)'` (singletons/look/BlurOff.qml).
