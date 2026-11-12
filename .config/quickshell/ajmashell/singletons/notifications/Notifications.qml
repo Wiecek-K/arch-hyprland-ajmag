@@ -238,14 +238,14 @@ Singleton {
         const action = Array.from(n.actions).find(a => a.identifier === wanted);
         if (wanted === "default") {
             // satty's saved screenshot: the file's folder instead of the app's window, which is gone (ticket c34)
-            const open = Logic.savedFileRequests({
+            const requests = Logic.savedFileRequests({
                 appName: n.appName,
                 desktopEntry: n.desktopEntry,
                 body: n.body,
                 actions: Array.from(n.actions).map(a => a.identifier)
             });
-            if (open.length > 0)
-                open.forEach(r => Hyprland.dispatch(r));
+            if (requests.length > 0)
+                requests.forEach(r => Hyprland.dispatch(r));
             else
                 focusApp(n); // only the click on the card: an action button (Confirm, Deny) must not move the focus
         }
