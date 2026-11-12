@@ -25,6 +25,7 @@ changes.
 | [Björn Ottosson, "A perceptual color space for image processing"](https://bottosson.github.io/posts/oklab/) (OKLab formulas) | public domain (the post: "The code is available in public domain"; MIT offered as an alternative) | `wallpaper/indexer.py` (`oklch_chroma`) |
 | [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)@`9dc5b2c`, Copyright (c) 2025 Avenge Media LLC | MIT (notice below) | `bar/workspaces.mjs` (`luaString`, `luaValue`) |
 | [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)@`4a51cd6`, Copyright (c) 2025 Avenge Media LLC | MIT (notice below) | `singletons/privacy/privacy.mjs` (privacy rules from `PrivacyService.qml`) |
+| [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)@`2f0c8bf`, Copyright (C) end-4 and contributors | GPL-3.0 (combined under GPL-3.0 section 13 with our AGPL-3.0-or-later) | `overview/Overview.qml`, `overview/overview.mjs` (workspace overview from `modules/ii/overview/OverviewWidget.qml` and `OverviewWindow.qml`) |
 
 ## Ideas only (own implementation, no code copied)
 

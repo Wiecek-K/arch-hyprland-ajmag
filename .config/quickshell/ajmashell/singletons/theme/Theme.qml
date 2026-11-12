@@ -233,6 +233,22 @@ Singleton {
         chord: root.colors.primary // the key column, so it reads apart from the description
     }
 
+    // Overview of workspaces (overview/Overview.qml, faza C ticket cb44, after end-4's overview): a 2×5 grid of
+    // workspaces 1-10 with live window thumbnails on the focused monitor, in a box like Keybinds (the look's
+    // background and flare, border of the launcher). Blur: rules.lua layerrule-12, off at the look's alpha 1.
+    readonly property OverviewStyle overview: OverviewStyle {
+        border: root.launcher.border
+        cell: Qt.alpha(root.colors.surface_container_high, 0.6) // an empty workspace reads apart from the box
+        cellDrop: Qt.alpha(root.colors.primary, 0.25) // the workspace under a dragged window or number
+        current: root.colors.primary // frame of the focused monitor's workspace
+        badge: root.launcher.field // the workspace's number (drag it onto another one to swap them)
+        badgeText: root.launcher.text
+        windowBorder: Qt.alpha(root.colors.outline, 0.5)
+        windowHover: Qt.alpha(root.colors.on_surface, 0.15)
+        windowPressed: Qt.alpha(root.colors.on_surface, 0.3)
+        windowEmpty: root.colors.surface_container_highest // under a thumbnail until its first frame
+    }
+
     // Shadow under the 7 big popups (look/LookShadow.qml, faza C ticket 13): the values of the floating windows'
     // shadow in Hyprland (~/.config/hypr/configs/looknfeel.lua decoration.shadow, picked by the user 2026-11-08:
     // range 22, offset 0 4, colour rgba(00000080)). Hyprland's render_power has no counterpart in RectangularShadow.
@@ -660,6 +676,33 @@ Singleton {
         property color subtext
         property color placeholder
         property color chord
+    }
+
+    component OverviewStyle: QtObject {
+        readonly property real widthShare: 0.85 // the grid takes at most this share of the monitor's width…
+        readonly property real heightShare: 0.8 // …and of its height
+        readonly property int padding: 15 // box edge to the grid
+        readonly property int spacing: 10 // between workspaces
+        readonly property int radius: 15 // the box, as the launcher
+        readonly property int borderWidth: 2
+        readonly property int cellRadius: 10
+        readonly property int currentWidth: 2 // frame of the focused workspace
+        readonly property int windowRadius: 6
+        readonly property int iconSize: 32 // app icon in a thumbnail's corner (smaller thumbnails: a third of them)
+        readonly property int badgeSize: 30 // the workspace number, a circle in the cell's top left corner
+        readonly property int badgeMargin: 6
+        readonly property int badgeFontSize: 15
+        readonly property real otherMonitorOpacity: 0.4 // windows of the other monitor (end-4: 0.4)
+        property color border
+        property color cell
+        property color cellDrop
+        property color current
+        property color badge
+        property color badgeText
+        property color windowBorder
+        property color windowHover
+        property color windowPressed
+        property color windowEmpty
     }
 
     component ActivateLinuxStyle: QtObject {

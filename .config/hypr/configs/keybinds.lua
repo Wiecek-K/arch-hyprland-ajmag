@@ -45,6 +45,7 @@ bind(M .. " + W", "Change wallpaper", exec(v.ipc .. "wallpaper toggle")) -- karu
 bind(M .. " + P", "Media player popup", exec(v.ipc .. "media toggle")) -- Ajmashell: popup mediów na monitorze z fokusem (ticket c29)
 bind(M .. " + M", "Mute microphone", exec("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle")) -- jak XF86AudioMicMute (użytkownik 2026-11-09)
 bind(M .. " + K", "Keybinds", exec(v.ipc .. "keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
+bind(M .. " + Tab", "Workspace overview", exec(v.ipc .. "overview toggle")) -- Ajmashell: podgląd workspace'ów (faza C ticket cb44)
 bind(M .. " + SHIFT + Q", "Kill active window process", exec(v.scripts .. "/KillActiveProcess.sh"))
 bind(M .. " + C", "Color picker", exec("hyprpicker -a"))
 bind(M .. " + H", "Hide/show bar", exec(v.ipc .. "bar toggle"))

@@ -16,6 +16,7 @@ import qs.keybinds
 import qs.launcher
 import qs.notifications
 import qs.osd
+import qs.overview
 import qs.power
 import qs.wallpaper
 
@@ -50,6 +51,9 @@ ShellRoot {
 
     // Keybinds (ticket 20): SUPER+K and "Keybinds" in the launcher's app list, both over IPC
     Keybinds {}
+
+    // Overview of workspaces (faza C ticket cb44): SUPER+Tab over IPC
+    Overview {}
 
     // Extras (Theme Center 1.0.next ticket tc05): switched on in Theme Center's Fun tab, all off by default
     ActivateLinux {}
