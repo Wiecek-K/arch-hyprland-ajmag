@@ -3,13 +3,10 @@
 // the wheel moves it 5% per notch, a click on the icon fires iconClicked (mute).
 // Faza C ticket 33: the text has two colours, each letter by what lies under it — a second copy in the fill's text
 // colour, clipped to the fill (like GNOME / KDE progress bars), so it stays readable when the fill reaches it.
-// With `glow` (only the media popup's seek bar, user 2026-11-12) the fill has a light glow around it (RectangularShadow,
-// as look/LookShadow.qml): sliderGlowBlur px on the left, top and bottom, sliderGlowRight px past the round right end.
 // Own implementation; look after the sliders on end-4's right sidebar (B11 #12 screenshot, idea only;
 // ii/modules/ii/sidebarRight/QuickSliders.qml in https://github.com/end-4/dots-hyprland at 2f0c8bf, GPL-3.0).
 
 import QtQuick
-import QtQuick.Effects
 import qs.singletons.theme
 import "control.mjs" as Logic
 import "../bar/wheel.mjs" as Wheel
@@ -22,7 +19,6 @@ Item {
     property string text // percent at the right end
     property bool muted: false
     property bool iconClickable: true
-    property bool glow: false // light glow around the fill (faza C ticket 33: the media popup's seek bar only)
 
     signal moved(real position)
     signal iconClicked
@@ -42,19 +38,6 @@ Item {
         anchors.fill: parent
         radius: height / 2
         color: Theme.control.track
-    }
-
-    // glow around the fill, round at both ends like the fill (user, 2026-11-12: a glow cut off at the right end looked
-    // bad), but only sliderGlowRight px past its right end: `blur` is how many px the glow reaches past its source (Qt
-    // docs; spread stays 0), so the source is the fill shortened by the difference. Drawn before the track's text copy,
-    // so it does not tint the letters.
-    RectangularShadow {
-        width: Math.max(0, fill.width - (Theme.control.sliderGlowBlur - Theme.control.sliderGlowRight))
-        height: fill.height
-        radius: fill.radius
-        blur: Theme.control.sliderGlowBlur
-        color: Theme.control.sliderGlow
-        visible: root.glow && !root.muted
     }
 
     // the text's place, shared by both copies (whole pixels: no jump between them)

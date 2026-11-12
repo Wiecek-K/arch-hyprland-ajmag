@@ -332,7 +332,6 @@ PopupWindow {
                 enabled: root.time.seekable
                 opacity: enabled ? 1 : Theme.orbit.dimmed
                 iconClickable: false
-                glow: true // faza C ticket 33: only this slider glows (user, 2026-11-12)
                 icon: Logic.ICONS.music
                 position: root.time.fraction
                 text: dragging ? Logic.timeText(Logic.seekPosition(dragPosition, root.time.length), root.time.length) : root.time.text

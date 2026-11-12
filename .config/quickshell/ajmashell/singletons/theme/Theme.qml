@@ -165,11 +165,9 @@ Singleton {
         hover: Qt.alpha(root.orbit.text, root.orbit.softPill.hover) // row under the pointer
         fill: root.orbit.tab // module switch while on, chosen device; not the sliders (their fill: slider)
         fillText: root.orbit.tabText
-        // filled part of a slider and what lies on it (faza C ticket 33, user 2026-11-12: calmer than the tab colour;
-        // a light glow around it on the media popup's seek bar only, so the dark fill stands out from the track)
+        // filled part of a slider and what lies on it (faza C ticket 33, user 2026-11-12: calmer than the tab colour)
         slider: root.colors.secondary_container
         sliderText: root.colors.on_secondary_container
-        sliderGlow: Qt.alpha(root.colors.on_secondary_container, 0.35)
         muted: root.bar.muted // filled part of a muted slider, like the Bar's muted volume island
         mutedText: root.colors.on_error // icon and text on a muted slider's fill
         separator: Qt.alpha(root.orbit.text, 0.12)
@@ -588,11 +586,8 @@ Singleton {
         property color hover
         property color fill
         property color fillText
-        readonly property int sliderGlowBlur: 10 // px, glow around the media popup's seek bar fill (left, top, bottom)
-        readonly property int sliderGlowRight: 8 // px the glow reaches past the fill's right end (user, 2026-11-12)
         property color slider
         property color sliderText
-        property color sliderGlow
         property color muted
         property color mutedText
         property color separator
