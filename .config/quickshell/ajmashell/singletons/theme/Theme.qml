@@ -688,6 +688,7 @@ Singleton {
         readonly property int cellRadius: 10
         readonly property int currentWidth: 2 // frame of the focused workspace
         readonly property int windowRadius: 6
+        readonly property int windowBorderWidth: 1
         readonly property int iconSize: 32 // app icon in a thumbnail's corner (smaller thumbnails: a third of them)
         readonly property int badgeSize: 30 // the workspace number, a circle in the cell's top left corner
         readonly property int badgeMargin: 6

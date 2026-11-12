@@ -53,7 +53,11 @@ Scope {
         open = false;
     }
 
+    // the monitor the overview opened on: it stays there while open (focus moving to the other monitor does not move it)
+    property string monitorName: ""
+
     onOpenChanged: if (open) {
+        monitorName = Hyprland.focusedMonitor?.name ?? "";
         // lastIpcObject (position, size, floating, reserved band) is only as fresh as the last refresh
         Hyprland.refreshMonitors();
         Hyprland.refreshToplevels();
@@ -78,7 +82,7 @@ Scope {
     }
 
     readonly property var monitors: Hyprland.monitors.values.map(m => m.lastIpcObject)
-    readonly property var monitorIpc: monitors.find(m => m.name === Hyprland.focusedMonitor?.name) ?? null
+    readonly property var monitorIpc: monitors.find(m => m.name === monitorName) ?? null
 
     // a Hyprland window as a plain object for overview.mjs; lastIpcObject is re-read on every refresh
     function windowData(t: HyprlandToplevel): var {
@@ -108,7 +112,7 @@ Scope {
             id: win
 
             visible: root.open && root.monitorIpc !== null
-            screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? null
+            screen: Quickshell.screens.find(s => s.name === root.monitorName) ?? null
             // only the box plus the shadow's band (no anchors: Hyprland centres it), like Keybinds
             implicitWidth: box.width + 2 * Theme.shadow.margin
             implicitHeight: box.height + 2 * Theme.shadow.margin
@@ -122,13 +126,14 @@ Scope {
             // OnDemand + focus grab, as the launcher (Exclusive breaks the grab)
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
-            readonly property var area: root.monitorIpc ? Logic.usableArea(root.monitorIpc) : ({ x: 0, y: 0, width: 1, height: 1 })
-            readonly property var full: root.monitorIpc ? Logic.usableArea(Object.assign({}, root.monitorIpc, { reserved: [0, 0, 0, 0] })) : area
-            readonly property real scale: Logic.fitScale(area, full.width * Theme.overview.widthShare,
-                full.height * Theme.overview.heightShare, Theme.overview.spacing)
-            readonly property int cellWidth: Math.round(area.width * scale)
-            readonly property int cellHeight: Math.round(area.height * scale)
-            readonly property int currentWorkspace: Hyprland.focusedMonitor?.activeWorkspace?.id ?? -1
+            // the monitor's area without the Bar (a cell is a scaled copy of it) and the whole monitor (the limit)
+            readonly property var usable: root.monitorIpc ? Logic.usableArea(root.monitorIpc) : ({ x: 0, y: 0, width: 1, height: 1 })
+            readonly property var wholeMonitor: root.monitorIpc ? Logic.usableArea(Object.assign({}, root.monitorIpc, { reserved: [0, 0, 0, 0] })) : usable
+            readonly property real scale: Logic.fitScale(usable, wholeMonitor.width * Theme.overview.widthShare,
+                wholeMonitor.height * Theme.overview.heightShare, Theme.overview.spacing)
+            readonly property int cellWidth: Math.round(usable.width * scale)
+            readonly property int cellHeight: Math.round(usable.height * scale)
+            readonly property int currentWorkspace: Hyprland.monitors.values.find(m => m.name === root.monitorName)?.activeWorkspace?.id ?? -1
 
             function cellX(workspace: int): int {
                 return (Logic.cellOf(workspace)?.col ?? 0) * (cellWidth + Theme.overview.spacing);
@@ -252,7 +257,7 @@ Scope {
                                 height: thumb.height
                                 radius: Theme.overview.windowRadius
                                 color: Theme.overview.windowEmpty
-                                border.width: 1
+                                border.width: Theme.overview.windowBorderWidth
                                 border.color: Theme.overview.windowBorder
 
                                 Drag.active: thumb.dragged
