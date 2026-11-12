@@ -1,4 +1,4 @@
-// Background of the 7 big popups (faza E ticket 14, ADR 0021): the one place that draws it, under the popup's
+// Background of the 8 big popups (faza E ticket 14, ADR 0021): the one place that draws it, under the popup's
 // content. The look's background (Look.background), or the look's gradient over it (GradientFill.qml) when its style
 // is not "off". The popup's own box stays transparent: `color: Theme.transparent` + `LookBackground {}`.
 // The shadow under the popups (ticket C13) is look/LookShadow.qml, beside the box: a ClippingRectangle would cut it here.

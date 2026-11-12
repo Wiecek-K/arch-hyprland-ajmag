@@ -249,7 +249,7 @@ Singleton {
         windowEmpty: root.colors.surface_container_highest // under a thumbnail until its first frame
     }
 
-    // Shadow under the 7 big popups (look/LookShadow.qml, faza C ticket 13): the values of the floating windows'
+    // Shadow under the 8 big popups (look/LookShadow.qml, faza C ticket 13): the values of the floating windows'
     // shadow in Hyprland (~/.config/hypr/configs/looknfeel.lua decoration.shadow, picked by the user 2026-11-08:
     // range 22, offset 0 4, colour rgba(00000080)). Hyprland's render_power has no counterpart in RectangularShadow.
     // Drawn only outside the box, like Hyprland's: a translucent look keeps its background colour.
