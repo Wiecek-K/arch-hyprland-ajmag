@@ -4,6 +4,7 @@ bruno-bin
 hyprcap
 jstest-gtk-git
 lib32-nvidia-580xx-utils
+nautilus-open-any-terminal
 neofetch
 ngrok
 nvidia-580xx-dkms

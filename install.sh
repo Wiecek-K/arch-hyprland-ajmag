@@ -113,6 +113,8 @@ cp -r "local/share/icons/Vimix-hyprcursor" "$HOME/.local/share/icons/"
 cp -r "local/share/icons/Vimix-cursors"    "$HOME/.local/share/icons/"
 gsettings set org.gnome.desktop.interface cursor-theme 'Vimix-cursors'
 gsettings set org.gnome.desktop.interface cursor-size 24
+# Nautilus: "Open in Terminal" in the right-click menu opens kitty (nautilus-open-any-terminal, AUR)
+gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty 2>/dev/null || true
 
 # 7. Permissions & Fixes
 chmod +x $HOME/.config/hypr/scripts/*.sh
