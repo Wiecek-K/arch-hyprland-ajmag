@@ -17,6 +17,12 @@ popover.menu modelbutton {
     border-radius: 10px;
 }
 
+/* Inner padding of the menu box: user asked for a bit more than libadwaita's 6px (2026-11-13, ticket C36). */
+popover.menu > contents > stack > box,
+popover.menu > contents > scrolledwindow > viewport > stack > box {
+    padding: 10px;
+}
+
 * {
     --accent-color: @accent_color;
     --accent-bg-color: @accent_color;
