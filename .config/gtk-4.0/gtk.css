@@ -1,8 +1,20 @@
 @import 'colors.css';
 
-window, dialog, .background {
+/* GtkPopover also carries .background: without :not(popover) this paints the whole popover node, including its
+   shadow margin, as a square box behind the rounded menu (ticket C36). Popovers take @popover_bg_color on contents. */
+window, dialog, .background:not(popover) {
     background-color: @window_bg_color;
     color: @window_fg_color;
+}
+
+/* Popover corners as the Ajmashell tray menu (bar/TrayMenu.qml): box Theme.radius.lg, row Theme.radius.sm.
+   libadwaita 1.10 defaults: 15px and 9px (ticket C36). */
+popover > contents {
+    border-radius: 20px;
+}
+
+popover.menu modelbutton {
+    border-radius: 10px;
 }
 
 * {
