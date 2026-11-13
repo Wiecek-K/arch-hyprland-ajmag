@@ -70,7 +70,10 @@
         const barStyle = getComputedStyle(bar);
         // A gradient fill (two or more stops), else a flat background-color fill.
         let stops = colours(barStyle.backgroundImage);
-        if (stops.length < 2) stops = colours(barStyle.backgroundColor).filter(c => c[3] > 0).map(c => [c, c]).flat();
+        if (stops.length < 2) {
+            const [flat] = colours(barStyle.backgroundColor);
+            stops = flat && flat[3] > 0 ? [flat, flat] : [];
+        }
         const page = getComputedStyle(document.documentElement);
         const main = colours(`rgb(${page.getPropertyValue("--spice-rgb-main")})`)[0];
         const text = colours(`rgb(${page.getPropertyValue("--spice-rgb-text")})`)[0];
