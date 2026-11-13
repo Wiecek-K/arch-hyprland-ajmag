@@ -83,7 +83,9 @@ fi
 SHOT_DIR="$PICTURES_DIR/Screenshots"
 mkdir -p "$SHOT_DIR"
 
-# satty-logged.sh records runs and freezes in ~/.local/state/satty/satty.log
+# satty runs directly. Until ticket 21 (faza C) it ran through satty-logged.sh, a log for the freeze on the old laptop's
+# NVIDIA driver (known issue 01 in the migration project); 131 runs on the desktop without a freeze, so the log went.
+# On a freeze with NVIDIA again: restore satty-logged.sh from the dotfiles history (tag ticket-c21-start).
 # exec_cmd runs the command through a shell: %q keeps a path with spaces as one argument.
-SATTY_CMD="$HOME/.config/hypr/scripts/satty-logged.sh --filename $TMP_IMG --early-exit --copy-command wl-copy --output-filename $(printf '%q' "$SHOT_DIR/satty-$(date '+%Y%m%d-%H%M%S').png")"
+SATTY_CMD="satty --filename $TMP_IMG --early-exit --copy-command wl-copy --output-filename $(printf '%q' "$SHOT_DIR/satty-$(date '+%Y%m%d-%H%M%S').png")"
 hyprctl dispatch "hl.dsp.exec_cmd([[$SATTY_CMD]], { float = true, move = { $LOCAL_X, $LOCAL_Y } })"
