@@ -8,7 +8,7 @@ window, dialog, .background:not(popover) {
 }
 
 /* Popover corners as the Ajmashell tray menu (bar/TrayMenu.qml): box Theme.radius.lg, row Theme.radius.sm.
-   libadwaita 1.10 defaults: 15px and 9px (ticket C36). */
+   libadwaita 1.10 defaults: 15px and 9px (ticket C36). GTK CSS cannot read Theme: keep both values in sync by hand. */
 popover > contents {
     border-radius: 20px;
 }
