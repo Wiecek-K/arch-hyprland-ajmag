@@ -13,6 +13,7 @@
 (function playbackTimeSplit() {
     const LABELS = '.playback-bar [data-testid="playback-position"], .playback-bar [data-testid="playback-duration"]';
     const BAR = '.playback-bar [data-testid="progress-bar"]';
+    const FILL_DEFAULT = "var(--spice-main)";  // also the fallback in user.css
 
     // "a(...), b(...)" -> ["a(...)", "b(...)"]: split a background-image list at top-level commas.
     function layers(value) {
@@ -62,21 +63,23 @@
         return colour;
     }
 
-    // var(--spice-main) or var(--spice-text) for text over the fill at viewport x.
-    function fillTextColour(bar, barRect, x) {
+    // Returns x => var(--spice-main) or var(--spice-text) for text over the fill at viewport x. Reads the styles once
+    // per update(); the label's centre picks the point (a label half over the fill still gets one colour).
+    function fillTextColourAt(bar, barRect) {
         const stops = colours(getComputedStyle(bar).backgroundImage);
-        if (stops.length < 2) return "var(--spice-main)";
-        const t = Math.min(1, Math.max(0, (x - barRect.left) / barRect.width));
-        const first = stops[0], last = stops[stops.length - 1];
-        const fill = over(first.map((v, i) => v + (last[i] - v) * t), backdrop(bar));
-        const root = getComputedStyle(document.documentElement);
-        const main = colours(`rgb(${root.getPropertyValue("--spice-rgb-main")})`)[0];
-        const text = colours(`rgb(${root.getPropertyValue("--spice-rgb-text")})`)[0];
-        if (!main || !text) return "var(--spice-main)";
-        return contrast(text, fill) > contrast(main, fill) ? "var(--spice-text)" : "var(--spice-main)";
+        const page = getComputedStyle(document.documentElement);
+        const main = colours(`rgb(${page.getPropertyValue("--spice-rgb-main")})`)[0];
+        const text = colours(`rgb(${page.getPropertyValue("--spice-rgb-text")})`)[0];
+        if (stops.length < 2 || !main || !text) return () => FILL_DEFAULT;
+        const first = stops[0], last = stops[stops.length - 1], below = backdrop(bar);
+        return (x) => {
+            const t = Math.min(1, Math.max(0, (x - barRect.left) / barRect.width));
+            const fill = over(first.map((v, i) => v + (last[i] - v) * t), below);
+            return contrast(text, fill) > contrast(main, fill) ? "var(--spice-text)" : FILL_DEFAULT;
+        };
     }
 
-    function set(label, name, value) {
+    function setIfChanged(label, name, value) {
         if (label.style.getPropertyValue(name) !== value) label.style.setProperty(name, value);
     }
 
@@ -93,20 +96,20 @@
         }
         const barRect = bar.getBoundingClientRect();
         const fillEdge = barRect.left + barRect.width * progressPct / 100;
-        for (const label of labels) {
-            const labelRect = label.getBoundingClientRect();
-            set(label, "--time-fill-x", `${(fillEdge - labelRect.left).toFixed(1)}px`);
-            set(label, "--time-fill-colour", fillTextColour(bar, barRect, labelRect.left + labelRect.width / 2));
-        }
+        const colourAt = fillTextColourAt(bar, barRect);
+        // Read every rect first, then write: no forced layout between the labels.
+        const rects = [...labels].map(label => label.getBoundingClientRect());
+        labels.forEach((label, i) => {
+            setIfChanged(label, "--time-fill-x", `${(fillEdge - rects[i].left).toFixed(1)}px`);
+            setIfChanged(label, "--time-fill-colour", colourAt(rects[i].left + rects[i].width / 2));
+        });
     }
 
     // Progress, seeking, a wider time text ("9:59" -> "10:00", remaining "-1:23") and a re-rendered bar all change
     // something under the now-playing bar. Our own --time-fill-x writes are style changes too; update() skips equal
     // values, so the observer settles after one extra call.
     let root = null;
-    const observer = new MutationObserver(() => {
-        update();
-    });
+    const observer = new MutationObserver(() => update());
     function attach() {
         observer.disconnect();
         root = document.querySelector(".Root__now-playing-bar");
