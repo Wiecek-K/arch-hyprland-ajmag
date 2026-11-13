@@ -7,8 +7,9 @@
 // The fill has no CSS transition (user.css), so the split jumps together with it.
 // Text colour over the fill (user's request 2026-11-13): --spice-main or --spice-text, whichever has the higher
 // WCAG contrast with the fill under the label's centre. The fill colour is read from the computed styles: the bar's
-// gradient at that point over the backgrounds behind the bar. With the default palette recipe main always wins
-// (109 palettes); the check matters for other recipes (scheme, contrast, lightness in Theme Center).
+// background (a gradient at that point, or a flat colour) over the backgrounds behind the bar. With the
+// secondary_container fill and the default palette recipe text always wins (109 palettes, min 7.7:1); the check
+// matters for other recipes (scheme, contrast, lightness in Theme Center) and another fill colour.
 // Keep the selectors in sync with the "Time labels over the bar" rules in user.css.
 (function playbackTimeSplit() {
     const LABELS = '.playback-bar [data-testid="playback-position"], .playback-bar [data-testid="playback-duration"]';
@@ -66,7 +67,10 @@
     // Returns x => var(--spice-main) or var(--spice-text) for text over the fill at viewport x. Reads the styles once
     // per update(); the label's centre picks the point (a label half over the fill still gets one colour).
     function fillTextColourAt(bar, barRect) {
-        const stops = colours(getComputedStyle(bar).backgroundImage);
+        const barStyle = getComputedStyle(bar);
+        // A gradient fill (two or more stops), else a flat background-color fill.
+        let stops = colours(barStyle.backgroundImage);
+        if (stops.length < 2) stops = colours(barStyle.backgroundColor).filter(c => c[3] > 0).map(c => [c, c]).flat();
         const page = getComputedStyle(document.documentElement);
         const main = colours(`rgb(${page.getPropertyValue("--spice-rgb-main")})`)[0];
         const text = colours(`rgb(${page.getPropertyValue("--spice-rgb-text")})`)[0];

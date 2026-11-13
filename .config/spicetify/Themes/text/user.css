@@ -893,7 +893,10 @@ form .main-topBar-searchBar:placeholder-shown {
     --progress-bar-radius: 8px !important;
     --fg-color: var(--spice-button-active);
     --bg-color: var(--spice-button-disabled);
-    background-image: linear-gradient(90deg, rgba(var(--spice-rgb-border-active), 0.6) 0%, rgba(var(--spice-rgb-button-active), 0.6) 100%) !important;
+    /* Fill: flat secondary_container, like Ajmashell's sliders (faza C ticket 35, user's choice 2026-11-13;
+       was a border-active -> button-active gradient at 60 %). The track is .x-progressBar-fillColor::after. */
+    background-image: none !important;
+    background-color: var(--spice-secondary-container) !important;
     border-radius: 8px !important;
     overflow: hidden !important; 
 }
