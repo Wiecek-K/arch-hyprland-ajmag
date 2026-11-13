@@ -837,10 +837,23 @@ form .main-topBar-searchBar:placeholder-shown {
    Two colours, no blend or shadow: over the fill main or text, whichever contrasts more with the fill
    (--time-fill-colour, default main), light (text) over the track; theme.js sets both and --time-fill-x
    (px from the label's left edge to the fill edge). Without --time-fill-x the whole label stays light.
-   The old " /" after the elapsed time is gone: the time <span> has `contain: size layout` and takes its width
-   from the label's 50 px, so `width: unset` collapsed the label and ::after wrapped to a new line. */
+   Separator "/" after the elapsed time: an absolute ::after, because the time <span> is a block with
+   `contain: size layout` (an inline ::after wraps to a new line, `width: unset` collapses the label to 9 px).
+   Its box starts at the label's left edge, so the same --time-fill-x splits its colour; "/" sits in the middle
+   of the gap: Spotify's 8 px flex gap + margin-right 2ch, "/" is 1ch wide (mono font). */
 .playback-bar [data-testid="playback-position"] {
     pointer-events: none;
+    margin-right: 2ch;
+}
+
+.playback-bar [data-testid="playback-position"]::after {
+    content: "/";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: calc(-4px - 1.5ch);
+    padding-top: 0;  /* the label's padding-top does not move its <span> (top edge measured equal) */
+    text-align: right;
 }
 
 .playback-bar [data-testid="playback-position"],
@@ -853,6 +866,13 @@ form .main-topBar-searchBar:placeholder-shown {
 .playback-bar [data-testid="playback-position"][style*="--time-fill-x"],
 .playback-bar [data-testid="playback-duration"][style*="--time-fill-x"] {
     background-image: linear-gradient(90deg, var(--time-fill-colour, var(--spice-main)) var(--time-fill-x), var(--spice-text) var(--time-fill-x));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.playback-bar [data-testid="playback-position"][style*="--time-fill-x"]::after {
+    background-image: inherit;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
