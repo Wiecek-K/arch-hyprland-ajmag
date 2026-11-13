@@ -20,7 +20,7 @@ hl.window_rule({
     size    = { 900, 506 },
 })
 hl.window_rule({ name = "windowrule-2", match = { tag = "settings*" }, opacity = "0.8 override 0.8 override", float = true })
-hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.9 override 0.7 override" })
+hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.9 override 0.85 override" }) -- unfocused 5 points under focused (user, 2026-11-13; was 0.7)
 hl.window_rule({ name = "windowrule-4", match = { class = "^(org.gnome.TextEditor|mousepad)$" }, opacity = "0.9 override 0.9 override" })
 -- Mikser awaryjny: hyprpwcenter (ticket 23, użytkownik 2026-10-18; pavucontrol usunięty)
 hl.window_rule({
