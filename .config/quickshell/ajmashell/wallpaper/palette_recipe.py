@@ -16,7 +16,7 @@
 #
 # Usage: palette_recipe.py [--file PATH] flags seed      seed-choice flags for `matugen image`, one per line
 #        palette_recipe.py [--file PATH] flags palette   palette flags, one per line (none for the starting values)
-#        palette_recipe.py [--file PATH] fingerprint     short hash of the validated recipe
+#        palette_recipe.py [--file PATH] fingerprint     short hash of the validated recipe and the fallback seed
 # Tests: ~/Projects/hyprland-lua-migration/tools/test-palette-recipe.py
 
 import contextlib
@@ -36,6 +36,12 @@ SCHEMES = ("scheme-tonal-spot", "scheme-vibrant", "scheme-expressive", "scheme-c
 # Not rules (ADR 0019, decision 2): a fixed candidate position (gives a random background colour on most wallpapers)
 # and closest-to-fallback (needs a fixed colour).
 SEED_RULES = ("dominant", "darkness", "lightness", "saturation", "less-saturation", "value")
+# Seed of a wallpaper without any colour (faza C ticket 37, user, 2026-11-14): matugen keeps no candidate below about
+# HCT chroma 5 and then falls back to MCU's Google Blue #4285f4, so a black-and-white wallpaper made the whole system
+# blue. A light warm grey instead; with scheme-content (the user's recipe) it gives primary #fef9fe, a white, and the
+# Gray category. Not a recipe field: one colour for every recipe, so Theme Center needs no control for it. With
+# scheme-tonal-spot the same seed gives a gold primary (that scheme sets the chroma itself).
+FALLBACK_SEED = "#e3dfd3"
 # Accepted ranges of matugen 4.2.0 (`matugen --help`)
 RANGES = {"contrast": (-1.0, 1.0), "lightnessDark": (-math.inf, 1.0)}
 # Starting values = the flags wpapply.sh and indexer.py used before faza E (matugen 4.2.0 defaults for the palette);
@@ -186,7 +192,12 @@ def seed_flags(recipe):
     """Flags for choosing the seed among the candidates (`matugen image` only): always exactly one rule. With both
     --source-color-index and --prefer matugen 4.2.0 takes the index; with neither it asks interactively."""
     rule = recipe["seed"]["rule"]
-    return ["--source-color-index", "0"] if rule == "dominant" else ["--prefer", rule]
+    return (["--source-color-index", "0"] if rule == "dominant" else ["--prefer", rule]) + fallback_flags()
+
+
+def fallback_flags():
+    """The seed matugen takes when the image has no colour good enough for a candidate (FALLBACK_SEED)."""
+    return ["--fallback-color", FALLBACK_SEED]
 
 
 def palette_flags(recipe):
@@ -205,8 +216,8 @@ def palette_flags(recipe):
 
 
 def fingerprint(recipe):
-    """Hash of the validated recipe: the file's formatting and key order do not change it."""
-    canon = json.dumps(recipe, sort_keys=True, separators=(",", ":"))
+    """Hash of the validated recipe and the fallback seed: the file's formatting and key order do not change it."""
+    canon = json.dumps({**recipe, "fallbackSeed": FALLBACK_SEED}, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canon.encode()).hexdigest()[:16]
 
 
