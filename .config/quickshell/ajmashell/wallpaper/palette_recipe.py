@@ -40,7 +40,8 @@ SEED_RULES = ("dominant", "darkness", "lightness", "saturation", "less-saturatio
 # HCT chroma 5 and then falls back to MCU's Google Blue #4285f4, so a black-and-white wallpaper made the whole system
 # blue. A light warm grey instead; with scheme-content (the user's recipe) it gives primary #fef9fe, a white, and the
 # Gray category. Not a recipe field: one colour for every recipe, so Theme Center needs no control for it. With
-# scheme-tonal-spot the same seed gives a gold primary (that scheme sets the chroma itself).
+# scheme-tonal-spot the same seed gives a gold primary (that scheme sets the chroma itself). wpapply.sh keeps a copy
+# for when this module fails to run; change both together.
 FALLBACK_SEED = "#e3dfd3"
 # Accepted ranges of matugen 4.2.0 (`matugen --help`)
 RANGES = {"contrast": (-1.0, 1.0), "lightnessDark": (-math.inf, 1.0)}
