@@ -24,3 +24,7 @@ wallpapers/
 
 # Written by the Bitwarden app itself ("start on login"), not part of this config
 .config/autostart/bitwarden.desktop
+
+# matugen-generated Qt colour schemes (qt5ct, qt6ct)
+.config/qt5ct/colors/
+.config/qt6ct/colors/
