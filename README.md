@@ -46,6 +46,7 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 There is no installer: this repo is a set of files to copy. It assumes a working Arch Linux with Hyprland; drivers and everyday applications stay your choice.
 
 ### 0. Before You Start
+*   Start Hyprland through uwsm (the "Hyprland (uwsm-managed)" session in your display manager, or `uwsm start hyprland.desktop` from a TTY): Ajmashell is a systemd user service and gets the session's variables from uwsm.
 *   Update the system first (`sudo pacman -Syu`): with an old package database the mirrors answer 404 and the install fails.
 *   AUR packages need an AUR helper, e.g. [yay](https://github.com/Jguer/yay).
 *   Ajmashell is the notification daemon, the bar and the launcher. Another notification daemon takes the notifications before it, so remove it if you have one (`dunst`, `mako`, `swaync`; the archinstall Hyprland profile installs `dunst`). Bars and launchers like Waybar or wofi can stay installed, but take them out of your autostart.
@@ -103,8 +104,14 @@ fi
 sudo cp -r zen/opt/. /opt/zen-browser-bin/
 ```
 
-### 6. Spotify with Spicetify (optional)
-Spicetify themes Spotify with the wallpaper colours (theme `text`, extension `live-colors.js` from `.config/spicetify`). The order matters:
+### 6. First Run
+1.  Log out and back in (or reboot). With more than one monitor, or a wrong resolution, set the layout in `nwg-displays` (see Monitor Configuration below).
+2.  Put wallpapers in `~/Pictures/wallpapers` (`mkdir -p ~/Pictures/wallpapers`): your own images, or my curated set from [Google Drive](https://drive.google.com/drive/folders/1jm_ue4uFqiIk5MdADcdGHq6Q86uCa-s4) (`CREDITS.md` there lists the authors). Drive downloads the folder as a zip; unzip it and move the images straight into `~/Pictures/wallpapers`, because the carousel does not look into subfolders.
+3.  Press `Super + W` to pick a wallpaper; this generates the first colour scheme.
+4.  Restart Zen once, so it loads the files from step 5.
+
+### 7. Spotify with Spicetify (optional)
+Spicetify themes Spotify with the wallpaper colours (theme `text`, extension `live-colors.js` from `.config/spicetify`). Do it after the first wallpaper (step 6): Matugen writes the theme's colours then. The order matters:
 ```bash
 spotify    # start it once, log in, close it: this creates ~/.config/spotify/prefs
 spicetify config current_theme text color_scheme Spicetify extensions live-colors.js overwrite_assets 1
@@ -112,12 +119,6 @@ sudo chmod a+wr /opt/spotify && sudo chmod a+wr -R /opt/spotify/Apps
 spicetify backup apply
 ```
 After a Spotify update run the last two lines again (the `.zshrc` function `my-fix-spicetify` does it). Without Spicetify nothing else changes.
-
-### 7. First Run
-1.  Log out and back in (or reboot).
-2.  Put wallpapers in `~/Pictures/wallpapers`: your own images, or my curated set from [Google Drive](https://drive.google.com/drive/folders/1jm_ue4uFqiIk5MdADcdGHq6Q86uCa-s4) (`CREDITS.md` there lists the authors). Drive downloads the folder as a zip; unzip it and move the images straight into `~/Pictures/wallpapers`, because the carousel does not look into subfolders.
-3.  Press `Super + W` to pick a wallpaper; this generates the first colour scheme.
-4.  Restart Zen once, so it loads the files from step 5.
 
 ### 8. Theme Center (optional)
 [Ajmashell Theme Center](https://github.com/Wiecek-K/ajmashell-theme-center) is a separate app for tuning how the palette is picked from your wallpapers and the look of the big popups. It installs from its own repo:
