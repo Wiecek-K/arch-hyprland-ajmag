@@ -24,7 +24,7 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 
 ### 🎨 Visual Identity
 *   **Dynamic Theming:** System-wide colors generated from your wallpaper using `Matugen`.
-    *   *Affected apps:* Ajmashell (Quickshell), Hyprland borders, hyprlock, Kitty, GTK 3/4 apps, folder icons, Cava, Spotify (via Spicetify), Vesktop, Zen Browser (via userChrome.css).
+    *   *Affected apps:* Ajmashell (Quickshell), Hyprland borders, hyprlock, Kitty, GTK 3/4 apps, folder icons, Spotify (via Spicetify), Vesktop, Zen Browser (via userChrome.css).
 *   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Shell/Terminal/Code) for maximum readability.
 *   **High Visibility Mode** (window rules in `.config/hypr/configs/rules.lua`, active / inactive opacity):
     *   **Active Windows:** 100% opacity + 3px gradient border (primary → secondary). Other windows fade to 80% when inactive.

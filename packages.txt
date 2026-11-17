@@ -60,7 +60,6 @@ wireplumber              # wpctl
 libpulse                 # pactl: Bluetooth audio profiles, recording with system sound
 pamixer
 playerctl                # media keys
-cava                     # audio visualiser in the terminal, coloured by matugen
 
 # Network and Bluetooth
 networkmanager
