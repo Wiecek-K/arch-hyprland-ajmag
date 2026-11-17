@@ -28,3 +28,6 @@ wallpapers/
 # matugen-generated Qt colour schemes (qt5ct, qt6ct)
 .config/qt5ct/colors/
 .config/qt6ct/colors/
+
+# Machine file (GPU, driver workarounds): lives in each machine's private repo, loaded by hyprland.lua if present
+.config/hypr/host.lua
