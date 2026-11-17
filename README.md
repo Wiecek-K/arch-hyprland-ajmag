@@ -61,7 +61,7 @@ sudo systemctl enable --now bluetooth
 Lines tagged `optional` are not installed by these commands; add the ones you want by name.
 
 ### 3. Config Files
-The folders of the apps this config owns are moved aside first; every other file that would be overwritten keeps its old copy as `<name>.~1~`. `~/.config/hypr/monitors.lua` is yours (see Monitor Configuration below).
+The folders of the apps this config owns are moved aside first; every other file that would be overwritten keeps its old copy as `<name>.~1~`. Your machine files (`monitors.lua`, `host.lua`) move with the old `hypr` folder: copy them back into `~/.config/hypr/` (see Monitor Configuration below).
 ```bash
 for d in hypr quickshell kitty matugen spicetify; do [ -e ~/.config/$d ] && mv ~/.config/$d ~/.config/$d.bak.$(date +%s); done
 cp -r --backup=numbered .config/. ~/.config/
@@ -76,15 +76,19 @@ systemctl --user daemon-reload
 ```bash
 gsettings set org.gnome.desktop.interface cursor-theme 'Vimix-cursors'
 gsettings set org.gnome.desktop.interface cursor-size 24
-gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty
+gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty   # needs nautilus-open-any-terminal (AUR)
 ```
 
 ### 5. Zen Browser (optional)
-Profile files: find your profile on the `Default=` line of `~/.config/zen/installs.ini`, then:
+Start Zen once first, so it creates its profile (the `Default=` line of `~/.config/zen/installs.ini`). Then:
 ```bash
-PROFILE=~/.config/zen/"$(sed -n 's/^Default=//p' ~/.config/zen/installs.ini | head -n 1)"
-cp -r zen/profile/. "$PROFILE/"
-rm -rf ~/.local/state/ajmashell/zen-chrome && ln -s "$PROFILE/chrome" ~/.local/state/ajmashell/zen-chrome
+PROFILE=~/.config/zen/"$(sed -n 's/^Default=//p' ~/.config/zen/installs.ini 2>/dev/null | head -n 1)"
+if [ "$PROFILE" != ~/.config/zen/ ] && [ -d "$PROFILE" ]; then
+    cp -r --backup=numbered zen/profile/. "$PROFILE/"
+    rm -rf ~/.local/state/ajmashell/zen-chrome && ln -s "$PROFILE/chrome" ~/.local/state/ajmashell/zen-chrome
+else
+    echo "No Zen profile: start Zen once, then run these lines again"
+fi
 ```
 `user.js` turns on `userChrome.css`; the link is where Matugen writes Zen's colours. Live colours without a browser restart need two files in the browser's own folder (root, `sudo`); skip them and the colours change on the next Zen start:
 ```bash
