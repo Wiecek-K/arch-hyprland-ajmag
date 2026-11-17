@@ -24,8 +24,8 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 
 ### 🎨 Visual Identity
 *   **Dynamic Theming:** System-wide colors generated from your wallpaper using `Matugen`.
-    *   *Affected apps:* Ajmashell (Quickshell), Hyprland borders, hyprlock, Kitty, GTK 3/4 apps, folder icons, Spotify (via Spicetify), Vesktop, Zen Browser (via userChrome.css).
-*   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Shell/Terminal/Code) for maximum readability.
+    *   *Affected apps:* Ajmashell (Quickshell), Hyprland borders, hyprlock, Kitty, GTK 3/4 apps, folder icons, Spotify (via Spicetify, optional), Zen Browser (via userChrome.css, optional).
+*   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Shell/Terminal/Code) for maximum readability. In Nerd Fonts the mono family is called `AtkynsonMono Nerd Font` (package `otf-atkinsonhyperlegiblemono-nerd`); use that name if you set the font in another app.
 *   **High Visibility Mode** (window rules in `.config/hypr/configs/rules.lua`, active / inactive opacity):
     *   **Active Windows:** 100% opacity + 3px gradient border (primary → secondary). Other windows fade to 80% when inactive.
     *   **Text-Heavy Apps** stay readable when inactive: browsers and messengers (Zen, Firefox, Chromium, Discord/Vesktop, Telegram, Slack) 100% / 95%, notes (Obsidian, Logseq) 98% / 94%, code editors (VS Code, JetBrains, Gedit) 97% / 91%.
@@ -45,6 +45,11 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 
 There is no installer: this repo is a set of files to copy. It assumes a working Arch Linux with Hyprland; drivers and everyday applications stay your choice.
 
+### 0. Before You Start
+*   Update the system first (`sudo pacman -Syu`): with an old package database the mirrors answer 404 and the install fails.
+*   AUR packages need an AUR helper, e.g. [yay](https://github.com/Jguer/yay).
+*   Ajmashell is the notification daemon, the bar and the launcher. Another notification daemon takes the notifications before it, so remove it if you have one (`dunst`, `mako`, `swaync`; the archinstall Hyprland profile installs `dunst`). Bars and launchers like Waybar or wofi can stay installed, but take them out of your autostart.
+
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/Wiecek-K/arch-hyprland-ajmag.git
@@ -52,7 +57,7 @@ cd arch-hyprland-ajmag
 ```
 
 ### 2. Packages
-[`packages.txt`](packages.txt) lists what the config needs, grouped by the part that uses it. AUR packages need an AUR helper, e.g. [yay](https://github.com/Jguer/yay).
+[`packages.txt`](packages.txt) lists what the config needs, grouped by the part that uses it. The first command installs the official packages, the second the AUR ones.
 ```bash
 awk '!/^#/ && NF && !/AUR|optional/ {print $1}' packages.txt | sudo pacman -S --needed -
 awk '!/^#/ && /AUR/ && !/optional/ {print $1}' packages.txt | yay -S --needed -
@@ -73,7 +78,10 @@ systemctl --user daemon-reload
 `~/.local/state/ajmashell` holds the colours Matugen writes for the shell; it must exist before the first wallpaper is set.
 
 ### 4. Cursor and GTK Settings
+On Wayland GTK apps read these settings, not `settings.ini`. Without `prefer-dark` Zen and GTK 4 apps stay light (dark text on a dark background).
 ```bash
+gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+gsettings set org.gnome.desktop.interface font-name 'Atkinson Hyperlegible 12'
 gsettings set org.gnome.desktop.interface cursor-theme 'Vimix-cursors'
 gsettings set org.gnome.desktop.interface cursor-size 24
 gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty   # needs nautilus-open-any-terminal (AUR)
@@ -95,17 +103,35 @@ fi
 sudo cp -r zen/opt/. /opt/zen-browser-bin/
 ```
 
-### 6. First Run
+### 6. Spotify with Spicetify (optional)
+Spicetify themes Spotify with the wallpaper colours (theme `text`, extension `live-colors.js` from `.config/spicetify`). The order matters:
+```bash
+spotify    # start it once, log in, close it: this creates ~/.config/spotify/prefs
+spicetify config current_theme text color_scheme Spicetify extensions live-colors.js overwrite_assets 1
+sudo chmod a+wr /opt/spotify && sudo chmod a+wr -R /opt/spotify/Apps
+spicetify backup apply
+```
+After a Spotify update run the last two lines again (the `.zshrc` function `my-fix-spicetify` does it). Without Spicetify nothing else changes.
+
+### 7. First Run
 1.  Log out and back in (or reboot).
 2.  Put wallpapers in `~/Pictures/wallpapers`: your own images, or my curated set from [Google Drive](https://drive.google.com/drive/folders/1jm_ue4uFqiIk5MdADcdGHq6Q86uCa-s4) (`CREDITS.md` there lists the authors). Drive downloads the folder as a zip; unzip it and move the images straight into `~/Pictures/wallpapers`, because the carousel does not look into subfolders.
 3.  Press `Super + W` to pick a wallpaper; this generates the first colour scheme.
 4.  Restart Zen once, so it loads the files from step 5.
 
+### 8. Theme Center (optional)
+[Ajmashell Theme Center](https://github.com/Wiecek-K/ajmashell-theme-center) is a separate app for tuning how the palette is picked from your wallpapers and the look of the big popups. It installs from its own repo:
+```bash
+git clone https://github.com/Wiecek-K/ajmashell-theme-center.git ~/Projects/ajmashell-theme-center
+cd ~/Projects/ajmashell-theme-center && ./install.sh
+```
+Then start "Ajmashell Theme Center" from the launcher (`Super + D`). Its README lists what else it needs (`zenity` for its file dialogs).
+
 ---
 
 ## 🖥️ Monitor Configuration
 
-Monitor layout lives in `~/.config/hypr/monitors.lua`, generated by **`nwg-displays`** (GUI). It contains hardware-specific port names (e.g., `eDP-1`, `HDMI-A-2`), which differ on a new machine.
+Monitor layout lives in `~/.config/hypr/monitors.lua`, generated by **`nwg-displays`** (GUI). It contains hardware-specific port names (e.g., `DP-1`, `HDMI-A-2`), which differ on a new machine.
 
 *   The repo has no `monitors.lua`: until you save a layout in `nwg-displays`, Hyprland uses `preferred, auto` for every monitor.
 *   `hyprland.lua` loads the file with `pcall`, so a broken or missing file does not stop the config.
