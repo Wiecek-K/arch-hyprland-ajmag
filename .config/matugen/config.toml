@@ -58,7 +58,7 @@ post_hook = "setsid -f ~/.config/hypr/scripts/spicetify-apply.sh >/dev/null 2>&1
 
 [templates.zen]
 input_path = '~/.config/matugen/templates/zen-colors.css'
-# A link to the Zen profile's chrome folder (install.sh / README: ln -s "<profile>/chrome" ~/.local/state/ajmashell/zen-chrome)
+# A link to the Zen profile's chrome folder, made by install.sh: ln -s "<profile>/chrome" ~/.local/state/ajmashell/zen-chrome
 output_path = '~/.local/state/ajmashell/zen-chrome/matugen-colors.css'
 # Tells a running Zen to reload the file: /opt/zen-browser-bin/config.js listens on this socket (ticket 48).
 # A connection is enough; no Zen = no socket, socat fails quietly and the next start reads the file anyway.
