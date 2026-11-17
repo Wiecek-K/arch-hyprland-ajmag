@@ -97,8 +97,9 @@ sudo cp -r zen/opt/. /opt/zen-browser-bin/
 
 ### 6. First Run
 1.  Log out and back in (or reboot).
-2.  Press `Super + W` to pick a wallpaper; this generates the first colour scheme. Wallpapers are not part of this repo: put your own images in `~/Pictures/wallpapers`.
-3.  Restart Zen once, so it loads the files from step 5.
+2.  Put wallpapers in `~/Pictures/wallpapers`: your own images, or my curated set from [Google Drive](https://drive.google.com/drive/folders/1jm_ue4uFqiIk5MdADcdGHq6Q86uCa-s4) (`CREDITS.md` there lists the authors). Drive downloads the folder as a zip; unzip it and move the images straight into `~/Pictures/wallpapers`, because the carousel does not look into subfolders.
+3.  Press `Super + W` to pick a wallpaper; this generates the first colour scheme.
+4.  Restart Zen once, so it loads the files from step 5.
 
 ---
 
