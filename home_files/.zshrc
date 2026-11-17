@@ -27,7 +27,7 @@ source $ZSH/oh-my-zsh.sh
 [[ -f ~/.zprofile ]] && source ~/.zprofile
 
 # pnpm
-export PNPM_HOME="/home/ajmag/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -87,14 +87,31 @@ function my-sysclean() {
 # 3. Development Cleanup (Project post-mortem)
 # Usage: my-devclean
 function my-devclean() {
-    echo "--- [DEV] Cleaning NPM cache ---"
-    npm cache clean --force
+    # Each step runs only when its tool is installed (laptop: pip + Docker, desktop: uv + Podman)
+    if command -v npm > /dev/null; then
+        echo "--- [DEV] Cleaning NPM cache ---"
+        npm cache clean --force
+    fi
 
-    echo "--- [DEV] Purging PIP (Python) cache ---"
-    pip cache purge
+    if command -v pip > /dev/null; then
+        echo "--- [DEV] Purging PIP (Python) cache ---"
+        pip cache purge
+    fi
 
-    echo "--- [DEV] Pruning Docker (stopped containers, unused networks, dangling images) ---"
-    docker system prune
+    if command -v uv > /dev/null; then
+        echo "--- [DEV] Cleaning UV (Python) cache ---"
+        uv cache clean
+    fi
+
+    if command -v docker > /dev/null; then
+        echo "--- [DEV] Pruning Docker (stopped containers, unused networks, dangling images) ---"
+        docker system prune
+    fi
+
+    if command -v podman > /dev/null; then
+        echo "--- [DEV] Pruning Podman (stopped containers, unused networks, dangling images) ---"
+        podman system prune
+    fi
 
     echo "--- [DEV] Cleanup finished. ---"
 }
@@ -148,3 +165,5 @@ my-fix-spicetify() {
     
     echo "✅ Done! If Spotify is running, please restart it."
 }
+export PATH="$HOME/.local/bin:$PATH"
+
