@@ -75,7 +75,7 @@ magick "$TMP_IMG" -bordercolor "#$PRIMARY" -border "$FRAME_PX" "$TMP_IMG"
 
 # satty's Save does not create the directory ("Error while saving file: No such file or directory", ticket 23 faza C),
 # so make it here. Pictures folder from xdg-user-dir; without the command or a PICTURES entry it prints nothing or the
-# home directory, then ~/Pictures. install.sh (dotfiles repo) creates the same folder with the same rule: change both.
+# home directory, then ~/Pictures.
 PICTURES_DIR=$(xdg-user-dir PICTURES 2>/dev/null)
 if [ -z "$PICTURES_DIR" ] || [ "${PICTURES_DIR%/}" = "$HOME" ]; then
     PICTURES_DIR="$HOME/Pictures"

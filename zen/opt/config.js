@@ -1,7 +1,7 @@
 // Firefox skips the first line of an autoconfig file — keep this comment.
 //
 // Zen Browser: live matugen colours without a browser restart (Ajmashell ticket 48).
-// Installed as /opt/zen-browser-bin/config.js, loaded by defaults/pref/autoconfig.js (see install.sh, section Zen).
+// Installed as /opt/zen-browser-bin/config.js, loaded by defaults/pref/autoconfig.js (dotfiles zen/opt/, README section Zen Browser).
 //
 // Why: Firefox reads userChrome.css (and its @import "matugen-colors.css") only at startup. This script registers the
 // content of <profile>/chrome/matugen-colors.css as a user style sheet at startup and again each time matugen says
