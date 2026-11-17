@@ -31,3 +31,11 @@ wallpapers/
 
 # Machine file (GPU, driver workarounds): lives in each machine's private repo, loaded by hyprland.lua if present
 .config/hypr/host.lua
+
+# Machine and state files (release-repo-po-fazie-c ticket 04): monitors.lua is written by nwg-displays and lives in each
+# machine's private repo; the rest is written by wpapply.sh, matugen, spicetify or nwg-displays
+.config/hypr/monitors.lua
+.config/hypr/workspaces.conf
+.config/hypr/current_wallpaper
+.config/spicetify/Themes/text/color.ini
+.config/spicetify/config-xpui.ini

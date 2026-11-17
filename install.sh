@@ -18,19 +18,13 @@ if ! command -v yay &> /dev/null; then
     rm -rf yay
 fi
 
-# 2. Install Packages
+# 2. Install the suggested packages (packages.txt: what the config needs; no drivers, no applications)
 echo -e "${BLUE}Installing packages...${NC}"
-sudo pacman -S --needed - < pkglist_native.txt
-yay -S --needed - < pkglist_aur.txt
+awk '!/^#/ && NF && !/AUR|optional/ {print $1}' packages.txt | sudo pacman -S --needed -
+awk '!/^#/ && /AUR/ && !/optional/ {print $1}' packages.txt | yay -S --needed -
 
-# 3. System Config
-echo -e "${BLUE}Configuring system...${NC}"
-sudo cp system/99-gpu-symlinks.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules && sudo udevadm trigger
-
-# 4. Enable Services
+# 3. Enable Services
 echo -e "${BLUE}Enabling system services...${NC}"
-sudo systemctl enable --now preload
 sudo systemctl enable --now bluetooth
 
 # 5. Wallpapers (Optional Download)
@@ -139,8 +133,9 @@ ZEN_PROFILE=$(find "$HOME/.zen" -maxdepth 1 -type d -name "*.Default (release)" 
 if [ -n "$ZEN_PROFILE" ]; then
     mkdir -p "$ZEN_PROFILE/chrome"
     cp "home_files/zen/chrome/userChrome.css" "$ZEN_PROFILE/chrome/userChrome.css"
-    # Only the [templates.zen] block: a bare s|output_path = .*| would point every matugen template at Zen.
-    sed -i "/^\[templates\.zen\]/,/^\[/ s|^output_path = .*|output_path = '$ZEN_PROFILE/chrome/matugen-colors.css'|" "$HOME/.config/matugen/config.toml"
+    # matugen writes Zen's colours to ~/.local/state/ajmashell/zen-chrome/ ([templates.zen]): a link to the profile's chrome
+    rm -rf "$HOME/.local/state/ajmashell/zen-chrome"
+    ln -s "$ZEN_PROFILE/chrome" "$HOME/.local/state/ajmashell/zen-chrome"
 fi
 # Live colours after a wallpaper change, without a Zen restart (config.js header: how it works, roll back)
 if [ -d /opt/zen-browser-bin ]; then

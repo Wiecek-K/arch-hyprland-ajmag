@@ -120,12 +120,10 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 ├── home_files/             # Files for home dir (.zshrc, zen/chrome/userChrome.css)
 ├── .local/share/           # Desktop entries (Ajmashell Keybinds)
 ├── local/share/icons/      # Cursor themes
-├── system/                 # System-level configs (udev rules, Zen AutoConfig)
+├── system/                 # System-level configs (Zen AutoConfig)
 ├── cursor-src/             # Cursor hotspot tools and notes
-├── keyboard_*.vil          # Keyboard layouts (Vial)
 ├── install.sh              # Automated installer
-├── pkglist_native.txt      # Official Arch packages
-└── pkglist_aur.txt         # AUR packages
+└── packages.txt            # Suggested packages: what the config needs (official + AUR)
 ```
 
 ---
