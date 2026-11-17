@@ -76,8 +76,6 @@ libnotify                # notify-send
 # Fonts
 ttf-atkinson-hyperlegible
 otf-atkinsonhyperlegiblemono-nerd
-ttf-jetbrains-mono-nerd
-adwaita-fonts            # hyprlock
 noto-fonts
 noto-fonts-emoji
 
