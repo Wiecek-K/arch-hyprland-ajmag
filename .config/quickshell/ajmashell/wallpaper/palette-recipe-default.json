@@ -3,8 +3,8 @@
     "rule": "dominant"
   },
   "palette": {
-    "scheme": "scheme-tonal-spot",
-    "contrast": 0.0,
-    "lightnessDark": 0.0
+    "scheme": "scheme-content",
+    "contrast": 0.05,
+    "lightnessDark": -0.05
   }
 }
