@@ -820,6 +820,12 @@ form .main-topBar-searchBar:placeholder-shown {
     PLAYBACK BAR & CONTROLS
     ================================ */
 
+/* spicetify 2.46.7 extracts xpui-snapshot.css from the V8 snapshot and themes it:
+   `.Root__now-playing-bar { background: var(--spice-sidebar) }` painted an opaque strip under the bar. */
+.Root__now-playing-bar {
+    background: transparent !important;
+}
+
 .main-nowPlayingBar-nowPlayingBar {
     padding: 8px 8px 32px 8px;
     height: 96px;
