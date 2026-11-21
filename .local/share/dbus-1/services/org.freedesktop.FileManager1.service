@@ -1,0 +1,6 @@
+# Overrides /usr/share/dbus-1/services/org.freedesktop.FileManager1.service: the second bus name that starts Nautilus
+# ("show in folder": browsers, hypr/scripts/screen-record.sh). Same refusal as org.gnome.Nautilus.service next to it,
+# which explains why. Ticket C38, 2026-11-22.
+[D-BUS Service]
+Name=org.freedesktop.FileManager1
+Exec=/bin/sh -c '[ "$(systemctl --user is-active xdg-desktop-portal.service)" = activating ] && exit 1; exec /usr/bin/nautilus --gapplication-service'

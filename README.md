@@ -188,6 +188,7 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 ├── .config/                  # Copy to ~/.config/ (Hyprland, Ajmashell, Kitty, Matugen, GTK/Qt, Spicetify, ...)
 ├── .local/share/
 │   ├── applications/         # Desktop entry: Ajmashell Keybinds
+│   ├── dbus-1/services/      # Nautilus D-Bus start refused while the portal starts (avoids a 25 s wait at login)
 │   └── icons/                # Cursor themes (Vimix-cursors, Vimix-hyprcursor)
 ├── .zshrc                    # Copy to ~/.zshrc
 ├── zen/
