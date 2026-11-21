@@ -1,0 +1,10 @@
+# Overrides /usr/share/dbus-1/services/org.gnome.Nautilus.service (same name, user dir wins). Ticket C38, 2026-11-22.
+# Nautilus is our FileChooser portal backend (ticket C36, ~/.config/xdg-desktop-portal). xdg-desktop-portal probes
+# that backend synchronously while it starts, and Nautilus calls the portal synchronously while it starts
+# (libadwaita settings, GTK portal version), so a portal start that activates Nautilus hangs both for the
+# 25 s D-Bus timeout (and every app asking the portal at login, Ajmashell included). While the portal is
+# still starting, refuse the activation: the portal then finishes at once and activates Nautilus again on
+# the first file dialog, when it can answer.
+[D-BUS Service]
+Name=org.gnome.Nautilus
+Exec=/bin/sh -c '[ "$(systemctl --user is-active xdg-desktop-portal.service)" = activating ] && exit 1; exec /usr/bin/nautilus --gapplication-service'
