@@ -45,6 +45,7 @@ nautilus
 udiskie
 yazi
 swayimg                  # image viewer (mimeapps.list)
+nautilus-open-any-terminal   # AUR; "Open in terminal" in Nautilus opens kitty (gsettings in the README)
 
 # Screenshots and recording
 grim

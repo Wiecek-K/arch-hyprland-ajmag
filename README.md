@@ -46,7 +46,7 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 There is no installer: this repo is a set of files to copy. It assumes a working Arch Linux with Hyprland; drivers and everyday applications stay your choice.
 
 ### 0. Before You Start
-*   Start Hyprland through uwsm (the "Hyprland (uwsm-managed)" session in your display manager, or `uwsm start hyprland.desktop` from a TTY): Ajmashell is a systemd user service and gets the session's variables from uwsm.
+*   Start Hyprland through uwsm (the "Hyprland (uwsm-managed)" session in your display manager, or `uwsm start hyprland.desktop` from a TTY): Ajmashell is a systemd user service and gets the session's variables from uwsm. Without uwsm the bar does not start. Check with `systemctl --user is-active wayland-wm@hyprland.desktop` (`active`).
 *   Update the system first (`sudo pacman -Syu`): with an old package database the mirrors answer 404 and the install fails.
 *   AUR packages need an AUR helper, e.g. [yay](https://github.com/Jguer/yay).
 *   Ajmashell is the notification daemon, the bar and the launcher. Another notification daemon takes the notifications before it, so remove it if you have one (`dunst`, `mako`, `swaync`; the archinstall Hyprland profile installs `dunst`). Bars and launchers like Waybar or wofi can stay installed, but take them out of your autostart.
@@ -67,7 +67,7 @@ sudo systemctl enable --now bluetooth
 Lines tagged `optional` are not installed by these commands; add the ones you want by name.
 
 ### 3. Config Files
-The folders of the apps this config owns are moved aside first; every other file that would be overwritten keeps its old copy as `<name>.~1~`. Your machine files (`monitors.lua`, `host.lua`) move with the old `hypr` folder: copy them back into `~/.config/hypr/` (see Monitor Configuration below).
+The folders of the apps this config owns are moved aside first; every other file that would be overwritten keeps its old copy as `<name>.~1~`. Your machine files (`monitors.lua`, `host.lua`), if you had them, move with the old `hypr` folder: copy them back into `~/.config/hypr/` (see Monitor Configuration below).
 ```bash
 for d in hypr quickshell kitty matugen spicetify; do [ -e ~/.config/$d ] && mv ~/.config/$d ~/.config/$d.bak.$(date +%s); done
 cp -r --backup=numbered .config/. ~/.config/
@@ -77,6 +77,7 @@ cp -r --backup=numbered .local/share/. ~/.local/share/
 systemctl --user daemon-reload
 ```
 `~/.local/state/ajmashell` holds the colours Matugen writes for the shell; it must exist before the first wallpaper is set.
+The `.zshrc` is for zsh (with oh-my-zsh); to make zsh your shell: `chsh -s /usr/bin/zsh` (takes effect at the next login).
 
 ### 4. Cursor and GTK Settings
 On Wayland GTK apps read these settings, not `settings.ini`. Without `prefer-dark` Zen and GTK 4 apps stay light (dark text on a dark background).
@@ -85,7 +86,7 @@ gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 gsettings set org.gnome.desktop.interface font-name 'Atkinson Hyperlegible 12'
 gsettings set org.gnome.desktop.interface cursor-theme 'Vimix-cursors'
 gsettings set org.gnome.desktop.interface cursor-size 24
-gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty   # needs nautilus-open-any-terminal (AUR)
+gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty   # from nautilus-open-any-terminal (AUR, in packages.txt)
 ```
 
 ### 5. Zen Browser (optional)
@@ -108,17 +109,19 @@ sudo cp -r zen/opt/. /opt/zen-browser-bin/
 1.  Log out and back in (or reboot). With more than one monitor, or a wrong resolution, set the layout in `nwg-displays` (see Monitor Configuration below).
 2.  Put wallpapers in `~/Pictures/wallpapers` (`mkdir -p ~/Pictures/wallpapers`): your own images, or my curated set from [Google Drive](https://drive.google.com/drive/folders/1jm_ue4uFqiIk5MdADcdGHq6Q86uCa-s4) (`CREDITS.md` there lists the authors). Drive downloads the folder as a zip; unzip it and move the images straight into `~/Pictures/wallpapers`, because the carousel does not look into subfolders.
 3.  Press `Super + W` to pick a wallpaper; this generates the first colour scheme.
+    Workspaces are on custom keys, not on the number keys: see “Important Note on Keyboard Layout” below.
 4.  Restart Zen once, so it loads the files from step 5.
 
 ### 7. Spotify with Spicetify (optional)
 Spicetify themes Spotify with the wallpaper colours (theme `text`, extension `live-colors.js` from `.config/spicetify`). Do it after the first wallpaper (step 6): Matugen writes the theme's colours then. The order matters:
 ```bash
-spotify    # start it once, log in, close it: this creates ~/.config/spotify/prefs
+spotify    # start it once and log in: this creates ~/.config/spotify/prefs; then quit it (pkill spotify), closing the window leaves it running
 spicetify config current_theme text color_scheme Spicetify extensions live-colors.js overwrite_assets 1
-sudo chmod a+wr /opt/spotify && sudo chmod a+wr -R /opt/spotify/Apps
+sudo chmod a+wr /opt/spotify && sudo chmod -R a+rwX /opt/spotify/Apps
 spicetify backup apply
 ```
 After a Spotify update run the last two lines again (the `.zshrc` function `my-fix-spicetify` does it). Without Spicetify nothing else changes.
+Spicetify patches the one Spotify in `/opt`, so on a computer with several accounts only one account gets Spotify colours from its wallpaper; the others see that account's colours.
 
 ### 8. Theme Center (optional)
 [Ajmashell Theme Center](https://github.com/Wiecek-K/ajmashell-theme-center) is a separate app for tuning how the palette is picked from your wallpapers and the look of the big popups. It installs from its own repo:

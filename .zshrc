@@ -158,7 +158,7 @@ get-folder-context() {
 my-fix-spicetify() {
     echo "🔧 Fixing permissions for Spotify folder..."
     sudo chmod a+wr /opt/spotify
-    sudo chmod a+wr /opt/spotify/Apps -R
+    sudo chmod -R a+rwX /opt/spotify/Apps   # X: directories stay searchable for every account
     
     echo "🎨 Applying Spicetify theme..."
     spicetify backup apply
