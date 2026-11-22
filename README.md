@@ -6,7 +6,7 @@
 ![Matugen](https://img.shields.io/badge/Matugen-THEMING-ff0055?style=for-the-badge)
 
 A highly customized, stable, and performance-oriented Hyprland environment. This configuration prioritizes **text clarity** ("High Visibility Mode") and **dynamic theming**.
-The Hyprland config is written in **Lua** (`.config/hypr/hyprland.lua`), the format Hyprland uses since 0.55 — upstream removes the old hyprlang `.conf` format in 0.57, so this config is ready for it.
+The Hyprland config is written in **Lua** (`.config/hypr/hyprland.lua`), the only config format of current Hyprland (0.57 removed the old hyprlang `.conf` format).
 
 ---
 
@@ -26,18 +26,29 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 *   **Dynamic Theming:** System-wide colors generated from your wallpaper using `Matugen`.
     *   *Affected apps:* Ajmashell (Quickshell), Hyprland borders, hyprlock, Kitty, GTK 3/4 apps, folder icons, Spotify (via Spicetify, optional), Zen Browser (via userChrome.css, optional).
 *   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Shell/Terminal/Code) for maximum readability. In Nerd Fonts the mono family is called `AtkynsonMono Nerd Font` (package `otf-atkinsonhyperlegiblemono-nerd`); use that name if you set the font in another app.
-*   **High Visibility Mode** (window rules in `.config/hypr/configs/rules.lua`, active / inactive opacity):
-    *   **Active Windows:** 100% opacity + 3px gradient border (primary → secondary). Other windows fade to 80% when inactive.
-    *   **Text-Heavy Apps** stay readable when inactive: browsers and messengers (Zen, Firefox, Chromium, Discord/Vesktop, Telegram, Slack) 100% / 95%, notes (Obsidian, Logseq) 98% / 94%, code editors (VS Code, JetBrains, Gedit) 97% / 91%.
-    *   **Background Apps:** Kitty 89% / 70%, Nautilus 90% / 70%, Spotify 90% / 75%; settings tools (network, Bluetooth, disks) 80% and floating.
-    *   **Video players** (mpv, VLC): always 100%, no blur, floating.
+*   **Focus at a glance:** the active window is fully opaque with a gradient border in the wallpaper colors; inactive windows fade slightly. Text-heavy apps (browsers, messengers, notes, code editors) stay readable when inactive, video players never fade. Tune it in `.config/hypr/configs/rules.lua`.
 
-<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/cb734e5d-62e6-49d3-9b4f-ccea77971446" />
-<img width="1920" height="1076" alt="image" src="https://github.com/user-attachments/assets/9e62d346-622d-49d1-8736-a9c9b95bf142" />
-<img width="1916" height="1078" alt="image" src="https://github.com/user-attachments/assets/e773cce5-320e-49f8-a44f-4b0f338ae9b8" />
-<img width="1917" height="1070" alt="image" src="https://github.com/user-attachments/assets/466763b2-cf65-4771-8370-a36f2bc5e9f2" />
-<img width="1917" height="1066" alt="image" src="https://github.com/user-attachments/assets/00501aa3-9755-4230-91c5-dbb38dfe03b3" />
-<img width="1922" height="1081" alt="image" src="https://github.com/user-attachments/assets/ba5a8f3e-c983-49a6-abe3-40853f9923b2" />
+https://github.com/user-attachments/assets/625d61db-de32-420d-a067-329208991e28
+
+---
+
+## 📂 Repository Structure
+
+```text
+.
+├── .config/                  # Copy to ~/.config/ (Hyprland, Ajmashell, Kitty, Matugen, GTK/Qt, Spicetify, ...)
+├── .local/share/
+│   ├── applications/         # Desktop entry: Ajmashell Keybinds
+│   ├── dbus-1/services/      # Nautilus D-Bus start refused while the portal starts (avoids a 25 s wait at login)
+│   └── icons/                # Cursor themes (Vimix-cursors, Vimix-hyprcursor)
+├── .zshrc                    # Copy to ~/.zshrc
+├── zen/
+│   ├── profile/              # Copy into your Zen profile (user.js, chrome/userChrome.css)
+│   └── opt/                  # Copy into /opt/zen-browser-bin/ with sudo (live colours, optional)
+├── cursor-src/               # Cursor hotspot tools and notes (not installed)
+├── packages.txt              # Suggested packages: what the config needs (official + AUR)
+└── README.md
+```
 
 ---
 
@@ -178,26 +189,6 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 ### Editors
 *   **Nano:** Configured with line numbers and muted UI colors.
 *   **Gedit:** Includes a ZSH function to automatically detach the process from the terminal, keeping the shell usable.
-
----
-
-## 📂 Repository Structure
-
-```text
-.
-├── .config/                  # Copy to ~/.config/ (Hyprland, Ajmashell, Kitty, Matugen, GTK/Qt, Spicetify, ...)
-├── .local/share/
-│   ├── applications/         # Desktop entry: Ajmashell Keybinds
-│   ├── dbus-1/services/      # Nautilus D-Bus start refused while the portal starts (avoids a 25 s wait at login)
-│   └── icons/                # Cursor themes (Vimix-cursors, Vimix-hyprcursor)
-├── .zshrc                    # Copy to ~/.zshrc
-├── zen/
-│   ├── profile/              # Copy into your Zen profile (user.js, chrome/userChrome.css)
-│   └── opt/                  # Copy into /opt/zen-browser-bin/ with sudo (live colours, optional)
-├── cursor-src/               # Cursor hotspot tools and notes (not installed)
-├── packages.txt              # Suggested packages: what the config needs (official + AUR)
-└── README.md
-```
 
 ---
 
