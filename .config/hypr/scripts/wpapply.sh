@@ -31,8 +31,10 @@ INDEXER="$HOME/.config/quickshell/ajmashell/wallpaper/indexer.py"
 RECIPE="$HOME/.config/quickshell/ajmashell/wallpaper/palette_recipe.py"
 mapfile -t PALETTE < <(python3 "$RECIPE" flags palette)
 mapfile -t SEED_RULE < <(python3 "$RECIPE" flags seed 2>/dev/null)
-# never without a Seed flag (module failed to run): matugen would ask interactively and fail without a terminal
-[[ ${#SEED_RULE[@]} -gt 0 ]] || SEED_RULE=(--source-color-index 0)
+# never without a Seed flag (module failed to run): matugen would ask interactively and fail without a terminal.
+# The fallback colour copies FALLBACK_SEED of palette_recipe.py (faza C ticket 37: a black-and-white wallpaper would
+# otherwise get matugen's Google Blue); change both together.
+[[ ${#SEED_RULE[@]} -gt 0 ]] || SEED_RULE=(--source-color-index 0 --fallback-color "#e3dfd3")
 RECIPE_ID=$(python3 "$RECIPE" fingerprint 2>/dev/null)
 MTIME=$(stat -c %Y "$SELECTED_PATH")
 seed_from_index() {

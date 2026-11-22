@@ -26,7 +26,7 @@ PopupWindow {
         // here, not in a binding: mapToItem does not follow the island's position, which settles after start
         // (the volume islands moved to the right edge on 2026-10-07, where a stale value pushes it off screen)
         if (!visible)
-            shift = Math.min(0, source.Window.width - Theme.control.margin - implicitWidth - source.mapToItem(null, 0, 0).x);
+            shift = Math.min(0, source.Window.width - Theme.bar.popupEdge - Theme.control.popupWidth - source.mapToItem(null, 0, 0).x);
         visible = !visible;
     }
 
@@ -54,28 +54,38 @@ PopupWindow {
     visible: false
     anchor.item: source
     // under the island's left edge, moved left when it would stick out of the screen (Hyprland does not slide it)
-    anchor.rect.x: shift
+    anchor.rect.x: shift - Theme.shadow.margin // the box stays where it was (ticket C13: the shadow's band around it)
     anchor.rect.y: 0
     anchor.rect.width: source.width
-    anchor.rect.height: source.height + Theme.bar.tooltip.gap
+    anchor.rect.height: source.height + Theme.bar.popupGap - Theme.shadow.margin
     // qmltypes give these as Edges::Flags, which qmllint cannot resolve
     anchor.edges: Edges.Bottom | Edges.Left // qmllint disable missing-type
     anchor.gravity: Edges.Bottom | Edges.Right // qmllint disable missing-type
+    // ticket C13: the shadow's band may stick out of the screen; sliding the window back would move the box
+    anchor.adjustment: PopupAdjustment.None // qmllint disable missing-type
 
-    implicitWidth: Theme.control.popupWidth
-    implicitHeight: section.implicitHeight + 2 * Theme.control.padding
+    // the box plus the shadow's band (ticket C13); clicks in the band pass through
+    implicitWidth: Theme.control.popupWidth + 2 * Theme.shadow.margin
+    implicitHeight: section.implicitHeight + 2 * Theme.control.padding + 2 * Theme.shadow.margin
     color: Theme.transparent // only the rounded box below is drawn
+    mask: Region {
+        item: panel
+    }
+
+    LookShadow {
+        target: panel
+    }
 
     Rectangle {
         id: panel
         anchors.fill: parent
+        anchors.margins: Theme.shadow.margin
         radius: Theme.radius.lg
         color: Theme.transparent // LookBackground draws the look's background
         LookBackground {}
 
         focus: true
         Keys.onEscapePressed: root.visible = false
-
         AudioSection {
             id: section
             x: Theme.control.padding

@@ -14,6 +14,7 @@ Rectangle {
     property bool active: false
     property int fontSize: Theme.font.sizeSmall
     signal clicked
+    signal doubleClicked // after `clicked` of the second tap (media popup's player pills, ticket c14)
 
     implicitWidth: Math.ceil(label.implicitWidth) + 2 * Theme.spacing.lg
     height: Theme.orbit.tabHeight
@@ -41,5 +42,6 @@ Rectangle {
     TapHandler {
         enabled: pill.enabled
         onTapped: pill.clicked()
+        onDoubleTapped: pill.doubleClicked()
     }
 }

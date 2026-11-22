@@ -19,23 +19,33 @@ local function exec(cmd, rules)
     return dsp.exec_cmd(cmd, rules)
 end
 
+-- Aplikacja z otwartym oknem: okno przychodzi na bieżący workspace i dostaje fokus, bez drugiej kopii;
+-- inaczej polecenie jak dotąd (ticket c22). desktopId = plik .desktop bez rozszerzenia albo "--browser".
+local function focusOrRun(desktopId, cmd)
+    return exec(v.scripts .. "/focus-or-run.sh " .. desktopId .. " " .. cmd)
+end
+
 -- === APLIKACJE I SESJA ===
 bind(M .. " + Return", "Terminal", exec(v.terminal))
 bind(M .. " + SHIFT + Return", "Floating terminal", exec(v.terminal, { float = true, size = { 800, 550 } }))
 bind(M .. " + Q", "Close window", dsp.window.close())
 bind("CTRL + ALT + Delete", "Exit Hyprland", dsp.exit())
-bind(M .. " + E", "File manager", exec(v.fileManager))
+bind(M .. " + E", "File manager", focusOrRun("org.gnome.Nautilus", v.fileManager))
 bind(M .. " + Space", "Toggle floating", dsp.window.float())
 bind(M .. " + D", "App launcher", exec(v.menu))
 bind(M .. " + O", "Toggle pseudotile", dsp.window.pseudo()) -- dwindle
 bind(M .. " + J", "Toggle split direction", dsp.layout("togglesplit"))
-bind(M .. " + R", "Restart Ajmashell", exec("systemctl --user restart " .. v.shellService))
-bind(M .. " + B", "Web browser", exec('xdg-open "https://"')) -- domyślna przeglądarka
+bind(M .. " + SHIFT + R", "Restart Ajmashell", exec("systemctl --user restart " .. v.shellService)) -- było SUPER+R (ticket cb40)
+bind(M .. " + R", "Screen recording", exec(v.scripts .. "/screen-record.sh")) -- start/stop, monitor z fokusem, dźwięk systemu (ticket cb40)
+bind(M .. " + B", "Web browser", focusOrRun("--browser", 'xdg-open "https://"')) -- domyślna przeglądarka
 bind(M .. " + L", "Power menu", exec(v.ipc .. "power toggle")) -- Ajmashell: Panel zasilania
 bind(M .. " + SHIFT + F", "Fullscreen", dsp.window.fullscreen())
 bind(M .. " + CTRL + S", "Screenshot", exec(v.scripts .. "/screenshot.sh"))
 bind(M .. " + W", "Change wallpaper", exec(v.ipc .. "wallpaper toggle")) -- karuzela tapet (ticket 19)
+bind(M .. " + P", "Media player popup", exec(v.ipc .. "media toggle")) -- Ajmashell: popup mediów na monitorze z fokusem (ticket c29)
+bind(M .. " + M", "Mute microphone", exec("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle")) -- jak XF86AudioMicMute (użytkownik 2026-11-09)
 bind(M .. " + K", "Keybinds", exec(v.ipc .. "keybinds toggle")) -- Ajmashell: lista skrótów (ticket 20)
+bind(M .. " + Tab", "Workspace overview", exec(v.ipc .. "overview toggle")) -- Ajmashell: podgląd workspace'ów (faza C ticket cb44)
 bind(M .. " + SHIFT + Q", "Kill active window process", exec(v.scripts .. "/KillActiveProcess.sh"))
 bind(M .. " + C", "Color picker", exec("hyprpicker -a"))
 bind(M .. " + H", "Hide/show bar", exec(v.ipc .. "bar toggle"))
@@ -102,8 +112,9 @@ bind("XF86AudioMicMute", "Mute microphone", exec("wpctl set-mute @DEFAULT_AUDIO_
 bind("XF86MonBrightnessUp", "Brightness up", exec(v.scripts .. "/brightness.sh --inc"), media)
 bind("XF86MonBrightnessDown", "Brightness down", exec(v.scripts .. "/brightness.sh --dec"), media)
 
--- playerctl
-bind("XF86AudioNext", "Next track", exec("playerctl next"), { locked = true })
-bind("XF86AudioPause", "Play/pause", exec("playerctl play-pause"), { locked = true })
-bind("XF86AudioPlay", "Play/pause", exec("playerctl play-pause"), { locked = true })
-bind("XF86AudioPrev", "Previous track", exec("playerctl previous"), { locked = true })
+-- odtwarzacz z Bara (Ajmashell, IPC `media key`), bez shella zwykły playerctl (ticket c31)
+local mediaKey = v.scripts .. "/media-key.sh "
+bind("XF86AudioNext", "Next track", exec(mediaKey .. "next"), { locked = true })
+bind("XF86AudioPause", "Play/pause", exec(mediaKey .. "play-pause"), { locked = true })
+bind("XF86AudioPlay", "Play/pause", exec(mediaKey .. "play-pause"), { locked = true })
+bind("XF86AudioPrev", "Previous track", exec(mediaKey .. "previous"), { locked = true })

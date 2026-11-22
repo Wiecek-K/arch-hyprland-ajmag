@@ -1,0 +1,5 @@
+# Nautilus 51 implements the FileChooser portal itself (NautilusFileChooser, the "Move to…" dialog)
+# on its own bus name, but Arch ships no .portal file for it. Ticket C36, 2026-11-13.
+[portal]
+DBusName=org.gnome.Nautilus
+Interfaces=org.freedesktop.impl.portal.FileChooser

@@ -1,6 +1,8 @@
 // ControlSlider — thick rounded slider of the Centrum sterowania and the audio popup (ticket 14):
 // the filled part carries the icon, the percent sits at the right end. Click or drag sets the level,
 // the wheel moves it 5% per notch, a click on the icon fires iconClicked (mute).
+// Faza C ticket 33: the text has two colours, each letter by what lies under it — a second copy in the fill's text
+// colour, clipped to the fill (like GNOME / KDE progress bars), so it stays readable when the fill reaches it.
 // Own implementation; look after the sliders on end-4's right sidebar (B11 #12 screenshot, idea only;
 // ii/modules/ii/sidebarRight/QuickSliders.qml in https://github.com/end-4/dots-hyprland at 2f0c8bf, GPL-3.0).
 
@@ -38,12 +40,40 @@ Item {
         color: Theme.control.track
     }
 
+    // the text's place, shared by both copies (whole pixels: no jump between them)
+    readonly property int textX: Math.round(width - Theme.spacing.lg - label.implicitWidth)
+    readonly property int textY: Math.round((height - label.implicitHeight) / 2)
+    readonly property color onFill: muted ? Theme.control.mutedText : Theme.control.sliderText
+
+    Text {
+        id: label
+
+        x: root.textX
+        y: root.textY
+        text: root.text
+        font.family: Theme.font.family
+        font.pixelSize: Theme.font.sizeSmall
+        font.weight: Theme.font.weight
+        color: Theme.control.text
+    }
+
     Rectangle {
+        id: fill
+
         // never narrower than the round end, so the icon always sits in the fill
         width: Math.round(root.height + root.shown * (root.width - root.height))
         height: parent.height
         radius: height / 2
-        color: root.muted ? Theme.control.muted : Theme.control.fill
+        color: root.muted ? Theme.control.muted : Theme.control.slider
+        clip: true // the text's second copy shows only over the fill
+
+        Text {
+            x: root.textX
+            y: root.textY
+            text: label.text
+            font: label.font
+            color: root.onFill
+        }
     }
 
     Text {
@@ -54,18 +84,7 @@ Item {
         text: root.icon
         font.family: Theme.font.family
         font.pixelSize: Theme.font.size
-        color: Theme.control.fillText
-    }
-
-    Text {
-        anchors.right: parent.right
-        anchors.rightMargin: Theme.spacing.lg
-        anchors.verticalCenter: parent.verticalCenter
-        text: root.text
-        font.family: Theme.font.family
-        font.pixelSize: Theme.font.sizeSmall
-        font.weight: Theme.font.weight
-        color: Theme.control.text
+        color: root.onFill
     }
 
     MouseArea {

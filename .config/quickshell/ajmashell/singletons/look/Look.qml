@@ -6,7 +6,7 @@
 // No file = `defaults` of look-options.json (that file holds the roles, ranges, presets and defaults: the one source,
 // also for look_settings.py, which Theme Center imports); a bad field = its default, with a warning in `qs log`
 // (look.mjs, the same rules as look_settings.load()).
-// One background for the 7 big popups (Orbita, audio popup, calendar, media, Centrum sterowania, launcher, Keybinds):
+// One background for the 8 big popups (Orbita, audio popup, calendar, media, Centrum sterowania, launcher, Keybinds, overview):
 // `background`, drawn by look/LookBackground.qml. At alpha 1, or with
 // `blur` off, Hyprland's blur under them is off (BlurOff.qml; was the flag `opaque`).
 // IPC for tools/measure-gpu.sh: `qs -c ajmashell ipc call look set fancy` puts a preset on for the moment (with the

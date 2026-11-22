@@ -11,7 +11,8 @@
 # no per-directory hash dirs; Python standard library only (Pillow is not installed); matugen's palette flags
 # from the Przepis palety (palette_recipe.py, faza E ticket 02), and an entry made with another recipe is redone
 # (Seed, primary, bucket; the thumbnail stays); the Seed-choice flag (most dominant Kandydat or a --prefer rule)
-# from the Przepis palety too, instead of a fixed --source-color-index 0 (faza E ticket 03).
+# from the Przepis palety too, instead of a fixed --source-color-index 0 (faza E ticket 03); an old-paper white
+# primary (warm, OKLCH chroma below PAPER_CHROMA_MAX) goes to Gray instead of Amber (faza C ticket 18).
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
 # Usage: indexer.py [wallpaper_dir] [cache_dir]   prints the index JSON on stdout
@@ -53,21 +54,57 @@ HUE_BUCKETS = [
 ]
 
 
-def color_bucket(hex_str):
-    """Bucket name for a #rrggbb colour (serpantinum thresholds)."""
+# "Old paper" white: a warm primary with almost no colour goes to Gray instead of Amber (faza C ticket 18,
+# user, 2026-11-08). The user's gray wallpapers are ink sketches on cream paper; matugen gives them a dirty-white
+# primary (#c8c2b0, #e2dec3, #fef4e2: OKLCH chroma 0.026-0.036, hue in the Amber range). Chroma is OKLCH, not HSV
+# saturation: HSV inflates the saturation of light colours (#fef4e2 is HSV s 0.11). Only Amber hues: cool near-whites
+# with the same low chroma (#bec3d3, #c6d2d7) look blue to the user and stay in their hue bucket. Nearest beige
+# that stays Amber: chroma 0.042 (#dabeaa, #d3c0a5). How to retune: docs/kategorie-tapet.md in hyprland-lua-migration.
+PAPER_CHROMA_MAX = 0.04
+PAPER_BUCKETS = {"Amber"}
+
+
+def _rgb(hex_str):
+    h = str(hex_str).strip().lstrip("#")[:6]
+    if len(h) != 6:
+        raise ValueError(hex_str)
+    return tuple(int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+
+def oklch_chroma(hex_str):
+    """OKLCH chroma of a #rrggbb colour (Björn Ottosson's OKLab, sRGB D65): 0 for grey, ~0.26 for pure red."""
+    # sRGB to OKLab matrices copied from https://bottosson.github.io/posts/oklab/ (Björn Ottosson, public domain)
+    r, g, b = (c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in _rgb(hex_str))
+    l_ = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
+    m_ = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
+    s_ = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
+    a = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_
+    b2 = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_
+    return (a * a + b2 * b2) ** 0.5
+
+
+def hue_bucket(hex_str):
+    """Bucket by HSV hue alone (serpantinum thresholds); Gray for grey, near-black and garbage."""
     try:
-        h = str(hex_str).strip().lstrip("#")[:6]
-        r, g, b = (int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+        r, g, b = _rgb(hex_str)
     except (ValueError, TypeError):
-        return "Monochrome"
+        return "Gray"
     hue, sat, val = colorsys.rgb_to_hsv(r, g, b)
     if sat < 0.05 or val < 0.08:
-        return "Monochrome"
+        return "Gray"
     deg = hue * 360.0
     for lo, hi, name in HUE_BUCKETS:
         if lo <= deg < hi:
             return name
     return "Red"
+
+
+def color_bucket(hex_str):
+    """Bucket name for a #rrggbb colour: the hue bucket, except old-paper white goes to Gray."""
+    name = hue_bucket(hex_str)
+    if name in PAPER_BUCKETS and oklch_chroma(hex_str) < PAPER_CHROMA_MAX:
+        return "Gray"
+    return name
 
 
 def scheme_colors(path, recipe_flags=()):

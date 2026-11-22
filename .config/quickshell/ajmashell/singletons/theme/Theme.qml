@@ -163,10 +163,17 @@ Singleton {
         subtext: root.orbit.subtext
         track: Qt.alpha(root.orbit.text, root.orbit.softPill.idle) // empty part of a slider, idle row
         hover: Qt.alpha(root.orbit.text, root.orbit.softPill.hover) // row under the pointer
-        fill: root.orbit.tab // filled part of a slider, module switch while on, chosen device
+        fill: root.orbit.tab // module switch while on, chosen device; not the sliders (their fill: slider)
         fillText: root.orbit.tabText
+        // filled part of a slider and what lies on it (faza C ticket 33, user 2026-11-12: calmer than the tab colour)
+        slider: root.colors.secondary_container
+        sliderText: root.colors.on_secondary_container
         muted: root.bar.muted // filled part of a muted slider, like the Bar's muted volume island
+        mutedText: root.colors.on_error // icon and text on a muted slider's fill
         separator: Qt.alpha(root.orbit.text, 0.12)
+        card: Qt.alpha(root.colors.surface_container_highest, 0.55) // faza C ticket 17, values of the prototype
+        circle: Qt.alpha(root.orbit.text, 0.1)
+        accent: root.colors.primary
     }
 
     // OSD of the volume and brightness keys (osd/Osd.qml, ticket 15): an island like the Bar's at the bottom
@@ -196,6 +203,20 @@ Singleton {
         coverIcon: root.colors.on_surface_variant
     }
 
+    // Privacy dot (bar/PrivacyIsland.qml, faza C ticket 05): red while an app uses the microphone, the camera or the
+    // screen (user, 2026-11-10); its popup dressed like the tray menu (Theme.bar.menu).
+    // A fixed recording red, not a palette role: matugen's `error` is a pale pink in the dark scheme (user, 2026-11-10:
+    // "bardziej taki czerwony Rec z kamery - obecny jest zbyt blady"; was root.colors.error)
+    readonly property PrivacyStyle privacy: PrivacyStyle {
+        dot: "#ff3b30"
+        // "Rec" and the recording's time: the colour of every other letter on the Bar (user, 2026-11-10; was
+        // on_surface — white on the dark Bar, black on the light one — and before that the dot's red)
+        label: root.bar.text
+        labelSize: root.font.sizeTiny
+        // the recording's time instead of "Rec" (faza C ticket cb40; user, 2026-11-10: bigger than "Rec")
+        timeSize: root.font.sizeSmall
+    }
+
     // Panel zasilania (power/PowerPanel.qml, ticket 18): the whole monitor as wlogout (user, 2026-10-09), translucent
     // backdrop in `on_primary_fixed` (the launcher's old colour; not the look's background), blurred (rules.lua layerrule-10, needs alpha ≥ 0.5); buttons coloured
     // like the Orbita's pills (Pill.qml) so the selected one reads at once.
@@ -216,6 +237,39 @@ Singleton {
         chord: root.colors.primary // the key column, so it reads apart from the description
     }
 
+    // Overview of workspaces (overview/Overview.qml, faza C ticket cb44, after end-4's overview): a 2×5 grid of
+    // workspaces 1-10 with live window thumbnails on the focused monitor, in a box like Keybinds (the look's
+    // background and flare, border of the launcher). Blur: rules.lua layerrule-12, off at the look's alpha 1.
+    readonly property OverviewStyle overview: OverviewStyle {
+        border: root.launcher.border
+        cell: Qt.alpha(root.colors.surface_container_high, 0.6) // an empty workspace reads apart from the box
+        cellDrop: Qt.alpha(root.colors.primary, 0.25) // the workspace under a dragged window or number
+        current: root.colors.primary // frame of the focused monitor's workspace
+        badge: root.launcher.field // the workspace's number (drag it onto another one to swap them)
+        badgeText: root.launcher.text
+        windowBorder: Qt.alpha(root.colors.outline, 0.5)
+        windowHover: Qt.alpha(root.colors.on_surface, 0.15)
+        windowPressed: Qt.alpha(root.colors.on_surface, 0.3)
+        windowEmpty: root.colors.surface_container_highest // under a thumbnail until its first frame
+    }
+
+    // Shadow under the 8 big popups (look/LookShadow.qml, faza C ticket 13): the values of the floating windows'
+    // shadow in Hyprland (~/.config/hypr/configs/looknfeel.lua decoration.shadow, picked by the user 2026-11-08:
+    // range 22, offset 0 4, colour rgba(00000080)). Hyprland's render_power has no counterpart in RectangularShadow.
+    // Drawn only outside the box, like Hyprland's: a translucent look keeps its background colour.
+    readonly property ShadowStyle shadow: ShadowStyle {
+        color: Qt.alpha(root.colors.shadow, 0.5)
+    }
+
+    // Extras (singletons/extras, Theme Center's Fun tab; Theme Center 1.0.next ticket tc05). "Activate Linux"
+    // (extras/ActivateLinux.qml, Theme.activateLinux): the grey, half-transparent two lines of Windows' "Activate Windows" watermark in the
+    // bottom right corner, in our font; the colour follows the palette (on_surface: light in the dark scheme, like
+    // the original's grey on a dark desktop).
+    readonly property ActivateLinuxStyle activateLinux: ActivateLinuxStyle {
+        text: Qt.alpha(root.colors.on_surface, 0.7) // user, 2026-11-12: 70% (was 0.5)
+        bodySize: root.font.sizeSmall
+    }
+
     // Inline component types (not plain QtObject) so qmllint and qmlls know the members.
     component FontStyle: QtObject {
         readonly property string family: "AtkynsonMono Nerd Font" // same as Waybar
@@ -223,6 +277,7 @@ Singleton {
         readonly property int size: 16 // px, about Waybar's 98% of the 12 pt GTK font
         readonly property int sizeSmall: 13
         readonly property int sizeLarge: 20
+        readonly property int sizeTiny: 11 // second line under a name (audio device, app's tab title; faza C ticket 17)
     }
 
     component Spacing: QtObject {
@@ -250,6 +305,12 @@ Singleton {
         readonly property int islandHeight: 38 // Waybar: 2 px above and below the modules
         readonly property int islandPadding: 15 // Waybar: horizontal padding of a module
         readonly property int islandGap: 5 // Waybar: margin between modules
+        // island to its big popup (Orbita, audio, calendar, media): the Bar's bottom edge, 2 px above the windows'
+        // top border (user, 2026-11-08, ticket C13; was the tooltips' 4 px)
+        readonly property int popupGap: 2
+        // right-hand popups (Orbita, audio, Centrum sterowania) to the screen's right edge: the same 2 px as their
+        // gap under the Bar (user, 2026-11-08, ticket C13)
+        readonly property int popupEdge: 2
         readonly property int edgePadding: 4 // Waybar: padding of .modules-left / .modules-right
         readonly property int ringWidth: 2 // state ring inside an island's edge (Island.ring; user, 2026-10-01)
         readonly property int trayIconSize: 20 // Waybar tray "icon-size"
@@ -315,6 +376,9 @@ Singleton {
         // popup animations (serpantinum): slide in from the right and fade
         readonly property int appear: 250 // ms
         readonly property int disappear: 200 // ms
+        // ms; the Centrum opened: the emptied popup window shows this long before it unmaps, so Hyprland's layer
+        // fade-out runs on an empty frame (faza C ticket 03)
+        readonly property int dropDelay: 50
         readonly property int reflow: 220 // ms; the other popups move up or down
         readonly property real slide: 0.35 // of the popup width
         // Centrum: a card removed by a click slides out like a popup, a bit slower; the cards below move up
@@ -368,7 +432,7 @@ Singleton {
                 Blue: "#1e90ff",
                 Purple: "#8a2be2",
                 Pink: "#ff69b4",
-                Monochrome: "#a9a9a9"
+                Gray: "#a9a9a9"
             })
         property color backdrop
         property color panel
@@ -501,11 +565,19 @@ Singleton {
         readonly property int width: 420 // Centrum sterowania; end-4's right sidebar is ~460
         readonly property int popupWidth: 400 // audio popup under a volume island
         readonly property int margin: 8 // gap to the screen edges and the Bar (floating panel, end-4)
+        // Centrum sterowania only (user, 2026-11-08: the windows' borders showed beside it): its gaps are within
+        // Hyprland's gaps_out (looknfeel.lua: top 2, right 6, bottom 4), so the panel covers the windows' borders
+        readonly property int panelTop: 2 // under the Bar (or the screen's top edge while the Bar is hidden)
+        readonly property int panelEdge: 4 // to the bottom screen edge (the right one: Theme.bar.popupEdge)
         readonly property int padding: 16
         readonly property int spacing: 12 // between sections
         readonly property int rowHeight: 52 // Wi-Fi / BT row
         readonly property int sliderHeight: 36
-        readonly property int itemHeight: 34 // device row, stream name
+        // audio section (faza C ticket 17, user 2026-11-08: device field from variant C, app card from variant A)
+        readonly property int fieldHeight: 52 // field with the current device; opens the device list
+        readonly property int deviceHeight: 48 // device row in the open list (short name + what it is)
+        readonly property int circleSize: 34 // icon circle of a device
+        readonly property int appIconSize: 28 // app icon over its slider
         readonly property int slide: 250 // ms; slides in from the right edge (like the notification popups)
         readonly property int poll: 1000 // ms; brightness re-read while open (sysfs has no change events)
         property color text
@@ -514,8 +586,14 @@ Singleton {
         property color hover
         property color fill
         property color fillText
+        property color slider
+        property color sliderText
         property color muted
+        property color mutedText
         property color separator
+        property color card // card of the apps in the audio popup
+        property color circle // icon circle of a device that is not chosen
+        property color accent // check of the chosen device, glyph of a card header
     }
 
     component CalendarStyle: QtObject {
@@ -544,10 +622,26 @@ Singleton {
         readonly property int popupCover: 128
         readonly property int popupButtonWidth: 56 // ⏮ ⏯ ⏭ in the popup; fixed, so ⏯ keeps its width
         readonly property int poll: 1000 // ms; position re-read while the popup is open and playing
+        readonly property int keyHintDelay: 5000 // ms; pointer rest before a popup control shows its key (media/KeyHint.qml); user, 2026-11-09: "dłuższy hover, 10 s czy coś", then 10 → 5 s
         property color text
         property color buttonHover
         property color cover
         property color coverIcon
+    }
+
+    component PrivacyStyle: QtObject {
+        readonly property int dotSize: 10 // px
+        // "Rec" next to the dot (user, 2026-11-10: smaller font, heavy weight)
+        readonly property string labelText: "Rec"
+        property int labelSize
+        property int timeSize // the screen recording's time in place of "Rec" (ticket cb40)
+        readonly property int labelWeight: Font.Black
+        readonly property int labelGap: 3 // px, between the dot and "Rec"; user, 2026-11-10: closer (was 6)
+        // gap from the workspaces as a share of the clock island's width; user, 2026-11-10: further right (was the
+        // media island's gap to the clock, 2/3)
+        readonly property real workspacesGap: 4 / 3
+        property color dot
+        property color label
     }
 
     component PowerStyle: QtObject {
@@ -555,8 +649,20 @@ Singleton {
         readonly property int iconSize: 88
         readonly property int spacing: 32 // between the buttons
         readonly property int radius: 28
+        // ms from closing the panel to Suspend (faza C ticket 16): longer than Hyprland's fade-out of a layer,
+        // `fade` speed 5 = 500 ms in hypr/configs/animations.lua
+        readonly property int closeWait: 600
         property color backdrop
         property color text
+    }
+
+    component ShadowStyle: QtObject {
+        readonly property int blur: 22 // Hyprland `range`
+        readonly property int offsetX: 0
+        readonly property int offsetY: 4
+        // transparent band around the popup's box that the shadow draws into (the popup windows grow by it)
+        readonly property int margin: blur + Math.max(Math.abs(offsetX), Math.abs(offsetY))
+        property color color
     }
 
     component KeybindsStyle: QtObject {
@@ -577,6 +683,47 @@ Singleton {
         property color subtext
         property color placeholder
         property color chord
+    }
+
+    component OverviewStyle: QtObject {
+        readonly property real widthShare: 0.85 // the grid takes at most this share of the monitor's width…
+        readonly property real heightShare: 0.8 // …and of its height
+        readonly property int padding: 15 // box edge to the grid
+        readonly property int spacing: 10 // between workspaces
+        readonly property int radius: 15 // the box, as the launcher
+        readonly property int borderWidth: 2
+        readonly property int cellRadius: 10
+        readonly property int currentWidth: 2 // frame of the focused workspace
+        readonly property int windowRadius: 6
+        readonly property int windowBorderWidth: 1
+        readonly property int captureRetry: 150 // ms; a thumbnail whose capture stopped (window resized) starts again after it
+        readonly property int captureCheck: 600 // ms; still no frame after a restart (resize animation, windowsMove 500 ms): again
+        readonly property int captureAttempts: 5 // restarts in a row without a frame, then the thumbnail stays empty
+        readonly property int iconSize: 32 // app icon in a thumbnail's corner (smaller thumbnails: a third of them)
+        readonly property int badgeSize: 30 // the workspace number, a circle in the cell's top left corner
+        readonly property int badgeMargin: 6
+        readonly property int badgeFontSize: 15
+        readonly property real otherMonitorOpacity: 0.4 // windows of the other monitor (end-4: 0.4)
+        property color border
+        property color cell
+        property color cellDrop
+        property color current
+        property color badge
+        property color badgeText
+        property color windowBorder
+        property color windowHover
+        property color windowPressed
+        property color windowEmpty
+    }
+
+    component ActivateLinuxStyle: QtObject {
+        readonly property int titleSize: 24 // px; Windows: about twice the second line
+        property int bodySize
+        readonly property int weight: Font.Normal // Windows draws it thin, not in the Bar's bold
+        readonly property int lineGap: 2 // px between the two lines
+        readonly property int marginRight: 96 // px from the monitor's right edge; user, 2026-11-12: further (was 64)
+        readonly property int marginBottom: 72 // px from the bottom edge (no taskbar under it here); was 48
+        property color text
     }
 
     component OsdStyle: QtObject {

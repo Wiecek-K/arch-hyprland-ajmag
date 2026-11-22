@@ -50,18 +50,7 @@ Scope {
                 icon: e.icon,
                 entry: e
             }))
-    readonly property var windows: Hyprland.toplevels.values.map(t => {
-        const ipc = t.lastIpcObject;
-        const appId = ipc.class || t.wayland?.appId || "";
-        return {
-            address: t.address.startsWith("0x") ? t.address : "0x" + t.address,
-            title: t.title || appId,
-            appId: appId,
-            workspace: ipc.workspace?.name ?? "",
-            focusHistory: ipc.focusHistoryID ?? -1,
-            icon: DesktopEntries.heuristicLookup(appId)?.icon ?? appId
-        };
-    })
+    readonly property var windows: Apps.windows // shared with app shortcuts (ticket c22)
 
     IpcHandler {
         target: "launcher"
@@ -104,12 +93,15 @@ Scope {
             return;
         open = false; // first give the keyboard back, then Hyprland focuses the new or chosen window
         if (mode === "windows") {
-            Hyprland.dispatch(Logic.focusRequest(item.address));
+            Apps.focusWindow(item.address);
             return;
         }
         const e = item.entry;
-        const command = Array.from(e.command);
-        Apps.run(e.runInTerminal ? Logic.terminalCommand(command) : command, e.workingDirectory);
+        // an app with a window: go to it, no second copy (ticket c22); the pick still counts as a launch
+        if (!Apps.showApp(e, "goto")) {
+            const command = Array.from(e.command);
+            Apps.run(e.runInTerminal ? Logic.terminalCommand(command) : command, e.workingDirectory);
+        }
         usage = Logic.addLaunch(usage, e.id);
         usageFile.setText(Logic.formatUsage(usage));
     }
@@ -244,8 +236,12 @@ Scope {
             // surface sent the whole screen as changed on every frame of the flare, under live blur
             // (ticket 13, research B12: Hyprland ~57% of the iGPU while open). A click beside it closes
             // through the focus grab.
-            implicitWidth: box.width
-            implicitHeight: box.height
+            // the box plus the shadow's band (ticket C13); clicks in the band pass through
+            implicitWidth: box.width + 2 * Theme.shadow.margin
+            implicitHeight: box.height + 2 * Theme.shadow.margin
+            mask: Region {
+                item: box
+            }
             color: Theme.transparent // the box has rounded corners
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
@@ -318,8 +314,15 @@ Scope {
                 onCleared: root.open = false
             }
 
+            LookShadow {
+                target: box
+                radius: Theme.launcher.radius // box is a ClippingRectangle, not a Rectangle
+            }
+
             ClippingRectangle {
                 id: box
+                x: Theme.shadow.margin
+                y: Theme.shadow.margin
                 width: Theme.launcher.width
                 height: Theme.launcher.rows * win.rowHeight + (Theme.launcher.rows - 1) * Theme.launcher.rowSpacing + 2 * Theme.launcher.padding
                 radius: Theme.launcher.radius

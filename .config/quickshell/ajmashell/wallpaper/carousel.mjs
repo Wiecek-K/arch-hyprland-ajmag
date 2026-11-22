@@ -9,7 +9,7 @@
 // Tests: ~/Projects/hyprland-lua-migration/tools/test-wallpaper-carousel.mjs
 
 // Order of the "All" tab and of the filter row (serpantinum; Orange + Yellow merged into Amber, user 2026-10-01)
-export const BUCKETS = ["Red", "Amber", "Green", "Blue", "Purple", "Pink", "Monochrome"];
+export const BUCKETS = ["Red", "Amber", "Green", "Blue", "Purple", "Pink", "Gray"];
 export const FILTERS = ["All", ...BUCKETS];
 
 // Sheared cards, serpantinum's skewFactor (style chosen by the user on 2026-10-01 out of four trials)

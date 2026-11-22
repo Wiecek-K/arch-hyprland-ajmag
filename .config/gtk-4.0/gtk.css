@@ -1,8 +1,32 @@
 @import 'colors.css';
 
-window, dialog, .background {
+/* GtkPopover also carries .background: without :not(popover) this paints the whole popover node, including its
+   shadow margin, as a square box behind the rounded menu (ticket C36). Popovers take @popover_bg_color on contents.
+   This fix applies to every GTK4 app; the popover look below is Nautilus only. */
+window, dialog, .background:not(popover) {
     background-color: @window_bg_color;
     color: @window_fg_color;
+}
+
+/* Nautilus popovers only (user, 2026-11-13: other apps later). A popover's CSS node sits under the widget it is
+   attached to, so .nautilus-window (the main window's class) matches its menus.
+   Corners as the Ajmashell tray menu (bar/TrayMenu.qml): box Theme.radius.lg, row Theme.radius.sm;
+   libadwaita 1.10 defaults: 15px and 9px. GTK CSS cannot read Theme: keep both values in sync by hand.
+   Background alpha 0.85 as the tray menu (Theme.bar.menu.background): Hyprland blurs under popups
+   (looknfeel.lua blur.popups; popups_ignorealpha 0.2 leaves the shadow margin unblurred). Ticket C36. */
+.nautilus-window popover > contents {
+    border-radius: 20px;
+    background-color: alpha(@popover_bg_color, 0.85);
+}
+
+.nautilus-window popover.menu modelbutton {
+    border-radius: 10px;
+}
+
+/* Inner padding of the menu box: user asked for a bit more than libadwaita's 6px (2026-11-13, ticket C36). */
+.nautilus-window popover.menu > contents > stack > box,
+.nautilus-window popover.menu > contents > scrolledwindow > viewport > stack > box {
+    padding: 10px;
 }
 
 * {

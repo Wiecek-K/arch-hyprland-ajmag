@@ -1,5 +1,5 @@
 [config.wallpaper]
-# Tapetę ustawia wpapply.sh przez hyprpaper IPC; swww nie jest zainstalowany.
+# Not used: wpapply.sh sets the wallpaper through hyprpaper IPC (set = false).
 command = "swww"
 arguments = ["img", "--transition-type", "any", "--transition-fps", "60"]
 set = false
@@ -32,10 +32,15 @@ output_path = '~/.config/gtk-3.0/colors.css'
 input_path = '~/.config/matugen/templates/gtk-colors.css'
 output_path = '~/.config/gtk-4.0/colors.css'
 
-[templates.cava]
-input_path = '~/.config/matugen/templates/matugen-cava'
-output_path = '~/.config/cava/config'
-post_hook = "pkill -USR1 cava"
+# Qt apps (qt5ct for Qt 5, qt6ct for Qt 6; QT_QPA_PLATFORMTHEME=qt5ct in env.lua serves both, qt6ct also answers
+# to that name). A running Qt app reads the palette only at start, so no post_hook.
+[templates.qt5ct]
+input_path = '~/.config/matugen/templates/qt-colors.conf'
+output_path = '~/.config/qt5ct/colors/matugen.conf'
+
+[templates.qt6ct]
+input_path = '~/.config/matugen/templates/qt-colors.conf'
+output_path = '~/.config/qt6ct/colors/matugen.conf'
 
 [templates.spicetify]
 input_path = '~/.config/matugen/templates/spotify-colors.ini'
@@ -46,20 +51,13 @@ output_path = '~/.config/spicetify/Themes/text/color.ini'
 # nothing (ticket 34); the script runs the repair and notifies on failure
 post_hook = "setsid -f ~/.config/hypr/scripts/spicetify-apply.sh >/dev/null 2>&1"
 
-[templates.vesktop]
-input_path = '~/.config/matugen/templates/midnight-discord.css'
-output_path = '~/.config/vesktop/themes/matugen.css'
-
 [templates.zen]
 input_path = '~/.config/matugen/templates/zen-colors.css'
-output_path = '/home/ajmag/.zen/okor3zze.Default (release)/chrome/matugen-colors.css'
+# A link to the Zen profile's chrome folder, made by hand (dotfiles README, Zen Browser): ln -s "<profile>/chrome" ~/.local/state/ajmashell/zen-chrome
+output_path = '~/.local/state/ajmashell/zen-chrome/matugen-colors.css'
 # Tells a running Zen to reload the file: /opt/zen-browser-bin/config.js listens on this socket (ticket 48).
 # A connection is enough; no Zen = no socket, socat fails quietly and the next start reads the file anyway.
 post_hook = "socat -u /dev/null UNIX-CONNECT:$XDG_RUNTIME_DIR/ajmashell-zen.sock 2>/dev/null || true"
-
-[templates.obsidian]
-input_path = '~/.config/matugen/templates/obsidian.css'
-output_path = '~/Storage/ajmag/Documents/Obsidian Vault/.obsidian/snippets/matugen-colors.css'
 
 # Folder icons in the wallpaper colour (ticket 46): the script builds the icon theme overlay Ajmashell-Dark-a/-b
 # from Colloid-Teal-Dark and switches gsettings to it (a running GTK app reloads icons only on a theme name change).

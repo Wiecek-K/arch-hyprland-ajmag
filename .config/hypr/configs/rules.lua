@@ -20,7 +20,7 @@ hl.window_rule({
     size    = { 900, 506 },
 })
 hl.window_rule({ name = "windowrule-2", match = { tag = "settings*" }, opacity = "0.8 override 0.8 override", float = true })
-hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.9 override 0.7 override" })
+hl.window_rule({ name = "windowrule-3", match = { class = "^(org.gnome.Nautilus)$" }, opacity = "0.9 override 0.85 override" }) -- unfocused 5 points under focused (user, 2026-11-13; was 0.7)
 hl.window_rule({ name = "windowrule-4", match = { class = "^(org.gnome.TextEditor|mousepad)$" }, opacity = "0.9 override 0.9 override" })
 -- Mikser awaryjny: hyprpwcenter (ticket 23, użytkownik 2026-10-18; pavucontrol usunięty)
 hl.window_rule({
@@ -44,22 +44,24 @@ hl.window_rule({
     match   = { class = "^(firefox|org.mozilla.firefox|[Cc]hromium|[Gg]oogle-chrome|brave-browser|zen)$" },
     opacity = "1.0 override 0.95 override",
 })
--- Edytory kodu
+-- Edytory kodu. VS Code z visual-studio-code-bin na natywnym Waylandzie ma klasę com.microsoft.VSCode (ticket 51,
+-- 2026-11-09); code/vscode/code-oss zostają dla innych pakietów VS Code
 hl.window_rule({
     name    = "windowrule-9",
-    match   = { class = "^(code-oss|vscode|code|jetbrains-.*|Alacritty|gedit)$" },
+    match   = { class = "^(code-oss|vscode|code|com.microsoft.VSCode|jetbrains-.*|Alacritty|gedit)$" },
     opacity = "0.97 override 0.91 override",
 })
--- Komunikatory
+-- Komunikatory. Slack na natywnym Waylandzie ma klasę „slack” małą literą (ticket 51, 2026-11-09)
 hl.window_rule({
     name    = "windowrule-10",
-    match   = { class = "^(vesktop|discord|org.telegram.desktop|Slack)$" },
+    match   = { class = "^(vesktop|discord|org.telegram.desktop|[Ss]lack)$" },
     opacity = "1.0 override 0.95 override",
 })
--- Notatki
+-- Notatki. Obsidian (pakiet obsidian, electron43) na natywnym Waylandzie ma klasę md.obsidian.Obsidian (ticket 51,
+-- 2026-11-09); obsidian zostaje dla innych pakietów
 hl.window_rule({
     name    = "windowrule-11",
-    match   = { class = "^(obsidian|Logseq)$" },
+    match   = { class = "^(obsidian|md.obsidian.Obsidian|Logseq)$" },
     opacity = "0.98 override 0.94 override",
 })
 -- Ajmashell Theme Center (strojenie palety, faza E, ADR 0019; osobne repo, poza dotfiles): pełne krycie także bez
@@ -85,13 +87,21 @@ hl.layer_rule({ name = "layerrule-9", match = { namespace = "ajmashell-osd" }, b
 hl.layer_rule({ name = "layerrule-10", match = { namespace = "ajmashell-power" }, blur = true, ignore_alpha = 0.5 })
 -- 2026-10-09 (ticket 20): blur pod oknem Keybinds (tło jak launcher, alfa 0.7); przy alfie wyglądu 1 zdejmuje go ajmashellBlurOff.
 hl.layer_rule({ name = "layerrule-11", match = { namespace = "ajmashell-keybinds" }, blur = true, ignore_alpha = 0.5 })
+-- 2026-11-12 (faza C ticket cb44): blur pod podglądem workspace'ów (pudełko jak Keybinds); przy alfie wyglądu 1 zdejmuje go ajmashellBlurOff.
+hl.layer_rule({ name = "layerrule-12", match = { namespace = "ajmashell-overview" }, blur = true, ignore_alpha = 0.5 })
+-- 2026-11-12 (faza C ticket c24): slurp (namespace "selection") znika bez animacji. Z animacją fade jego nakładka
+-- wygasała jeszcze ~0,5 s po wyborze, a screenshot.sh robi grim od razu: na zrzut trafiała ramka slurpa i wypełnienie
+-- w kolorze $primary (kolorowy „backdrop” z ticketu c24).
+hl.layer_rule({ name = "slurp-no-anim", match = { namespace = "selection" }, no_anim = true })
 -- 2026-10-07 (ticket 13): wygląd Ajmashella „fancy2” — Orbita i launcher z nieprzezroczystym tłem, bez bluru
 -- pod nimi (blur liczony co klatkę animacji kosztował iGPU). Od 2026-10-30 (faza E tickety 13 i 14): każdy wygląd z alfą tła 1 albo z flagą `blur` wyłączoną. Reguły wyłączone; włącza je shell przez
 -- `hyprctl eval 'require("configs.functions").ajmashellBlurOff(true)'` (singletons/look/BlurOff.qml).
--- Muszą być po layerrule-6/7/8/11: późniejsza reguła nadpisuje te same pola.
+-- Muszą być po layerrule-6/7/8/11/12: późniejsza reguła nadpisuje te same pola.
 require("configs.functions").ajmashellBlurOffRules()
 
 -- === PŁYWAJĄCE I ROZMIARY ===
+-- Cień (looknfeel.lua) tylko pod oknami pływającymi (faza C ticket 09, za end-4 rules.lua: „No shadow for tiled windows”)
+hl.window_rule({ name = "no-shadow-tiled", match = { float = false }, no_shadow = true })
 hl.window_rule({ name = "windowrule-12", match = { tag = "viewer*" }, float = true })
 
 -- Ignoruj żądania maksymalizacji (poza Steamem i grami)

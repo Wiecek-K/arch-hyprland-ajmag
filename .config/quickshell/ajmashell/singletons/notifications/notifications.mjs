@@ -5,6 +5,8 @@
 // icon source rules from serpantinum notifications/types/Default.qml (idea only):
 // https://github.com/ilyamiro/serpantinum@c34fb827147ddbd9429ab84524d40c22fe16769a
 
+import { execRequest, focusRequest } from "../apps/apps.mjs";
+
 const LOW = 0; // NotificationUrgency.Low
 const CRITICAL = 2; // NotificationUrgency.Critical
 
@@ -19,7 +21,11 @@ export function bellIcon(silent) {
 
 // Silent mode (DND, right click on the bell): notifications go to the history without a popup;
 // critical ones still pop up (serpantinum NotificationPopups.qml does the same).
-export function popupAllowed({ silent, urgency }) {
+// While the Centrum is open no popup at all, critical too: its list shows every entry, and popups lay over it
+// (user, 2026-11-01, faza C ticket 03).
+export function popupAllowed({ silent, urgency, centrumOpen }) {
+    if (centrumOpen)
+        return false;
     return !silent || urgency === CRITICAL;
 }
 
@@ -73,6 +79,31 @@ export function iconSource(icon) {
     if (/^(file|image|https?):\/\//.test(icon))
         return icon;
     return icon.startsWith("/") ? `file://${icon}` : `image://icon/${icon}`;
+}
+
+// Image source for the notification's image (image-data / image-path hint). Quickshell gives a path as
+// image://icon/<path>, and the icon provider draws its missing-icon checkerboard (status Ready) when the file is gone:
+// satty sends a temp file and deletes it at once. As file:// a missing file gives Image.Error, so the card shows
+// the app icon instead.
+export function imageSource(image) {
+    if (!image)
+        return "";
+    if (image.startsWith("image://icon//"))
+        return `file://${image.slice("image://icon/".length)}`;
+    return iconSource(image);
+}
+
+// Icon names to try for the app, in order: app_icon, the icon of the desktop-entry hint's entry, the icon of the
+// app name's entry, the app name itself (satty: no app_icon, desktop-entry com.gabm.satty has no file, satty.desktop
+// has Icon=satty). The caller keeps the first one the icon theme has.
+export function appIconCandidates({ appIcon, desktopEntryIcon, appNameEntryIcon, appName } = {}) {
+    const names = [];
+    [appIcon, desktopEntryIcon, appNameEntryIcon, appName].forEach(name => {
+        const trimmed = (name ?? "").trim();
+        if (trimmed && !names.includes(trimmed))
+            names.push(trimmed);
+    });
+    return names;
 }
 
 // How many of the oldest history entries to drop at `count` entries.
@@ -223,4 +254,27 @@ export function senderWindow(windows, pids) {
             return window.address;
     }
     return "";
+}
+
+// Click on a card: the dispatches for Hyprland.dispatch(). The sender's own terminal window first (claude-notify),
+// else a window of the app by its name; [] = no window. Built here and not in QML, so the tests catch a
+// missing function (ticket c32: QML still called launcher.mjs focusRequest after ticket c22 moved it to apps.mjs).
+export function focusRequests(windows, pids, app) {
+    const address = senderWindow(windows, pids) || appWindow(windows, app);
+    return address ? [focusRequest(address)] : [];
+}
+
+// Click on satty's "File saved to '<path>'." (ticket c34, faza C): satty 0.22 sends no action and has no option for
+// one, and its window is gone (--early-exit), so the click opens the folder of the saved file, also after "Save as"
+// to another folder: the path in the body is where the file really is. xdg-open, so the default file manager
+// (inode/directory in ~/.config/mimeapps.list, Nautilus) opens it. actions: the identifiers; an app's own "default"
+// action wins. [] = not such a notification: the click focuses the app as before (ticket 32).
+const SATTY_SAVED = /^File saved to '(\/[\s\S]*)'\.$/; // [\s\S], not the s flag: qmllint cannot parse it
+
+export function savedFileRequests({ appName, desktopEntry, body, actions }) {
+    const fromSatty = (appName ?? "").toLowerCase() === "satty" || desktopEntry === "com.gabm.satty";
+    const path = fromSatty && !(actions ?? []).includes("default") ? SATTY_SAVED.exec(body ?? "")?.[1] : undefined;
+    if (!path)
+        return [];
+    return [execRequest(["xdg-open", path.slice(0, path.lastIndexOf("/")) || "/"])];
 }

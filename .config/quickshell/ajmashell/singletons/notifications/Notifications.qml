@@ -6,7 +6,7 @@
 // Copyright (C) 2026 Illia Miroshnichenko — AGPL-3.0-or-later
 // Changes: no 100 ms filter (every notification counts; README 2026-09-26), no startup grace timer
 // (lastGeneration says which ones came back after a reload), no grouping, no read state,
-// no app resolving via DesktopEntries; history only in memory (no history on disk), capped;
+// no app resolving via DesktopEntries except for the app icon (own code, 2026-11-07); history only in memory (no history on disk), capped;
 // transient notifications popup only; popups replaced by x-canonical-private-synchronous;
 // replaced notifications (same id) update their entry and show their popup again;
 // the D-Bus id is the uid; silent mode (DND) as a plain property saved in ~/.local/state/ajmashell/notifications.json;
@@ -17,18 +17,19 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import qs.singletons.theme
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 import "notifications.mjs" as Logic
-import "../../launcher/launcher.mjs" as Launch
 
 Singleton {
     id: root
 
     // grouped per app (appKey): groups by their newest entry, newest first inside a group (ticket 16).
-    // roles: uid, appName, appKey, arrival, time (ms; arrival or last update), summary, body, icon, urgency, actions (identifier, text), progress (-1 = none)
+    // roles: uid, appName, appKey, arrival, time (ms; arrival or last update), summary, body, icon, fallbackIcon (app icon
+    // when icon is the notification's image, else ""), urgency, actions (identifier, text), progress (-1 = none)
     readonly property alias history: historyModel
     // newest first; history roles + timeout (ms, 0 = until clicked), syncKey, generation (bumped on update)
     readonly property alias popups: popupsModel
@@ -42,6 +43,30 @@ Singleton {
     // Silent mode (DND): right click on the bell or the switch in the Centrum. Notifications still reach the
     // history and the count; only critical ones pop up. Saved, so a restart keeps it (ticket 16).
     property bool silent: false
+    // set by the Centrum sterowania while it is open: popups on screen go at once and no new ones show (its list
+    // has them all; user, 2026-11-01, faza C ticket 03). The popup window hides its cards at once
+    // (NotificationPopups.qml) and the popups go a moment later: unmapping the window at once let Hyprland fade out
+    // its last frame, cards included, under the sliding Centrum.
+    property bool centrumOpen: false
+    onCentrumOpenChanged: if (centrumOpen)
+        dropTimer.restart()
+
+    Timer {
+        id: dropTimer
+        interval: Theme.notifications.dropDelay
+        onTriggered: root.dropBlockedPopups()
+    }
+
+    function popupAllowed(urgency: int): bool {
+        return Logic.popupAllowed({ silent, urgency, centrumOpen });
+    }
+
+    // popups that may not show any more go (silent mode on, the Centrum opened); the last one hides the window at once
+    function dropBlockedPopups(): void {
+        for (let i = popupsModel.count - 1; i >= 0; i--)
+            if (!popupAllowed(popupsModel.get(i).urgency))
+                removePopup(popupsModel.get(i).uid);
+    }
     property int arrivals: 0 // arrival number of the newest entry: the history limit drops the oldest one
 
     FileView {
@@ -107,9 +132,31 @@ Singleton {
             time: Date.now(), // an update (replaces_id, progress) counts as new; a hot reload resets it
             summary: n.summary,
             body: n.body,
-            icon: Logic.iconSource(n.image || n.appIcon),
+            // the image may be a temp file already gone (satty): the card then shows fallbackIcon (2026-11-07)
+            icon: n.image ? Logic.imageSource(n.image) : root.appIconSource(n),
+            fallbackIcon: n.image ? root.appIconSource(n) : "",
             urgency: n.urgency
         };
+    }
+
+    // The app icon: the first candidate the icon theme has (iconPath(name, true) is "" for a missing name, which
+    // image://icon would draw as a checkerboard); a path or URL as it is (a missing file ends on the card's bell).
+    function appIconSource(n: Notification): string {
+        const entryIcon = id => id ? (DesktopEntries.heuristicLookup(id)?.icon ?? "") : "";
+        const names = Logic.appIconCandidates({
+            appIcon: n.appIcon,
+            desktopEntryIcon: entryIcon(n.desktopEntry),
+            appNameEntryIcon: entryIcon(n.appName),
+            appName: n.appName
+        });
+        for (const name of names) {
+            if (name.startsWith("/") || name.includes("://"))
+                return Logic.iconSource(name);
+            const path = Quickshell.iconPath(name, true);
+            if (path)
+                return path;
+        }
+        return "";
     }
 
     function showPopup(n: Notification): void {
@@ -140,7 +187,7 @@ Singleton {
                 timeout: Logic.popupTimeout(n),
                 generation: popupsModel.get(p).generation + 1
             }));
-        } else if (Logic.popupAllowed({ silent, urgency: n.urgency })) {
+        } else if (popupAllowed(n.urgency)) {
             showPopup(n);
         }
     }
@@ -189,8 +236,19 @@ Singleton {
         }
         const wanted = identifier || "default";
         const action = Array.from(n.actions).find(a => a.identifier === wanted);
-        if (wanted === "default")
-            focusApp(n); // only the click on the card: an action button (Confirm, Deny) must not move the focus
+        if (wanted === "default") {
+            // satty's saved screenshot: the file's folder instead of the app's window, which is gone (ticket c34)
+            const requests = Logic.savedFileRequests({
+                appName: n.appName,
+                desktopEntry: n.desktopEntry,
+                body: n.body,
+                actions: Array.from(n.actions).map(a => a.identifier)
+            });
+            if (requests.length > 0)
+                requests.forEach(r => Hyprland.dispatch(r));
+            else
+                focusApp(n); // only the click on the card: an action button (Confirm, Deny) must not move the focus
+        }
         if (action)
             action.invoke(); // dismisses a non-resident notification itself
         if (!root.live[uid])
@@ -215,10 +273,8 @@ Singleton {
             };
         });
         // the sender's own terminal window first (claude-notify), else a window of the app by its name
-        const address = Logic.senderWindow(windows, root.senders[n.id] ?? [])
-            || Logic.appWindow(windows, { desktopEntry: n.desktopEntry, appName: n.appName });
-        if (address)
-            Hyprland.dispatch(Launch.focusRequest(address));
+        Logic.focusRequests(windows, root.senders[n.id] ?? [], { desktopEntry: n.desktopEntry, appName: n.appName })
+            .forEach(r => Hyprland.dispatch(r));
     }
 
     function toggleSilent(): void {
@@ -228,12 +284,8 @@ Singleton {
     function setSilent(value: bool): void {
         silent = value;
         stateFile.setText(Logic.formatState({ silent }));
-        if (!silent)
-            return;
         // popups already on screen go too, except critical ones
-        for (let i = popupsModel.count - 1; i >= 0; i--)
-            if (!Logic.popupAllowed({ silent, urgency: popupsModel.get(i).urgency }))
-                removePopup(popupsModel.get(i).uid);
+        dropBlockedPopups();
     }
 
     function clear(): void {
@@ -302,7 +354,7 @@ Singleton {
 
             if (Logic.keptInHistory(n))
                 root.addToHistory(n);
-            if (!n.lastGeneration && Logic.popupAllowed({ silent: root.silent, urgency: n.urgency }))
+            if (!n.lastGeneration && root.popupAllowed(n.urgency))
                 root.showPopup(n);
             else if (!Logic.keptInHistory(n))
                 n.expire(); // transient without a popup (silent mode, or from before the reload): nothing to keep

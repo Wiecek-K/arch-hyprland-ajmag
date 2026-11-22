@@ -1,8 +1,9 @@
 // Centrum sterowania (ticket 14, D1, D4, CONTEXT.md) — the bell on the Bar opens it: a panel sliding in from the
 // right edge, full height under the Bar. Top to bottom: date and the power button, Wiersze Wi-Fi / Bluetooth,
-// sliders (speaker, microphone, eDP-1 brightness), output device and app volumes, then the Centrum powiadomień
+// sliders (speaker, microphone, brightness of the built-in panel), output device and app volumes, then the Centrum powiadomień
 // (ticket 16: groups per app, collapsed to the newest entry with a header to expand and clear the group; silent
-// mode switch; clear all; action buttons and progress bars on the cards).
+// mode switch; clear all; action buttons and progress bars on the cards). At the bottom edge: the Sekcja Dyski
+// (faza C ticket 06: removable drives, only while one is plugged in; DriveSection.qml; user 2026-11-10: at the bottom).
 // Closes on a click beside it (HyprlandFocusGrab), on Esc and on a second click on the bell.
 // The look (background, flare, pills) is set only in Ajmashell Theme Center (faza E ticket 13; the look buttons and
 // F2 that were here went with it).
@@ -10,7 +11,8 @@
 // Own implementation. Layout after caelestia's sidebar (B11 #09: full height at the right edge, slides in) and
 // end-4's right sidebar (B11 #12: header with the power button, toggles and sliders above the notifications),
 // ideas only; colours, buttons and lens flare (OrbitBackdrop) of our Orbita (Theme.control).
-// Brightness through logind SetBrightness (B10 §2.1a): no video group needed.
+// Brightness through logind SetBrightness (B10 §2.1a): no video group needed. Ticket c20: the slider shows only while
+// a built-in panel is enabled and /sys/class/backlight has a device (control.mjs backlightDevice), live.
 
 pragma ComponentBehavior: Bound
 
@@ -24,6 +26,7 @@ import Quickshell.Wayland
 import qs.look
 import qs.notifications
 import qs.orbit
+import qs.singletons.apps
 import qs.singletons.barpopups
 import qs.singletons.look
 import qs.singletons.notifications
@@ -57,7 +60,36 @@ Scope {
     // a Wi-Fi / BT row asks for the Orbita; shell.qml passes it to the Bar of the same screen
     signal orbitRequested(string tab, string screenName)
 
-    readonly property string backlight: "intel_backlight" // eDP-1 (B10 §2.1)
+    // "" = no slider: no enabled built-in panel or no backlight device (desktop, lid closed; ticket c20)
+    readonly property string backlight: Logic.backlightDevice(Hyprland.monitors.values.map(m => m.name), backlightDevices)
+    readonly property bool hasBacklight: backlight !== ""
+    property list<string> backlightDevices: []
+
+    // backlight devices (amdgpu_bl0, intel_backlight…); listed again when the outputs change, as a panel's device
+    // may come with its output
+    function scanBacklight(): void {
+        backlightScan.running = false; // a change during a scan starts it again, not lost
+        backlightScan.running = true;
+    }
+
+    Process {
+        id: backlightScan
+        running: true
+        command: ["ls", "-1", "/sys/class/backlight"]
+        stdout: StdioCollector {
+            onStreamFinished: root.backlightDevices = text.split("\n").filter(name => name)
+        }
+    }
+
+    Connections {
+        target: Hyprland.monitors
+        function onObjectInsertedPost(): void {
+            root.scanBacklight();
+        }
+        function onObjectRemovedPost(): void {
+            root.scanBacklight();
+        }
+    }
 
     function toggle(name: string): void {
         // a bell on another screen moves it there in one click (ticket 27, user 2026-10-10)
@@ -95,6 +127,15 @@ Scope {
         Qt.callLater(() => root.orbitRequested(tab, name));
     }
 
+    // a drive's row in the Dyski section: its mount point in the GUI file manager (user 2026-11-10: the Centrum is
+    // for the mouse, so Nautilus, not the default yazi in kitty)
+    function openFiles(mountpoint: string): void {
+        if (!open)
+            return; // the second click of a double click lands on the panel sliding out: one window only
+        open = false;
+        Apps.run(["nautilus", "--new-window", mountpoint], "");
+    }
+
     Behavior on shown {
         enabled: !root.instant
 
@@ -127,19 +168,19 @@ Scope {
 
     FileView {
         id: brightnessFile
-        path: "/sys/class/backlight/" + root.backlight + "/brightness"
+        path: root.hasBacklight ? "/sys/class/backlight/" + root.backlight + "/brightness" : ""
         onLoaded: root.brightness = parseInt(text()) || 0
     }
 
     FileView {
         id: maxBrightnessFile
-        path: "/sys/class/backlight/" + root.backlight + "/max_brightness"
+        path: root.hasBacklight ? "/sys/class/backlight/" + root.backlight + "/max_brightness" : ""
         onLoaded: root.maxBrightness = parseInt(text()) || 0
     }
 
     // sysfs sends no change events: re-read while open (keys change it too)
     Timer {
-        running: root.open
+        running: root.open && root.hasBacklight
         repeat: true
         triggeredOnStart: true
         interval: Theme.control.poll
@@ -147,7 +188,7 @@ Scope {
     }
 
     function setBrightness(position: real): void {
-        if (maxBrightness <= 0)
+        if (maxBrightness <= 0 || !hasBacklight)
             return;
         brightnessWanted = Logic.brightnessRaw(position, maxBrightness);
         brightness = brightnessWanted; // the slider follows at once
@@ -156,8 +197,10 @@ Scope {
     }
 
     function sendBrightness(): void {
-        if (brightnessWanted < 0)
+        if (brightnessWanted < 0 || !hasBacklight) { // the panel went away during a drag: drop the level
+            brightnessWanted = -1;
             return;
+        }
         brightnessProc.command = Logic.brightnessCommand(backlight, brightnessWanted);
         brightnessWanted = -1;
         brightnessProc.running = true;
@@ -174,6 +217,14 @@ Scope {
         owners: BarLogic.onBell
         screenName: root.screenName
         onClose: root.open = false
+    }
+
+    // notification popups go at once when it opens and none show while it is open (user, 2026-11-01): they lay over
+    // the Centrum, and its list has every entry anyway
+    Binding {
+        target: Notifications
+        property: "centrumOpen"
+        value: root.open
     }
 
     SystemClock {
@@ -197,14 +248,19 @@ Scope {
                 bottom: true
                 right: true
             }
+            // Ticket C13: the window also holds the shadow's band around the panel. Right and bottom it reaches the
+            // screen's edge (the band is cut there); on top it reaches over the Bar, so it ignores the Bar's zone
+            // and keeps the panel Theme.control.panelTop under it (under the screen's top edge while the Bar is
+            // hidden: a negative margin, the band sticks out). Clicks in the band pass through (mask).
             margins { // qmllint disable unqualified unresolved-type
-                top: Theme.control.margin
-                bottom: Theme.control.margin
-                right: Theme.control.margin
+                top: (BarPopups.barShown ? Theme.bar.height : 0) + Theme.control.panelTop - Theme.shadow.margin
             }
-            implicitWidth: Theme.control.width
+            implicitWidth: Theme.control.width + Theme.shadow.margin + Theme.bar.popupEdge
             color: Theme.transparent // the panel has rounded corners
-            exclusionMode: ExclusionMode.Normal // under the Bar, reserves nothing itself
+            exclusionMode: ExclusionMode.Ignore // reserves nothing itself
+            mask: Region {
+                item: panel
+            }
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "ajmashell-control"
             // OnDemand + focus grab, as the launcher: Exclusive would break the grab's click beside the panel
@@ -214,8 +270,10 @@ Scope {
                 // the grab refuses a window that is not mapped yet, so arm it after the window shows
                 Qt.callLater(() => grab.active = win.visible);
                 if (visible) {
-                    brightnessFile.reload();
-                    maxBrightnessFile.reload();
+                    if (root.hasBacklight) {
+                        brightnessFile.reload();
+                        maxBrightnessFile.reload();
+                    }
                     panel.forceActiveFocus();
                 }
             }
@@ -234,12 +292,19 @@ Scope {
                 }
             }
 
+            LookShadow {
+                target: panel
+            }
+
             Rectangle {
                 id: panel
 
-                x: Math.round((1 - root.shown) * width) // slides in from the right edge
-                width: parent.width
-                height: parent.height
+                // slides in from the right edge (with its shadow)
+                // hidden: the shadow starts at the window's right edge, so no fringe shows before the panel
+                x: Theme.shadow.margin + Math.round((1 - root.shown) * win.width)
+                y: Theme.shadow.margin
+                width: Theme.control.width
+                height: parent.height - Theme.shadow.margin - Theme.control.panelEdge
                 radius: Theme.radius.lg
                 color: Theme.transparent // LookBackground draws the look's background
                 LookBackground {}
@@ -307,6 +372,13 @@ Scope {
                         onOpened: root.openOrbit("bt")
                     }
 
+                    // between Wi-Fi / BT and the sliders, like the one above the notifications (faza C ticket 17)
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: Theme.control.separator
+                    }
+
                     AudioSection {
                         width: parent.width
                         showDevices: false
@@ -320,8 +392,10 @@ Scope {
                         showStreams: false
                     }
 
+                    // only with the built-in panel (ticket c20); the Column closes the gap when hidden
                     ControlSlider {
                         width: parent.width
+                        visible: root.hasBacklight
                         iconClickable: false
                         icon: "\u{f00df}" // brightness
                         position: root.maxBrightness > 0 ? root.brightness / root.maxBrightness : 0
@@ -329,13 +403,13 @@ Scope {
                         onMoved: position => root.setBrightness(position)
                     }
 
-                    // output device and app volumes (B10 §1.2–1.3); hidden while there is nothing to choose
+                    // output device (B10 §1.2); hidden while there is nothing to choose. App volumes only in the audio
+                    // popup (faza C ticket 17, user 2026-11-08: the mixer made the Centrum too crowded)
                     AudioSection {
                         width: parent.width
                         showSlider: false
+                        showStreams: false
                         active: win.visible
-                        streamsFoldable: true
-                        streamsOpen: false // folded after start; stays as the user left it
                     }
 
                     Rectangle {
@@ -377,14 +451,28 @@ Scope {
                     }
                 }
 
+                // removable drives (faza C ticket 06), stuck to the panel's bottom edge (user 2026-11-10); hidden
+                // while none is plugged in, then the notifications reach the bottom
+                DriveSection {
+                    id: drives
+
+                    x: Theme.control.padding
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: Theme.control.padding
+                    width: topSection.width
+                    active: win.visible
+                    onOpened: mountpoint => root.openFiles(mountpoint)
+                }
+
                 ListView {
                     id: list
 
                     x: Theme.control.padding
                     anchors.top: topSection.bottom
                     anchors.topMargin: Theme.control.spacing
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Theme.control.padding
+                    // ends above the Sekcja Dyski while it shows
+                    anchors.bottom: drives.visible ? drives.top : parent.bottom
+                    anchors.bottomMargin: drives.visible ? Theme.control.spacing : Theme.control.padding
                     width: topSection.width
                     clip: true
                     model: Notifications.history
@@ -416,7 +504,7 @@ Scope {
                     removeDisplaced: Transition {
                         id: reflow
                         // the next card of a collapsed group (hidden one row lower until now) does not move from
-                        // there: it rises from under the removed card by itself (row.rise)
+                        // there: it rises from under the removed card by itself (StackMotion.rise)
                         NumberAnimation {
                             property: "y"
                             duration: reflow.ViewTransition.item?.rising === true ? 0 : Theme.notifications.centrumReflow // qmllint disable missing-property
@@ -456,7 +544,7 @@ Scope {
                         // the card above it was removed: in a collapsed group it comes out from the stack (rise), in an
                         // expanded one the row takes the removed row's place at once (the header stays) and only the
                         // card slides up (slide); either way the view does not move the row (removeDisplaced)
-                        readonly property bool rising: rise.running || slide.running || slidePending
+                        readonly property bool rising: motion.running || slidePending
                         property bool slidePending: false
                         property real slideStartY: 0 // the row's y before the removal
 
@@ -472,7 +560,7 @@ Scope {
                             if (!created || !newest || leaving)
                                 return;
                             if (!open) {
-                                rise.restart();
+                                motion.rise();
                             } else {
                                 slideStartY = y;
                                 slidePending = true;
@@ -484,87 +572,25 @@ Scope {
                             if (!slidePending)
                                 return;
                             slidePending = false;
-                            slide.from = slideStartY - y - groupHeader.height;
-                            slide.restart();
+                            motion.slideFrom(slideStartY - y - groupHeader.height);
                         }
 
-                        NumberAnimation {
-                            id: slide
-                            target: card
-                            property: "y"
-                            to: 0
-                            duration: Theme.notifications.centrumReflow
-                            easing.type: Easing.OutCubic // as removeDisplaced: the rows below move with it
-                        }
-
-                        // starts as the first edge (narrower, bottom on the edge's bottom) and grows to a full card
-                        ParallelAnimation {
-                            id: rise
-                            NumberAnimation {
-                                target: card
-                                property: "y"
-                                from: Theme.notifications.stackGap + Theme.notifications.stackPeek
-                                to: 0
-                                duration: Theme.notifications.centrumReflow
-                                easing.type: Easing.OutCubic
-                            }
-                            NumberAnimation {
-                                target: card
-                                property: "scale"
-                                from: 1 - 2 * Theme.notifications.stackInset / Math.max(card.width, 1)
-                                to: 1
-                                duration: Theme.notifications.centrumReflow
-                                easing.type: Easing.OutCubic
-                            }
-                            // the edge's colour turns into the card: the card fades in over its edge-coloured copy
-                            NumberAnimation {
-                                target: card
-                                property: "opacity"
-                                from: 0
-                                to: 1
-                                duration: Theme.notifications.centrumReflow
-                                easing.type: Easing.InOutQuad
-                            }
+                        StackMotion {
+                            id: motion
+                            cardItem: card
                         }
 
                         // group header: app name, count, arrow (click expands), Clear (ticket 16)
-                        Item {
+                        GroupHeader {
                             id: groupHeader
-
                             width: parent.width
-                            height: row.newest ? groupClear.height + Theme.spacing.md : 0
-                            visible: row.newest && !row.leavesGroup
-
-                            OrbitText {
-                                anchors.left: parent.left
-                                anchors.right: groupClear.left
-                                anchors.rightMargin: Theme.spacing.md
-                                anchors.verticalCenter: groupClear.verticalCenter
-                                elide: Text.ElideRight
-                                text: (row.count > 1 ? (row.open ? NotifLogic.GROUP_OPEN_ICON : NotifLogic.GROUP_CLOSED_ICON) + "  " : "")
-                                      + row.groupKey + (row.count > 1 ? " (" + row.count + ")" : "")
-                                font.pixelSize: Theme.font.sizeSmall
-                                color: Theme.control.subtext
-                            }
-
-                            Pill {
-                                id: groupClear
-                                anchors.right: parent.right
-                                anchors.bottom: parent.bottom
-                                anchors.bottomMargin: Theme.spacing.sm
-                                text: "Clear"
-                                onClicked: Notifications.clearGroup(row.groupKey)
-                            }
-
-                            // Clear has its own TapHandler, but this one fires too: a tap on Clear does not expand
-                            TapHandler {
-                                enabled: row.count > 1
-                                onTapped: eventPoint => {
-                                    const p = groupHeader.mapToItem(groupClear, eventPoint.position);
-                                    if (!groupClear.contains(p))
-                                        root.toggleGroup(row.groupKey);
-                                }
-                            }
+                            groupKey: row.groupKey
+                            count: row.count
+                            open: row.open
+                            newest: row.newest
+                            leavesGroup: row.leavesGroup
+                            onToggleRequested: root.toggleGroup(row.groupKey)
+                            onClearRequested: Notifications.clearGroup(row.groupKey)
                         }
 
                         Item {
@@ -574,56 +600,18 @@ Scope {
                             width: parent.width
                             height: card.height
 
-                            // the card as an edge while it grows (row.rise); under the card, same place and size
-                            Rectangle {
-                                x: card.x
-                                y: card.y
-                                width: card.width
-                                height: card.height
-                                scale: card.scale
-                                transformOrigin: Item.Bottom
-                                radius: card.radius
-                                color: Theme.notifications.stack
-                                visible: row.rising
-                            }
-
-                            // each edge shows only its bottom strip: a card-sized rectangle clipped to stackPeek px
-                            Repeater {
-                                model: NotifLogic.STACK_MAX_EDGES
-
-                                Item {
-                                    id: edge
-
-                                    required property int index
-                                    readonly property int inset: Theme.notifications.stackInset * (index + 1)
-
-                                    x: inset
-                                    y: card.height + Theme.notifications.stackGap + (Theme.notifications.stackPeek + Theme.notifications.stackGap) * index
-                                    width: body.width - 2 * inset
-                                    height: Theme.notifications.stackPeek
-                                    clip: true
-                                    opacity: index >= row.edgeCount ? 0 : index === 0 ? 1 : Theme.notifications.stackFade
-
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: Theme.motion.fast
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        width: parent.width
-                                        height: card.height
-                                        y: parent.height - height
-                                        radius: card.radius
-                                        color: Theme.notifications.stack
-                                    }
-                                }
+                            // edges of the stack and the card's copy while it rises; under the card
+                            StackEdges {
+                                anchors.fill: parent
+                                cardItem: card
+                                edgeCount: row.edgeCount
+                                rising: row.rising
                             }
 
                             NotificationCard {
                                 id: card
                                 width: parent.width
-                                transformOrigin: Item.Bottom // row.rise grows it from the edge
+                                transformOrigin: Item.Bottom // StackMotion.rise grows it from the edge
                                 showAppName: false
                                 time: row.model.time
                                 showTime: true
@@ -632,6 +620,7 @@ Scope {
                                 summary: row.model.summary
                                 body: row.model.body
                                 icon: row.model.icon
+                                fallbackIcon: row.model.fallbackIcon ?? ""
                                 urgency: row.model.urgency
                                 progress: row.model.progress
                                 actions: row.model.actions

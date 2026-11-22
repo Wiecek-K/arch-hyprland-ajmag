@@ -22,7 +22,10 @@ changes.
 | Source | License | Our files |
 |---|---|---|
 | [ilyamiro/serpantinum](https://github.com/ilyamiro/serpantinum)@`c34fb82`, Copyright (C) 2026 Illia Miroshnichenko | AGPL-3.0-or-later | `shell.qml`, `bar/Bar.qml`, `notifications/NotificationPopups.qml`, `singletons/notifications/Notifications.qml`, `launcher/Launcher.qml`, `launcher/launcher.mjs`, `orbit/Orbit.qml`, `orbit/orbit.mjs`, `wallpaper/WallpaperPicker.qml`, `wallpaper/carousel.mjs`, `wallpaper/indexer.py` |
+| [Björn Ottosson, "A perceptual color space for image processing"](https://bottosson.github.io/posts/oklab/) (OKLab formulas) | public domain (the post: "The code is available in public domain"; MIT offered as an alternative) | `wallpaper/indexer.py` (`oklch_chroma`) |
 | [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)@`9dc5b2c`, Copyright (c) 2025 Avenge Media LLC | MIT (notice below) | `bar/workspaces.mjs` (`luaString`, `luaValue`) |
+| [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)@`4a51cd6`, Copyright (c) 2025 Avenge Media LLC | MIT (notice below) | `singletons/privacy/privacy.mjs` (privacy rules from `PrivacyService.qml`) |
+| [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland)@`2f0c8bf`, Copyright (C) end-4 and contributors | GPL-3.0 (combined under GPL-3.0 section 13 with our AGPL-3.0-or-later) | `overview/Overview.qml`, `overview/overview.mjs` (workspace overview from `modules/ii/overview/OverviewWidget.qml` and `OverviewWindow.qml`) |
 
 ## Ideas only (own implementation, no code copied)
 
@@ -31,10 +34,11 @@ The file headers name the exact source file and commit.
 | Source | License | Idea used in |
 |---|---|---|
 | [ilyamiro/serpantinum](https://github.com/ilyamiro/serpantinum) | AGPL-3.0-or-later | tray click mapping, Wi-Fi signal steps, notification card, media island, media popup and player choice, workspaces |
-| [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) | MIT | audio volume clamp and device icons, tray submenus, wheel accumulator |
-| [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) | GPL-3.0 | theme loader (`FileView` on matugen JSON), unread badge on the bell, control centre sliders, OSD, calculator through `qalc` |
+| [AvengeMedia/DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) | MIT | audio volume clamp and device icons, tray submenus, wheel accumulator, privacy dot (`Privacy.qml`, `PrivacyIsland.qml`) |
+| [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) | GPL-3.0 | theme loader (`FileView` on matugen JSON), unread badge on the bell, control centre sliders, OSD, calculator through `qalc`, shadow under the big popups (`RectangularShadow`) |
 | [caelestia-dots/shell](https://github.com/caelestia-dots/shell) | GPL-3.0 | control centre panel layout, power panel buttons, calendar month wheel |
 | [basecamp/omarchy](https://github.com/basecamp/omarchy) | MIT | keybinds viewer |
+| [hthienloc/dms-plugins](https://github.com/hthienloc/dms-plugins) `activateLinux` and the `activate_linux` example of [quickshell-examples](https://git.outfoxxed.me/quickshell/quickshell-examples) | MIT (dms-plugins) | "Activate Linux" watermark (`extras/ActivateLinux.qml`) |
 
 ## MIT notice (DankMaterialShell)
 

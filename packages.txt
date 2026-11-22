@@ -1,0 +1,97 @@
+# Suggested packages: what this config runs or reads, grouped by the part that needs it.
+# Drivers, firmware and everyday applications are not here: pick them for your own machine.
+#
+# Official repositories:
+#   awk '!/^#/ && NF && !/AUR|optional/ {print $1}' packages.txt | sudo pacman -S --needed -
+# AUR (needs an AUR helper, e.g. yay):
+#   awk '!/^#/ && /AUR/ && !/optional/ {print $1}' packages.txt | yay -S --needed -
+# Lines tagged "optional": the config works without them; install the ones you want by name.
+#
+# tools/check.sh in the development folder checks that every command, Python module, font and icon theme
+# the config uses is on this list.
+
+# Session: Hyprland started by uwsm, portals (screen sharing, file dialogs), polkit agent
+hyprland
+uwsm
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+hyprpolkitagent
+qt5-wayland
+qt6-wayland
+xdg-utils                # xdg-open, xdg-settings (SUPER+B, links in notifications)
+xdg-user-dirs            # xdg-user-dir (screenshot and recording folders)
+
+# Hypr ecosystem: wallpaper, idle, lock screen, colour picker, monitor layout (writes hypr/monitors.lua)
+hyprpaper
+hypridle
+hyprlock
+hyprpicker
+nwg-displays
+
+# Shell and colours: Ajmashell (Quickshell), matugen, wallpaper thumbnails, the shell's helper scripts
+quickshell
+matugen
+imagemagick              # magick: wallpaper thumbnails, screenshot frame
+python
+python-gobject           # orbit/bt-pair.py (Bluetooth pairing agent)
+python-dbus              # orbit/bt-pair.py
+inotify-tools            # inotifywait: privacy dot (camera in use)
+udisks2                  # udisksctl: Drives section of the Control Center
+libqalculate             # qalc: calculator in the launcher
+
+# Terminal and files
+kitty
+nautilus
+udiskie
+yazi
+swayimg                  # image viewer (mimeapps.list)
+nautilus-open-any-terminal   # AUR; "Open in terminal" in Nautilus opens kitty (gsettings in the README)
+
+# Screenshots and recording
+grim
+slurp
+satty
+wf-recorder
+wl-clipboard
+
+# Sound and media
+pipewire
+pipewire-pulse
+wireplumber              # wpctl
+libpulse                 # pactl: Bluetooth audio profiles, recording with system sound
+pamixer
+playerctl                # media keys
+
+# Network and Bluetooth
+networkmanager
+nm-connection-editor     # network settings from Orbit
+bluez
+bluez-utils
+
+# Script tools
+jq
+socat                    # tells Zen to reload its colours
+libnotify                # notify-send
+
+# Fonts
+ttf-atkinson-hyperlegible
+otf-atkinsonhyperlegiblemono-nerd
+noto-fonts
+noto-fonts-emoji
+
+# GTK and Qt look
+nwg-look
+qt5ct
+qt6ct
+colloid-icon-theme-git   # AUR; base of the folder icons coloured from the wallpaper (icon-overlay.py)
+
+# zsh (.zshrc)
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+oh-my-zsh-git            # AUR
+
+# Optional applications with colours from the wallpaper (see the README for the extra steps)
+zen-browser-bin          # AUR, optional
+spotify                  # AUR, optional
+spicetify-cli            # AUR, optional

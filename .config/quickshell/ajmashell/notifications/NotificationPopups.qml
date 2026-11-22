@@ -7,7 +7,8 @@
 // margins: ExclusionMode.Normal keeps the window below the Bar's exclusive zone, also when SUPER+H
 // hides it); silent mode (DND) filters popups in Notifications.qml, not here; one card type (NotificationCard.qml) instead of the type Loader;
 // window on the monitor focused when the first popup appears; timeout per notification from
-// notifications.mjs; the timer restarts when a notification is replaced; sizes and colours from Theme.
+// notifications.mjs; the timer restarts when a notification is replaced; sizes and colours from Theme;
+// no popups while the Centrum sterowania is open (cards hidden at once, faza C ticket 03).
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pragma ComponentBehavior: Bound
@@ -68,6 +69,8 @@ PanelWindow { // qmllint disable uncreatable-type
         height: Math.min(parent.height, contentHeight)
         model: Notifications.popups
         spacing: Theme.notifications.spacing
+        // the Centrum opened: no card at once, the popups go a moment later (Notifications.centrumOpen, ticket C03)
+        visible: !Notifications.centrumOpen
         interactive: false
 
         add: Transition {

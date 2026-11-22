@@ -1,7 +1,7 @@
 # Ajmashell (Quickshell) — the only shell since ticket 23: no Waybar + swaync fallback any more,
 # so systemd brings qs back when it crashes. Started by hypr/configs/autostart.lua after it imports
 # Hyprland's env (Qt, cursor) into the user manager; not enabled, so it never starts outside Hyprland.
-# Manual restart: SUPER+R (`systemctl --user restart ajmashell.service`).
+# Manual restart: SUPER+SHIFT+R (`systemctl --user restart ajmashell.service`; SUPER+R until ticket cb40).
 [Unit]
 Description=Ajmashell (Quickshell)
 PartOf=graphical-session.target

@@ -12,9 +12,11 @@
 // Ticket 12: one Orbita per screen under the Wi-Fi / BT island; IpcHandler "orbit" opens it on the focused screen.
 // Ticket 14: the bell asks for the Centrum sterowania (controlRequested, handled in shell.qml); its rows open the Orbita.
 // Ticket 17: media island left of the clock; IpcHandler "media" opens its popup on the focused screen.
+// Faza C ticket 31: IpcHandler "media" `key` — the XF86Audio keys control the player shown on the Bar.
 // Ticket 27: every press on the Bar goes to BarPopups, so one click on another island switches the open element.
 // Ticket 52: a change of the focused workspace closes an open element (it followed the focused monitor until then).
 // Ticket 42: a click on the clock opens the calendar popup; IpcHandler "calendar" opens it on the focused screen.
+// Faza C ticket 05: the privacy dot right of the workspaces.
 // Tray and volume islands swapped (user, 2026-10-07): tray on the left edge, volume · microphone · separator before the pill.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -27,12 +29,14 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.orbit
 import qs.singletons.barpopups
+import qs.singletons.media
 import qs.singletons.theme
 
 Scope {
     id: root
 
     property bool shown: true
+    onShownChanged: BarPopups.barShown = shown
 
     signal orbitRequested(string tab, string screenName)
     signal controlRequested(string screenName)
@@ -63,6 +67,12 @@ Scope {
 
         function toggle(): void {
             root.mediaRequested(Hyprland.focusedMonitor?.name ?? "");
+        }
+
+        // qs -c ajmashell ipc call media key play-pause|next|previous — XF86Audio keys through
+        // hypr/scripts/media-key.sh (faza C ticket 31): the player shown on the Bar; "none" = no player, use playerctl
+        function key(verb: string): string {
+            return Media.key(verb);
         }
     }
 
@@ -140,6 +150,10 @@ Scope {
             Item {
                 focus: true
                 Keys.onEscapePressed: BarPopups.escaped()
+                Keys.onPressed: event => {
+                    if (event.key !== Qt.Key_Escape) // Esc: escaped() above, for every open element
+                        BarPopups.keyPressed(event);
+                }
             }
 
             // Every island; the press catcher below stays out of it, so deepestAt finds the island under the pointer.
@@ -174,8 +188,17 @@ Scope {
                 }
 
                 Workspaces {
+                    id: workspaces
                     anchors.left: clock.right
                     anchors.leftMargin: Theme.bar.islandGap
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                // faza C ticket 05: the privacy dot right of the workspaces, as far from them as the media island
+                // is from the clock (user, 2026-11-10); shown only while something records
+                PrivacyIsland {
+                    anchors.left: workspaces.right
+                    anchors.leftMargin: Math.round(clock.width * Theme.privacy.workspacesGap)
                     anchors.verticalCenter: parent.verticalCenter
                 }
 

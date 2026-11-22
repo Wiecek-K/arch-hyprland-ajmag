@@ -18,6 +18,7 @@ Rectangle {
     required property string summary
     required property string body
     required property string icon
+    required property string fallbackIcon // app icon, shown when icon (the notification's image) does not load
     required property int urgency
     required property int progress // 0–100, -1 = no bar
     required property var actions // ListModel: identifier, text (notifications.mjs actionButtons)
@@ -72,15 +73,29 @@ Rectangle {
         opacity: closeButton.shown && root.closeOnIcon ? 0 : 1
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.motion.fast
-            }
+            FadeFast {}
         }
 
         Image {
             id: image
+
+            // the image failed (satty's temp file is gone by now): the app icon; sticky, else a loaded fallback
+            // would switch back to the failing image
+            property bool imageFailed: false
+
             anchors.fill: parent
-            source: root.icon
+            source: imageFailed ? root.fallbackIcon : root.icon
+            onStatusChanged: {
+                if (status === Image.Error && !imageFailed && root.fallbackIcon)
+                    imageFailed = true;
+            }
+
+            Connections {
+                target: root
+                function onIconChanged(): void {
+                    image.imageFailed = false;
+                }
+            }
             sourceSize: Qt.size(width, height)
             fillMode: Image.PreserveAspectFit
             asynchronous: true
@@ -112,9 +127,7 @@ Rectangle {
         opacity: closeButton.shown ? 0 : 1
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.motion.fast
-            }
+            FadeFast {}
         }
     }
 
@@ -136,9 +149,7 @@ Rectangle {
         color: closeHover.hovered ? Theme.notifications.actionHover : Theme.transparent
 
         Behavior on opacity {
-            NumberAnimation {
-                duration: Theme.motion.fast
-            }
+            FadeFast {}
         }
 
         Text {

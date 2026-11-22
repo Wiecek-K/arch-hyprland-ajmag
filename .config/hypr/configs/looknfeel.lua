@@ -33,22 +33,30 @@ hl.config({
         rounding_power   = 2,
         active_opacity   = 1.0,
         inactive_opacity = 0.8,
+        -- Faza C ticket 09 (B11 wpis 10, end-4 dots-hyprland@2f0c8bf general.lua): duży, miękki, prawie
+        -- przezroczysty cień, tylko pod oknami pływającymi (kafelkowe: reguła no-shadow-tiled w rules.lua).
+        -- render_power 4 = maksimum Hyprlanda 0.57 (end-4 ma 10, odrzucane). Warstwy i popupy Ajmashella cienia
+        -- Hyprlanda nie dostają (layer_rule nie ma pola cienia); ich cień rysuje shell (ticket C13).
         shadow = {
-            enabled      = false,
-            range        = 4,
+            enabled      = true,
+            range        = 22,
+            offset       = { 0, 4 },
             render_power = 3,
-            color        = "rgba(1a1a1aee)",
+            color        = "rgba(00000080)",
         },
         blur = {
             enabled           = true,
-            size              = 8,
+            size              = 10,
             passes            = 2,
+            noise             = 0.02,
+            contrast          = 0.6,
             ignore_opacity    = true,
             new_optimizations = true,
             special           = false,
             popups            = true,
             xray              = false,
-            vibrancy          = 0.1696,
+            vibrancy          = 0.42,
+            vibrancy_darkness = 0.13,
         },
     },
 
@@ -64,7 +72,10 @@ hl.config({
         force_default_wallpaper    = 0,
         disable_hyprland_logo      = true,
         focus_on_activate          = true,
-        initial_workspace_tracking = 2,
+        -- 1, nie 2 (ticket c34 fazy C, decyzja użytkownika 2026-11-12): token workspace'u startu dostaje tylko
+        -- pierwsze okno procesu. Przy 2 każde nowe okno Nautilusa (jeden proces na wszystkie okna) szło po cichu na
+        -- workspace, na którym Nautilus kiedyś wystartował, także po kliku w powiadomienie satty.
+        initial_workspace_tracking = 1,
         -- kolor tła pod tapetą: ewentualny flash przy reloadzie nie będzie czarny
         background_color           = c.surface,
         -- awaryjne `hyprctl keyword misc:allow_session_lock_restore 1` nie działa pod Lua → na stałe
@@ -80,8 +91,6 @@ hl.config({
     },
 
     cursor = {
-        no_hardware_cursors = true,
-        use_cpu_buffer      = true,
         inactive_timeout    = 10,
     },
 })

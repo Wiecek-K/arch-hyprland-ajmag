@@ -9,6 +9,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
+import qs.singletons.apps
 import "media.mjs" as Logic
 
 Singleton {
@@ -52,6 +53,30 @@ Singleton {
         function onTrackTitleChanged(): void {
             root.rememberLength();
         }
+    }
+
+    // Ticket c14: double click on the island / popup — go to the window of the shown player's app (Apps.goToApp);
+    // no window (Spotify in the tray): MPRIS Raise, which the app may or may not honour.
+    // false = nothing done (no window, no Raise): the caller keeps its popup open (user, 2026-11-07).
+    function focusApp(p: MprisPlayer): bool {
+        if (!p)
+            return false;
+        if (Apps.goToApp(Logic.appId(p)))
+            return true;
+        if (!p.canRaise)
+            return false;
+        p.raise();
+        return true;
+    }
+
+    // Faza C ticket 31: an XF86Audio key (IPC `media key <verb>`, Bar.qml) on the shown player; the answer
+    // ("done" / "none") tells hypr/scripts/media-key.sh whether to fall back to playerctl. Rules: media.mjs `mediaKey`.
+    function key(verb: string): string {
+        const p = player;
+        const action = Logic.mediaKey(p, verb);
+        if (action.method)
+            p[action.method]();
+        return action.answer;
     }
 
     function select(p: MprisPlayer): void {

@@ -43,7 +43,7 @@
     "still": { "background": "on_primary_fixed", "alpha": 0.9, "motion": false, "flare": true, "glass": true, "softPills": true, "blur": true }
   },
   "defaults": {
-    "background": "on_primary_fixed", "alpha": 1, "motion": true, "flare": true, "glass": true, "softPills": true, "blur": true,
-    "gradient": { "style": "off", "a": "primary_container", "b": "tertiary_container", "strength": 0.6, "angle": 45, "reachA": 1, "reachB": 0.5 }
+    "background": "on_primary_fixed", "alpha": 0.7, "motion": true, "flare": true, "glass": true, "softPills": true, "blur": true,
+    "gradient": { "style": "vignette", "a": "primary", "b": "secondary_container", "strength": 0.15, "angle": 279, "reachA": 0.45, "reachB": 0.0 }
   }
 }

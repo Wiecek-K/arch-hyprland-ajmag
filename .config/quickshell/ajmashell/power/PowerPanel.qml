@@ -1,7 +1,8 @@
 // Panel zasilania (ticket 18, D10): replaces wlogout. Like wlogout it covers the screen with a translucent, blurred
 // backdrop (our colours) and a row of large buttons in the middle of every monitor (user, 2026-10-09; one selection
 // shared by all): Lock, Logout, Suspend, Reboot, Shutdown,
-// with wlogout's commands and keys (l e u r s run at once, as in wlogout). No Hibernate: the kernel has it off here
+// with wlogout's commands; keys l e s r q run at once, without a confirmation (wlogout's l e u r s until faza C
+// ticket 26: S suspends, Q shuts down, user 2026-11-03). No Hibernate: the kernel has it off here
 // (user, 2026-10-09: remove the button). Arrows / Tab move, Enter or Space runs the selected one; Esc or a click
 // on the backdrop closes.
 // Opened by SUPER+L (keybinds.lua) and the power button of the
@@ -10,7 +11,7 @@
 // Own implementation after caelestia modules/session/Content.qml (idea only: large icon buttons, the keyboard
 // moving the selection, Enter runs):
 // https://github.com/caelestia-dots/shell/blob/454f46da16ae75cc57f34adf48dea74db0fa5175/modules/session/Content.qml
-// (GPL-3.0). Ours: wlogout's actions and keys and its full-screen backdrop, no GIF, Theme.power colours, the
+// (GPL-3.0). Ours: wlogout's actions and its full-screen backdrop, own keys (ticket 26), no GIF, Theme.power colours, the
 // look's flare behind the buttons (turning in a look with motion: fancy, fancy2).
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -57,10 +58,26 @@ Scope {
             return;
         open = false;
         const command = Logic.command(action, env);
+        if (Logic.waitsForClose(action)) {
+            later.command = command; // after the fade-out: see Theme.power.closeWait
+            later.start();
+        } else {
+            execute(command);
+        }
+    }
+
+    function execute(command: var): void {
         if (dryRun)
             console.log("power dry run:", JSON.stringify(command));
         else
             Apps.run(command, ""); // through Hyprland, as the launcher's apps
+    }
+
+    Timer {
+        id: later
+        property var command: []
+        interval: Theme.power.closeWait
+        onTriggered: root.execute(command)
     }
 
     IpcHandler {
@@ -201,7 +218,7 @@ Scope {
                                     color: button.ink
                                 }
 
-                                // wlogout's key, so it can be learnt from the panel
+                                // the button's key, so it can be learnt from the panel
                                 OrbitText {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: button.modelData.key.toUpperCase()
