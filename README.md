@@ -28,7 +28,7 @@ Own shell written in [Quickshell](https://quickshell.org) (QML), in `.config/qui
 *   **Typography:** Global usage of **Atkinson Hyperlegible** (UI) and **Atkinson Hyperlegible Mono** (Shell/Terminal/Code) for maximum readability. In Nerd Fonts the mono family is called `AtkynsonMono Nerd Font` (package `otf-atkinsonhyperlegiblemono-nerd`); use that name if you set the font in another app.
 *   **Focus at a glance:** the active window is fully opaque with a gradient border in the wallpaper colors; inactive windows fade slightly. Text-heavy apps (browsers, messengers, notes, code editors) stay readable when inactive, video players never fade. Tune it in `.config/hypr/configs/rules.lua`.
 
-https://github.com/user-attachments/assets/625d61db-de32-420d-a067-329208991e28
+https://github.com/user-attachments/assets/ec84311d-b53d-45f6-beb5-fb229a2013fe
 
 ---
 
