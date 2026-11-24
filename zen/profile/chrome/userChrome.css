@@ -10,12 +10,52 @@
 /* Basic Zen Browser theming using Matugen variables */
 :root {
     --zen-primary-color: var(--zen-primary) !important;
-    --toolbar-bgcolor: var(--zen-surface) !important;
-    --lwt-sidebar-background-color: var(--zen-surface) !important;
+    /* Window + pinned sidebar: one semi-transparent Matugen surface (transparent window: prefs in user.js, zen/README.md). */
+    --ajm-window-bg: color-mix(in srgb, var(--zen-surface) 50%, transparent);
+    /* Compact (auto-hide) sidebar floats over the page: denser and blurred so page text does not mix with tab names. */
+    --ajm-compact-bg: color-mix(in srgb, var(--zen-surface) 60%, transparent);
+    --ajm-compact-blur: blur(42px);
+    /* Toolbars and sidebar stay transparent: the window background below them gives the colour (no darker double layer). */
+    --toolbar-bgcolor: transparent !important;
+    --lwt-sidebar-background-color: transparent !important;
 }
 
+
+/* Window background (also the frame around the page): Zen paints it on .zen-browser-generic-background::after
+ * from --zen-main-browser-background (workspace gradient, set inline by Zen; -old = during workspace switch). */
+.zen-browser-generic-background {
+    --zen-main-browser-background: var(--ajm-window-bg) !important;
+    --zen-main-browser-background-old: var(--ajm-window-bg) !important;
+    --zen-main-browser-background-toolbar: var(--ajm-window-bg) !important;
+    --zen-main-browser-background-toolbar-old: var(--ajm-window-bg) !important;
+}
+
+/* Pinned sidebar: no own background, the window background shows through. */
 #navigator-toolbox {
-    background-color: var(--zen-surface) !important;
+    background-color: transparent !important;
+}
+
+/* Compact (auto-hide) sidebar: Zen paints its floating panel on .zen-toolbar-background (opaque #131313,
+ * zen-compact-mode.css). The blur is Zen's own: it blurs the page under the panel, not the desktop. */
+:root[zen-compact-mode="true"] .zen-toolbar-background {
+    background: var(--ajm-compact-bg) !important;
+    backdrop-filter: var(--ajm-compact-blur) !important;
+}
+:root[zen-compact-mode="true"] .zen-toolbar-background::before,
+:root[zen-compact-mode="true"] .zen-toolbar-background::after {
+    background: transparent !important;
+}
+
+/* Compact mode: page fills the whole window. Zen sets --zen-element-separation (frame around the page,
+ * pref zen.theme.content-element-separation) inline on :root; a sheet !important wins over it. */
+:root[zen-compact-mode="true"] {
+    --zen-element-separation: 0px !important;
+    --zen-webview-border-radius: 0px !important;
+}
+:root[zen-compact-mode="true"] #tabbrowser-tabpanels browser[type="content"],
+:root[zen-compact-mode="true"] .browserSidebarContainer {
+    box-shadow: none !important;
+    border-radius: 0 !important;
 }
 
 /* Active tab: Zen paints it with --tab-background-color-selected, set on zen-workspace (zen-workspaces.css,
