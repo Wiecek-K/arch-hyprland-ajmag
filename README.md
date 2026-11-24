@@ -42,7 +42,7 @@ https://github.com/user-attachments/assets/ec84311d-b53d-45f6-beb5-fb229a2013fe
 │   ├── dbus-1/services/      # Nautilus D-Bus start refused while the portal starts (avoids a 25 s wait at login)
 │   └── icons/                # Cursor themes (Vimix-cursors, Vimix-hyprcursor)
 ├── .zshrc                    # Copy to ~/.zshrc
-├── zen/
+├── zen/                      # Zen Browser look, install steps in zen/README.md
 │   ├── profile/              # Copy into your Zen profile (user.js, chrome/userChrome.css)
 │   └── opt/                  # Copy into /opt/zen-browser-bin/ with sudo (live colours, optional)
 ├── cursor-src/               # Cursor hotspot tools and notes (not installed)
@@ -101,20 +101,7 @@ gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty 
 ```
 
 ### 5. Zen Browser (optional)
-Start Zen once first, so it creates its profile (the `Default=` line of `~/.config/zen/installs.ini`). Then:
-```bash
-PROFILE=~/.config/zen/"$(sed -n 's/^Default=//p' ~/.config/zen/installs.ini 2>/dev/null | head -n 1)"
-if [ "$PROFILE" != ~/.config/zen/ ] && [ -d "$PROFILE" ]; then
-    cp -r --backup=numbered zen/profile/. "$PROFILE/"
-    rm -rf ~/.local/state/ajmashell/zen-chrome && ln -s "$PROFILE/chrome" ~/.local/state/ajmashell/zen-chrome
-else
-    echo "No Zen profile: start Zen once, then run these lines again"
-fi
-```
-`user.js` turns on `userChrome.css`; the link is where Matugen writes Zen's colours. Live colours without a browser restart need two files in the browser's own folder (root, `sudo`); skip them and the colours change on the next Zen start:
-```bash
-sudo cp -r zen/opt/. /opt/zen-browser-bin/
-```
+Matugen colours, a transparent window, live colour reload: steps in [`zen/README.md`](zen/README.md).
 
 ### 6. First Run
 1.  Log out and back in (or reboot). With more than one monitor, or a wrong resolution, set the layout in `nwg-displays` (see Monitor Configuration below).
@@ -178,8 +165,7 @@ The workspace switching binds in this configuration use specific symbols (e.g., 
 *   **License:** Ajmashell is licensed under **AGPL-3.0-or-later** — see [`LICENSE`](.config/quickshell/ajmashell/LICENSE). Parts of it are copied from or inspired by other Quickshell configs; [`SOURCES.md`](.config/quickshell/ajmashell/SOURCES.md) lists them with their licenses. The license covers only `.config/quickshell/ajmashell/`, not the rest of this repository.
 
 ### Zen Browser
-*   Uses `userChrome.css` (`zen/profile/chrome/`, enabled by `zen/profile/user.js`) to import `matugen-colors.css` at startup.
-*   **Live colours:** Firefox reads `userChrome.css` only at startup, so the AutoConfig script `zen/opt/config.js` (copied into `/opt/zen-browser-bin/` with `sudo`, step 5 of the installation) re-registers `matugen-colors.css` as a user style sheet when matugen's post_hook connects to its Unix socket (`$XDG_RUNTIME_DIR/ajmashell-zen.sock`, via `socat`) after each wallpaper change — no browser restart, no polling. Roll back: delete `/opt/zen-browser-bin/config.js` and `/opt/zen-browser-bin/defaults/pref/autoconfig.js`, restart Zen.
+*   Matugen colours through `userChrome.css`, live reload without a restart (AutoConfig in `/opt`), a semi-transparent window blurred by Hyprland, compact mode without the frame around the page. Details and install: [`zen/README.md`](zen/README.md).
 
 ### Terminal (Kitty)
 *   **Style:** Powerline tab bar (hidden if only 1 tab), Beam cursor.
