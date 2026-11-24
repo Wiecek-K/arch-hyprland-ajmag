@@ -57,7 +57,7 @@ Check them in `about:config`. On Windows 11 the matching prefs are `widget.trans
 layer of the Matugen surface at 50 % opacity. The desktop behind it is blurred by Hyprland, not by Zen:
 `decoration.blur` in `.config/hypr/configs/looknfeel.lua` (global for all windows; Hyprland has no per-window blur strength).
 
-The compact (auto-hide) sidebar is a separate floating panel over the page. It gets the surface at 60 % plus Zen's own
+The compact (auto-hide) sidebar is a separate floating panel over the page. It gets the surface at 75 % plus Zen's own
 CSS blur (`backdrop-filter: blur(42px)`, the value of Zen's acrylic sidebar), so page text under it does not mix with
 tab names. A CSS blur sees only what Zen draws, never the desktop.
 
@@ -70,7 +70,7 @@ Variables at the top of `userChrome.css` (restart Zen after an edit):
 | Variable | Default | What |
 |---|---|---|
 | `--ajm-window-bg` | surface 50 % | window background and pinned sidebar |
-| `--ajm-compact-bg` | surface 60 % | compact sidebar panel |
+| `--ajm-compact-bg` | surface 75 % | compact sidebar panel |
 | `--ajm-compact-blur` | `blur(42px)` | blur of the page under the compact sidebar |
 
 Do not give `#navigator-toolbox`, `--toolbar-bgcolor` or `--lwt-sidebar-background-color` an opaque colour with

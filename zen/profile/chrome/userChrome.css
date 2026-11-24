@@ -13,7 +13,7 @@
     /* Window + pinned sidebar: one semi-transparent Matugen surface (transparent window: prefs in user.js, zen/README.md). */
     --ajm-window-bg: color-mix(in srgb, var(--zen-surface) 50%, transparent);
     /* Compact (auto-hide) sidebar floats over the page: denser and blurred so page text does not mix with tab names. */
-    --ajm-compact-bg: color-mix(in srgb, var(--zen-surface) 60%, transparent);
+    --ajm-compact-bg: color-mix(in srgb, var(--zen-surface) 75%, transparent);
     --ajm-compact-blur: blur(42px);
     /* Toolbars and sidebar stay transparent: the window background below them gives the colour (no darker double layer). */
     --toolbar-bgcolor: transparent !important;
